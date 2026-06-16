@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.AppointmentConfirmationPage">
+    <ScrollView>
+        <VerticalStackLayout Padding="24,34" Spacing="20">
+            <Border Padding="28" StrokeThickness="0">
+                <Border.StrokeShape><RoundRectangle CornerRadius="34" /></Border.StrokeShape>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#155EEF" Offset="0" />
+                        <GradientStop Color="#2DD4BF" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                    <Image Source="medibook_logo.svg" HeightRequest="104" WidthRequest="104" />
+                    <Label Text="Appointment Confirmed" TextColor="White" FontSize="28" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                    <Label Text="Your details have been saved to the local database." TextColor="#D9EAFF" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="White" Padding="20" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border.StrokeShape><RoundRectangle CornerRadius="26" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label x:Name="DoctorLabel" Text="Doctor" Style="{StaticResource SectionTitle}" />
+                    <Label x:Name="DepartmentLabel" Text="Department" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
+                    <Label x:Name="DateTimeLabel" Text="Date and time" Style="{StaticResource MutedLabel}" />
+                    <Label x:Name="EmailLabel" Text="Email reminder queued" TextColor="{StaticResource Success}" FontAttributes="Bold" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="View My Appointments" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnAppointmentsClicked" />
+            <Button Text="Back to Home" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnHomeClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

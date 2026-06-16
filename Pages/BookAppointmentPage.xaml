@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.BookAppointmentPage">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="16">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <Button Text="‹" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" TextColor="{StaticResource PrimaryBlue}" Clicked="OnBackClicked" />
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="Book appointment" Style="{StaticResource TitleLabel}" />
+                    <Label Text="Choose date, time and reason for your visit." Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <Border BackgroundColor="White" Padding="18" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border.StrokeShape><RoundRectangle CornerRadius="26" /></Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                    <Image Source="icon_doctor.svg" HeightRequest="72" WidthRequest="72" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label x:Name="DoctorNameLabel" Text="Doctor" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                        <Label x:Name="DoctorSpecialtyLabel" Text="Specialty" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
+                        <Label x:Name="DoctorAvailabilityLabel" Text="Availability" Style="{StaticResource MutedLabel}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <Border BackgroundColor="White" Padding="20" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border.StrokeShape><RoundRectangle CornerRadius="26" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Appointment details" Style="{StaticResource SectionTitle}" />
+                    <Label Text="Date" FontAttributes="Bold" />
+                    <DatePicker x:Name="AppointmentDatePicker" MinimumDate="2026-01-01" />
+                    <Label Text="Time" FontAttributes="Bold" />
+                    <TimePicker x:Name="AppointmentTimePicker" Time="09:00:00" />
+                    <Label Text="Reason for visit" FontAttributes="Bold" />
+                    <Editor x:Name="ReasonEditor" Placeholder="Example: General check-up, skin concern, blood pressure review..." Style="{StaticResource EditorStyle}" />
+                    <HorizontalStackLayout Spacing="8">
+                        <CheckBox x:Name="EmailReminderCheck" IsChecked="True" Color="{StaticResource PrimaryBlue}" />
+                        <Label Text="Send email confirmation and queue appointment-day email reminder" VerticalOptions="Center" Style="{StaticResource MutedLabel}" />
+                    </HorizontalStackLayout>
+                    <Button Text="Confirm Appointment" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnConfirmClicked" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.ProfilePage">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="16">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <VerticalStackLayout>
+                    <Label Text="Profile" Style="{StaticResource TitleLabel}" />
+                    <Label Text="Your details are saved per user in SQLite." Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+                <Button Grid.Column="1" Text="Settings" Style="{StaticResource SecondaryButtonStyle}" WidthRequest="112" Clicked="OnSettingsClicked" />
+            </Grid>
+
+            <Border Padding="22" StrokeThickness="0">
+                <Border.StrokeShape><RoundRectangle CornerRadius="30" /></Border.StrokeShape>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0B2A5B" Offset="0" />
+                        <GradientStop Color="#155EEF" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                    <Image Source="medibook_logo.svg" HeightRequest="78" WidthRequest="78" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                        <Label x:Name="HeaderNameLabel" Text="Patient" TextColor="White" FontSize="22" FontAttributes="Bold" />
+                        <Label x:Name="HeaderEmailLabel" Text="email@example.com" TextColor="#D9EAFF" />
+                        <Label x:Name="ProviderLabel" Text="Local Account" TextColor="#DCFCE7" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <Border BackgroundColor="White" Padding="20" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border.StrokeShape><RoundRectangle CornerRadius="28" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Patient information" Style="{StaticResource SectionTitle}" />
+                    <Entry x:Name="NameEntry" Placeholder="Full name" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="EmailEntry" Placeholder="Email" Keyboard="Email" IsReadOnly="True" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="PhoneEntry" Placeholder="Phone" Keyboard="Telephone" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="DobEntry" Placeholder="Date of birth" Style="{StaticResource InputStyle}" />
+                    <Button Text="Save Profile" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnSaveClicked" />
+                    <Button Text="Contact Clinic" ImageSource="icon_phone.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnContactClicked" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

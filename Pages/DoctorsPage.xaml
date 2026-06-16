@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.DoctorsPage">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="16">
+            <Label Text="Doctors" Style="{StaticResource TitleLabel}" />
+            <Label Text="Select a doctor and book an appointment." Style="{StaticResource MutedLabel}" />
+            <SearchBar x:Name="DoctorSearch" Placeholder="Search by doctor, department or specialty" TextChanged="OnSearchTextChanged" BackgroundColor="White" />
+            <CollectionView x:Name="DoctorsCollection" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border BackgroundColor="White" Padding="18" Margin="0,6" Stroke="#D8E6F8" StrokeThickness="1">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="26" /></Border.StrokeShape>
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="16" RowSpacing="10">
+                                <Border BackgroundColor="#D9EAFF" HeightRequest="70" WidthRequest="70" StrokeThickness="0">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="22" /></Border.StrokeShape>
+                                    <Image Source="icon_doctor.svg" HeightRequest="58" WidthRequest="58" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" Spacing="3">
+                                    <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="18" TextColor="{StaticResource PrimaryNavy}" />
+                                    <Label Text="{Binding Specialty}" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Availability}" Style="{StaticResource MutedLabel}" />
+                                    <Label Text="{Binding Bio}" Style="{StaticResource MutedLabel}" />
+                                </VerticalStackLayout>
+                                <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <Label Text="{Binding Experience, StringFormat='Experience: {0}'}" Style="{StaticResource MutedLabel}" VerticalOptions="Center" />
+                                    <Button Grid.Column="1" Text="Book" Style="{StaticResource PrimaryButtonStyle}" WidthRequest="105" HeightRequest="46" CommandParameter="{Binding .}" Clicked="OnBookDoctorClicked" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.HomePage">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="18">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <VerticalStackLayout>
+                    <Label x:Name="WelcomeLabel" Text="Welcome" Style="{StaticResource TitleLabel}" />
+                    <Label Text="Manage appointments with MediBook" Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+                <Image Grid.Column="1" Source="medibook_logo.svg" HeightRequest="58" WidthRequest="58" />
+            </Grid>
+
+            <Border Padding="22" StrokeThickness="0">
+                <Border.StrokeShape><RoundRectangle CornerRadius="30" /></Border.StrokeShape>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#071A3D" Offset="0.0" />
+                        <GradientStop Color="#155EEF" Offset="0.68" />
+                        <GradientStop Color="#2DD4BF" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Your digital clinic desk" TextColor="White" FontSize="22" FontAttributes="Bold" />
+                        <Label Text="Book doctors, upload documents and receive email reminders." TextColor="#D9EAFF" FontSize="14" />
+                        <Button Text="Book Appointment" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnBookClicked" Margin="0,8,0,0" />
+                    </VerticalStackLayout>
+                    <Image Grid.Column="1" Source="icon_doctor.svg" HeightRequest="96" WidthRequest="96" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <Label Text="Next appointment" Style="{StaticResource SectionTitle}" />
+            <Border BackgroundColor="White" Padding="18" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                    <Image Source="icon_calendar.svg" HeightRequest="64" WidthRequest="64" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label x:Name="NextDoctorLabel" Text="No appointment booked" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                        <Label x:Name="NextDateLabel" Text="Book your first appointment today." Style="{StaticResource MutedLabel}" />
+                        <Label x:Name="NextStatusLabel" Text="Email reminder and document upload ready" TextColor="{StaticResource Success}" FontSize="13" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <Label Text="Quick actions" Style="{StaticResource SectionTitle}" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                <Button Text="Doctors" ImageSource="icon_doctor.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnDoctorsClicked" />
+                <Button Grid.Column="1" Text="Upload" ImageSource="icon_camera.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnUploadClicked" />
+                <Button Grid.Row="1" Text="Call Clinic" ImageSource="icon_phone.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnCallClicked" />
+                <Button Grid.Row="1" Grid.Column="1" Text="Directions" ImageSource="icon_map.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnMapClicked" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

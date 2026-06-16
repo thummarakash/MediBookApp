@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UIDeviceFamily</key>
+    <array>
+        <integer>1</integer>
+        <integer>2</integer>
+    </array>
+    <key>NSCameraUsageDescription</key>
+    <string>MediBook uses the camera to upload prescriptions and medical documents.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>MediBook uses your photo library to upload medical documents.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>com.akash.medibook</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.akash.medibook</string>
+        </array>
+      </dict>
+    </array>
+</dict>
+</plist>

@@ -1,0 +1,23 @@
+# Visual Studio files
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bin/
+obj/
+
+# MAUI / Xamarin specific ignores
+AppPackages/
+BundleArtifacts/
+PublishOutputs/
+*.user
+
+# Android specific ignores
+*.apk
+*.aab
+
+# OS files
+.DS_Store
+Thumbs.db

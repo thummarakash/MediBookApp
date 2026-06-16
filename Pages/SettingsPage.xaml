@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.SettingsPage">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="16">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <Button Text="‹" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" TextColor="{StaticResource PrimaryBlue}" Clicked="OnBackClicked" />
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="Settings" Style="{StaticResource TitleLabel}" />
+                    <Label Text="No dark mode toggle. Clean professional settings only." Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <Border BackgroundColor="White" Padding="20" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border.StrokeShape><RoundRectangle CornerRadius="28" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Account" Style="{StaticResource SectionTitle}" />
+                    <Label x:Name="AccountLabel" Text="Signed in" Style="{StaticResource MutedLabel}" />
+                    <Button Text="Google Sign-up / Switch Account" ImageSource="icon_google.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnGoogleClicked" />
+                    <Button Text="Contact Clinic" ImageSource="icon_phone.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnContactClicked" />
+                    <Button Text="Send Test Email" ImageSource="icon_email.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnTestEmailClicked" />
+                    <Button Text="Logout" BackgroundColor="#FEE2E2" TextColor="#B91C1C" CornerRadius="18" HeightRequest="50" FontAttributes="Bold" Clicked="OnLogoutClicked" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

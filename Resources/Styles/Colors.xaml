@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Color x:Key="PrimaryNavy">#071A3D</Color>
+    <Color x:Key="Navy2">#0B2A5B</Color>
+    <Color x:Key="PrimaryBlue">#155EEF</Color>
+    <Color x:Key="Blue2">#287CFF</Color>
+    <Color x:Key="SkyBlue">#D9EAFF</Color>
+    <Color x:Key="Aqua">#2DD4BF</Color>
+    <Color x:Key="Mint">#DCFCE7</Color>
+    <Color x:Key="Warning">#F59E0B</Color>
+    <Color x:Key="Danger">#EF4444</Color>
+    <Color x:Key="Success">#16A34A</Color>
+    <Color x:Key="PageBg">#F4F8FF</Color>
+    <Color x:Key="CardBg">#FFFFFF</Color>
+    <Color x:Key="SoftCard">#EDF5FF</Color>
+    <Color x:Key="TextDark">#102A43</Color>
+    <Color x:Key="MutedText">#64748B</Color>
+    <Color x:Key="BorderLight">#D8E6F8</Color>
+    <Color x:Key="White">#FFFFFF</Color>
+</ResourceDictionary>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.RegisterPage">
+    <ScrollView>
+        <VerticalStackLayout Padding="24,30" Spacing="18">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <Button Text="‹" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" TextColor="{StaticResource PrimaryBlue}" Clicked="OnBackClicked" />
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="Create account" Style="{StaticResource TitleLabel}" />
+                    <Label Text="Save your details securely in the local app database." Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <Border BackgroundColor="White" Padding="22" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border.StrokeShape><RoundRectangle CornerRadius="28" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Entry x:Name="FullNameEntry" Placeholder="Full name" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="EmailEntry" Placeholder="Email address" Keyboard="Email" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="PhoneEntry" Placeholder="Phone number" Keyboard="Telephone" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="DobEntry" Placeholder="Date of birth e.g. 12/05/1999" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="PasswordEntry" Placeholder="Password" IsPassword="True" Style="{StaticResource InputStyle}" />
+                    <Entry x:Name="ConfirmPasswordEntry" Placeholder="Confirm password" IsPassword="True" Style="{StaticResource InputStyle}" />
+                    <Button Text="Create Account" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnCreateClicked" />
+                    <Button Text="Sign up with Google" ImageSource="icon_google.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnGoogleClicked" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Style TargetType="ContentPage">
+        <Setter Property="BackgroundColor" Value="{StaticResource PageBg}" />
+    </Style>
+
+    <Style TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource TextDark}" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="TitleLabel" TargetType="Label">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource PrimaryNavy}" />
+    </Style>
+
+    <Style x:Key="SectionTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource PrimaryNavy}" />
+    </Style>
+
+    <Style x:Key="MutedLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource MutedText}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style x:Key="InputStyle" TargetType="Entry">
+        <Setter Property="BackgroundColor" Value="White" />
+        <Setter Property="TextColor" Value="{StaticResource TextDark}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource MutedText}" />
+        <Setter Property="HeightRequest" Value="48" />
+        <Setter Property="Margin" Value="0,4" />
+    </Style>
+
+    <Style x:Key="EditorStyle" TargetType="Editor">
+        <Setter Property="BackgroundColor" Value="White" />
+        <Setter Property="TextColor" Value="{StaticResource TextDark}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource MutedText}" />
+        <Setter Property="HeightRequest" Value="96" />
+    </Style>
+
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource PrimaryBlue}" />
+        <Setter Property="TextColor" Value="White" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="HeightRequest" Value="52" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontSize" Value="15" />
+    </Style>
+
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource SkyBlue}" />
+        <Setter Property="TextColor" Value="{StaticResource PrimaryBlue}" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="HeightRequest" Value="50" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="FontSize" Value="15" />
+    </Style>
+
+    <Style x:Key="OutlineButtonStyle" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="White" />
+        <Setter Property="TextColor" Value="{StaticResource PrimaryBlue}" />
+        <Setter Property="BorderColor" Value="{StaticResource BorderLight}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="HeightRequest" Value="50" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+</ResourceDictionary>

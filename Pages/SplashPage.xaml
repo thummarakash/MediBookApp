@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.SplashPage">
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#071A3D" Offset="0.0" />
+                <GradientStop Color="#155EEF" Offset="0.62" />
+                <GradientStop Color="#2DD4BF" Offset="1.0" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        <VerticalStackLayout Padding="32" Spacing="18" HorizontalOptions="Center" VerticalOptions="Center">
+            <Image Source="medibook_logo.svg" HeightRequest="150" WidthRequest="150" />
+            <Label Text="MediBook" TextColor="White" FontSize="36" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+            <Label Text="Book appointments, manage reports and stay connected with your clinic." TextColor="#D9EAFF" FontSize="15" HorizontalTextAlignment="Center" WidthRequest="320" />
+            <ActivityIndicator IsRunning="True" Color="White" Margin="0,20,0,0" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
