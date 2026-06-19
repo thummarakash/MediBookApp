@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.PinPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBg}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="24,30,24,40">
+        <!-- Header / Back Button -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0,0,0,10">
+            <ImageButton x:Name="BackBtn" Source="icon_back_white.png" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="{StaticResource PrimaryNavy}" Padding="12" Clicked="OnBackClicked" HorizontalOptions="Start" />
+            <Label x:Name="PageTitleText" Grid.Column="1" Text="Security PIN" FontAttributes="Bold" FontSize="20" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" VerticalOptions="Center" Margin="-44,0,0,0" />
+        </Grid>
+
+        <!-- Main Display (Title, Dots Indicator) -->
+        <VerticalStackLayout Grid.Row="1" Spacing="40" VerticalOptions="Center" HorizontalOptions="Center">
+            <!-- App Logo (Small) -->
+            <Image Source="medibook_logo.svg" HeightRequest="70" WidthRequest="70" HorizontalOptions="Center" />
+
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Label x:Name="InstructionLabel" Text="Enter your Security PIN" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource PrimaryNavy}" />
+                <Label x:Name="SubtitleLabel" Text="Enter the 4-digit code to unlock the application" FontSize="14.5" HorizontalTextAlignment="Center" TextColor="{StaticResource MutedText}" />
+            </VerticalStackLayout>
+
+            <!-- Dots Indicator -->
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="16">
+                <Border x:Name="Dot1" WidthRequest="18" HeightRequest="18" StrokeThickness="2" Stroke="{StaticResource PrimaryNavy}" BackgroundColor="Transparent">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="9" /></Border.StrokeShape>
+                </Border>
+                <Border x:Name="Dot2" WidthRequest="18" HeightRequest="18" StrokeThickness="2" Stroke="{StaticResource PrimaryNavy}" BackgroundColor="Transparent">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="9" /></Border.StrokeShape>
+                </Border>
+                <Border x:Name="Dot3" WidthRequest="18" HeightRequest="18" StrokeThickness="2" Stroke="{StaticResource PrimaryNavy}" BackgroundColor="Transparent">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="9" /></Border.StrokeShape>
+                </Border>
+                <Border x:Name="Dot4" WidthRequest="18" HeightRequest="18" StrokeThickness="2" Stroke="{StaticResource PrimaryNavy}" BackgroundColor="Transparent">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="9" /></Border.StrokeShape>
+                </Border>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- Numeric Keypad -->
+        <Grid Grid.Row="2" RowDefinitions="*,*,*,*" ColumnDefinitions="*,*,*" RowSpacing="15" ColumnSpacing="20" WidthRequest="280" HorizontalOptions="Center">
+            <!-- Row 1 -->
+            <Button Grid.Row="0" Grid.Column="0" Text="1" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+            <Button Grid.Row="0" Grid.Column="1" Text="2" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+            <Button Grid.Row="0" Grid.Column="2" Text="3" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+
+            <!-- Row 2 -->
+            <Button Grid.Row="1" Grid.Column="0" Text="4" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+            <Button Grid.Row="1" Grid.Column="1" Text="5" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+            <Button Grid.Row="1" Grid.Column="2" Text="6" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+
+            <!-- Row 3 -->
+            <Button Grid.Row="2" Grid.Column="0" Text="7" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+            <Button Grid.Row="2" Grid.Column="1" Text="8" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+            <Button Grid.Row="2" Grid.Column="2" Text="9" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+
+            <!-- Row 4 -->
+            <Button x:Name="LeftBottomBtn" Grid.Row="3" Grid.Column="0" Text="Clear" Clicked="OnClearClicked" Style="{StaticResource KeypadTextButtonStyle}" />
+            <Button Grid.Row="3" Grid.Column="1" Text="0" Clicked="OnKeypadClicked" Style="{StaticResource KeypadButtonStyle}" />
+            <Button Grid.Row="3" Grid.Column="2" Text="⌫" Clicked="OnBackspaceClicked" Style="{StaticResource KeypadTextButtonStyle}" FontSize="20" />
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -41,6 +41,39 @@
                     </Grid>
                 </Border>
 
+                <!-- PIN Security Card -->
+                <Border BackgroundColor="White" Padding="16" Stroke="#E6F1FB" StrokeThickness="1">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                            <!-- PIN Icon Frame -->
+                            <Border BackgroundColor="#E6F1FB" HeightRequest="40" WidthRequest="40" StrokeThickness="0" VerticalOptions="Center">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                                <Image Source="icon_lock.svg" HeightRequest="20" WidthRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                            
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="App PIN Security" FontAttributes="Bold" FontSize="14.5" TextColor="{StaticResource PrimaryNavy}" />
+                                <Label Text="4-digit unlock code" FontSize="11.5" Style="{StaticResource MutedLabel}" />
+                            </VerticalStackLayout>
+                            
+                            <Switch x:Name="PinSwitch" Grid.Column="2" OnColor="{StaticResource PrimaryBlue}" ThumbColor="White" Toggled="OnPinToggled" VerticalOptions="Center" />
+                        </Grid>
+
+                        <BoxView x:Name="PinDivider" HeightRequest="1" BackgroundColor="#F3F7FC" IsVisible="False" />
+
+                        <!-- Change PIN option -->
+                        <Grid x:Name="ChangePinRow" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="0,4" IsVisible="False">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnChangePinClicked" />
+                            </Grid.GestureRecognizers>
+                            <Image Source="icon_lock.svg" HeightRequest="20" WidthRequest="20" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="Set or Change Security PIN" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" />
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource MutedText}" VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- Navigation List Card -->
                 <Border BackgroundColor="White" Padding="16" Stroke="#E6F1FB" StrokeThickness="1">
                     <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>

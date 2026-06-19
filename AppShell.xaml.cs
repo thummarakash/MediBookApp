@@ -25,5 +25,16 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ForgotPasswordPage), typeof(ForgotPasswordPage));
         Routing.RegisterRoute(nameof(ResetPasswordPage), typeof(ResetPasswordPage));
         Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
+        Routing.RegisterRoute(nameof(PinPage), typeof(PinPage));
+    }
+
+    protected override void OnNavigated(ShellNavigatedEventArgs args)
+    {
+        base.OnNavigated(args);
+        if (CurrentPage != null)
+        {
+            Shell.SetNavBarIsVisible(CurrentPage, false);
+            NavigationPage.SetHasNavigationBar(CurrentPage, false);
+        }
     }
 }

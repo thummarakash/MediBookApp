@@ -7,9 +7,32 @@ namespace MediBook.Services;
 public class BiometricService
 {
     private const string BiometricEnabledKey = "medibook_biometric_enabled";
+    private const string PinEnabledKey = "medibook_pin_enabled";
+    private const string PinValueKey = "medibook_pin_value";
+
     public static BiometricService Instance { get; } = new();
 
     private BiometricService() { }
+
+    public bool IsPinEnabled()
+    {
+        return Preferences.Get(PinEnabledKey, false);
+    }
+
+    public void SetPinEnabled(bool enabled)
+    {
+        Preferences.Set(PinEnabledKey, enabled);
+    }
+
+    public string GetSecurityPin()
+    {
+        return Preferences.Get(PinValueKey, string.Empty);
+    }
+
+    public void SetSecurityPin(string pin)
+    {
+        Preferences.Set(PinValueKey, pin);
+    }
 
     public bool IsBiometricsAvailable()
     {

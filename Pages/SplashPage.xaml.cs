@@ -1,3 +1,5 @@
+using MediBook.Services;
+
 namespace MediBook.Pages;
 
 public partial class SplashPage : ContentPage
@@ -24,7 +26,18 @@ public partial class SplashPage : ContentPage
 
         if (isLoggedIn)
         {
-            await Shell.Current.GoToAsync("//home");
+            bool biometricsEnabled = BiometricService.Instance.IsBiometricsEnabled();
+            bool pinEnabled = BiometricService.Instance.IsPinEnabled() && !string.IsNullOrEmpty(BiometricService.Instance.GetSecurityPin());
+
+            if (biometricsEnabled || pinEnabled)
+            {
+                // Go directly to PIN Page which will handle PIN keypad and auto-trigger Biometrics if enabled
+                await Shell.Current.GoToAsync($"{nameof(PinPage)}?mode=Verify");
+            }
+            else
+            {
+                await Shell.Current.GoToAsync("//home");
+            }
         }
         else
         {

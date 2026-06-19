@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MediBook.Pages.LoginPage">
+             x:Class="MediBook.Pages.LoginPage"
+             Shell.NavBarIsVisible="False">
     <Grid RowDefinitions="Auto,*">
         <!-- Top Curved Header -->
         <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,24,20,28" StrokeThickness="0">
@@ -14,9 +15,12 @@
 
         <!-- Form Content -->
         <ScrollView Grid.Row="1">
-            <VerticalStackLayout Padding="20,20" Spacing="18">
+            <VerticalStackLayout Padding="20,30,20,20" Spacing="18">
+                <!-- App Logo -->
+                <Image Source="medibook_logo.svg" HeightRequest="100" WidthRequest="100" HorizontalOptions="Center" Margin="0,0,0,10" />
+
                 <VerticalStackLayout Spacing="12">
-                    <!-- Email Input -->
+                    <!-- Email Input -->    
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
                             <Image Source="icon_email.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
