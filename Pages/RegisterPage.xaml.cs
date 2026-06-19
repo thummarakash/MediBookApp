@@ -33,7 +33,7 @@ public partial class RegisterPage : ContentPage
         var validationError = ValidationHelper.ValidateRegistration(fullName, email, password, confirmPassword);
         if (validationError != null)
         {
-            await AnimationHelper.ErrorShakeAsync(FullNameEntry.Parent as View ?? this);
+            await AnimationHelper.ErrorShakeAsync(FullNameEntry.Parent as VisualElement ?? this);
             await ConfirmationPopupPage.ShowAsync(Navigation, "Registration Error", validationError, "icon_warning.svg");
             return;
         }
@@ -52,12 +52,12 @@ public partial class RegisterPage : ContentPage
             // Send welcome email in the background
             _ = Task.Run(() => SmtpEmailService.Instance.SendWelcomeEmailAsync(email, fullName));
 
-            await AnimationHelper.SuccessPulseAsync(btn ?? this);
+            await AnimationHelper.SuccessPulseAsync(btn as VisualElement ?? this);
             await Shell.Current.GoToAsync("//home");
         }
         catch (Exception ex)
         {
-            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
             await ConfirmationPopupPage.ShowAsync(Navigation, "Registration Failed", ex.Message, "icon_warning.svg");
         }
         finally

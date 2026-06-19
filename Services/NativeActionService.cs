@@ -22,7 +22,7 @@ public class NativeActionService
 
     public async Task ComposeEmailAsync(string to, string subject, string body)
     {
-        if (!Email.Default.IsComposeSupported)
+        if (!Microsoft.Maui.ApplicationModel.Communication.Email.Default.IsComposeSupported)
         {
             return;
         }
@@ -34,17 +34,17 @@ public class NativeActionService
             BodyFormat = EmailBodyFormat.PlainText,
             To = new List<string> { to }
         };
-        await Email.Default.ComposeAsync(message);
+        await Microsoft.Maui.ApplicationModel.Communication.Email.Default.ComposeAsync(message);
     }
 
     public async Task OpenClinicMapAsync()
     {
-        var location = new Location(-33.8688, 151.2093);
+        var location = new Microsoft.Maui.Devices.Sensors.Location(-33.8688, 151.2093);
         var options = new MapLaunchOptions
         {
             Name = "MediBook Medical Centre",
             NavigationMode = NavigationMode.Driving
         };
-        await Map.Default.OpenAsync(location, options);
+        await Microsoft.Maui.ApplicationModel.Map.Default.OpenAsync(location, options);
     }
 }

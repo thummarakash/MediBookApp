@@ -3,7 +3,7 @@ namespace MediBook.Helpers;
 public static class AnimationHelper
 {
     // Page entry: fade in + slide up from bottom
-    public static async Task PageEntranceAsync(View view, uint duration = 350)
+    public static async Task PageEntranceAsync(VisualElement view, uint duration = 350)
     {
         view.Opacity = 0;
         view.TranslationY = 30;
@@ -14,7 +14,7 @@ public static class AnimationHelper
     }
 
     // Card entrance: fade in + scale from 0.92 to 1
-    public static async Task CardEntranceAsync(View view, uint duration = 280, uint delay = 0)
+    public static async Task CardEntranceAsync(VisualElement view, uint duration = 280, uint delay = 0)
     {
         if (delay > 0) await Task.Delay((int)delay);
         view.Opacity = 0;
@@ -26,28 +26,28 @@ public static class AnimationHelper
     }
 
     // Staggered list: animate each item with increasing delay
-    public static async Task StaggeredListEntranceAsync(IEnumerable<View> views, uint itemDelay = 60, uint duration = 260)
+    public static async Task StaggeredListEntranceAsync(IEnumerable<VisualElement> views, uint itemDelay = 60, uint duration = 260)
     {
         var tasks = views.Select((view, index) => CardEntranceAsync(view, duration, (uint)(index * itemDelay)));
         await Task.WhenAll(tasks);
     }
 
     // Button press feedback: quick scale down + back up
-    public static async Task ButtonPressAsync(View button)
+    public static async Task ButtonPressAsync(VisualElement button)
     {
         await button.ScaleTo(0.95, 80, Easing.CubicIn);
         await button.ScaleTo(1.0, 120, Easing.CubicOut);
     }
 
     // Success animation: scale pulse
-    public static async Task SuccessPulseAsync(View view)
+    public static async Task SuccessPulseAsync(VisualElement view)
     {
         await view.ScaleTo(1.08, 150, Easing.CubicOut);
         await view.ScaleTo(1.0, 150, Easing.CubicIn);
     }
 
     // Error shake: horizontal oscillation
-    public static async Task ErrorShakeAsync(View view)
+    public static async Task ErrorShakeAsync(VisualElement view)
     {
         for (int i = 0; i < 3; i++)
         {
@@ -58,15 +58,15 @@ public static class AnimationHelper
     }
 
     // Fade in only
-    public static Task FadeInAsync(View view, uint duration = 250)
+    public static Task FadeInAsync(VisualElement view, uint duration = 250)
         => view.FadeTo(1, duration, Easing.CubicOut);
 
     // Fade out only
-    public static Task FadeOutAsync(View view, uint duration = 200)
+    public static Task FadeOutAsync(VisualElement view, uint duration = 200)
         => view.FadeTo(0, duration, Easing.CubicIn);
 
     // Slide down entrance (modal/bottom sheet style)
-    public static async Task SlideDownEntranceAsync(View view, double fromY = -20, uint duration = 300)
+    public static async Task SlideDownEntranceAsync(VisualElement view, double fromY = -20, uint duration = 300)
     {
         view.Opacity = 0;
         view.TranslationY = fromY;
@@ -77,7 +77,7 @@ public static class AnimationHelper
     }
 
     // Slide up exit
-    public static async Task SlideUpExitAsync(View view, double toY = -20, uint duration = 200)
+    public static async Task SlideUpExitAsync(VisualElement view, double toY = -20, uint duration = 200)
     {
         await Task.WhenAll(
             view.FadeTo(0, duration, Easing.CubicIn),
@@ -86,7 +86,7 @@ public static class AnimationHelper
     }
 
     // Popup open: scale from 0.85 + fade
-    public static async Task PopupOpenAsync(View popup)
+    public static async Task PopupOpenAsync(VisualElement popup)
     {
         popup.Opacity = 0;
         popup.Scale = 0.85;
@@ -97,7 +97,7 @@ public static class AnimationHelper
     }
 
     // Popup close
-    public static async Task PopupCloseAsync(View popup)
+    public static async Task PopupCloseAsync(VisualElement popup)
     {
         await Task.WhenAll(
             popup.FadeTo(0, 180, Easing.CubicIn),
@@ -106,7 +106,7 @@ public static class AnimationHelper
     }
 
     // Loading spinner entrance
-    public static async Task LoadingEntranceAsync(View spinner)
+    public static async Task LoadingEntranceAsync(VisualElement spinner)
     {
         spinner.Opacity = 0;
         spinner.Scale = 0.7;
@@ -117,7 +117,7 @@ public static class AnimationHelper
     }
 
     // Tab switch: quick fade
-    public static async Task TabSwitchAsync(View outgoing, View incoming)
+    public static async Task TabSwitchAsync(VisualElement outgoing, VisualElement incoming)
     {
         await outgoing.FadeTo(0, 120, Easing.CubicIn);
         outgoing.IsVisible = false;

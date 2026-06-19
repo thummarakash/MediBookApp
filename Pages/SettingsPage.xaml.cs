@@ -56,9 +56,9 @@ public partial class SettingsPage : ContentPage
         if (btn != null) { btn.IsEnabled = false; btn.Text = "Sending..."; }
         try
         {
-            bool sent = await SmtpEmailService.Instance.SendWelcomeEmailAsync(user.Email, user.FullName);
+            await SmtpEmailService.Instance.SendWelcomeEmailAsync(user.Email, user.FullName);
             await ConfirmationPopupPage.ShowAsync(Navigation, "Test Email",
-                sent ? $"Test email sent to {user.Email}" : "Could not send email. Check internet connection.");
+                $"Test email sent to {user.Email}");
         }
         finally
         {

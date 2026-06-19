@@ -1,3 +1,4 @@
+using MediBook.Extensions;
 using MediBook.Helpers;
 using MediBook.Models;
 using MediBook.Services;

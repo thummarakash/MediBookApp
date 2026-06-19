@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MediBook.Controls"
@@ -44,7 +44,7 @@
                         <!-- Real Interactive Map Container -->
                         <Border x:Name="MapContainer" Stroke="{StaticResource Aqua}" StrokeThickness="1" BackgroundColor="Transparent" Margin="0,0,0,14">
                             <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
-                            <maps:Map x:Name="ClinicsMap" IsShowingUser="True" MapType="Street" HasZoomEnabled="True" HasScrollEnabled="True" />
+                            <maps:Map x:Name="ClinicsMap" IsShowingUser="True" MapType="Street" IsZoomEnabled="True" IsScrollEnabled="True" />
                         </Border>
 
                         <!-- Selected Clinic Card Overlay -->

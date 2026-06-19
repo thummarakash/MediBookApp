@@ -1,3 +1,4 @@
+using MediBook.Extensions;
 using MediBook.Models;
 using MediBook.Repositories;
 using MediBook.Services.Auth;

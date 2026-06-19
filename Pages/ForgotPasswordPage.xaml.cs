@@ -22,7 +22,7 @@ public partial class ForgotPasswordPage : ContentPage
 
         if (!ValidationHelper.IsValidEmail(email))
         {
-            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
             await ConfirmationPopupPage.ShowAsync(Navigation, "Invalid Email",
                 "Please enter a valid email address.", "icon_warning.svg");
             return;
@@ -49,7 +49,7 @@ public partial class ForgotPasswordPage : ContentPage
         }
         catch (Exception ex)
         {
-            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
             await ConfirmationPopupPage.ShowAsync(Navigation, "Error", ex.Message, "icon_warning.svg");
         }
         finally

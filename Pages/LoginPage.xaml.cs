@@ -40,7 +40,7 @@ public partial class LoginPage : ContentPage
         var validationError = ValidationHelper.ValidateLogin(email, password);
         if (validationError != null)
         {
-            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
             await ConfirmationPopupPage.ShowAsync(Navigation, "Missing Details", validationError, "icon_warning.svg");
             return;
         }
@@ -51,7 +51,7 @@ public partial class LoginPage : ContentPage
             var user = await DatabaseService.Instance.LoginAsync(email, password!);
             if (user == null)
             {
-                await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+                await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
                 await ConfirmationPopupPage.ShowAsync(Navigation, "Login Failed", "Email or password is incorrect.", "icon_warning.svg");
                 return;
             }
@@ -60,7 +60,7 @@ public partial class LoginPage : ContentPage
         }
         catch (Exception ex)
         {
-            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
             await ConfirmationPopupPage.ShowAsync(Navigation, "Login Failed", ex.Message, "icon_warning.svg");
         }
         finally

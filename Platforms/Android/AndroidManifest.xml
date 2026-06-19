@@ -47,10 +47,6 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="medibook_notifications" />
 
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/colorPrimary" />
-
         <!-- FCM Service (Plugin.Firebase.CloudMessaging registers it automatically,
              but we declare it explicitly for clarity and custom handling) -->
         <service

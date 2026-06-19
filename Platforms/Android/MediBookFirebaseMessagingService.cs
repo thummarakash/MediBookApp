@@ -23,9 +23,13 @@ public class MediBookFirebaseMessagingService : FirebaseMessagingService
     {
         base.OnMessageReceived(message);
         var notification = message.GetNotification();
-        var title = notification?.Title ?? message.Data.GetValueOrDefault("title", "MediBook");
-        var body = notification?.Body ?? message.Data.GetValueOrDefault("body", string.Empty);
-        var type = message.Data.GetValueOrDefault("type", "general");
+        var data = message.Data;
+        data.TryGetValue("title", out var titleVal);
+        data.TryGetValue("body", out var bodyVal);
+        data.TryGetValue("type", out var typeVal);
+        var title = notification?.Title ?? titleVal ?? "MediBook";
+        var body = notification?.Body ?? bodyVal ?? string.Empty;
+        var type = typeVal ?? "general";
 
         System.Diagnostics.Debug.WriteLine($"[FCM] Message: {title} — {body}");
         ShowLocalNotification(title, body, type);

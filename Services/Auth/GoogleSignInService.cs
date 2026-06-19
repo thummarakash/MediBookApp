@@ -34,7 +34,7 @@ public class GoogleSignInService
 
         var callbackUri = new Uri(redirectUri);
 
-        AuthenticatorResult webResult;
+        WebAuthenticatorResult webResult;
         try
         {
             webResult = await WebAuthenticator.Default.AuthenticateAsync(authUrl, callbackUri);
