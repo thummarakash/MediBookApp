@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MediBook.Controls"
              xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
              x:Class="MediBook.Pages.ClinicsPage"
-             BackgroundColor="#F3F7FC">
+             BackgroundColor="{StaticResource PageBg}">
     <Grid RowDefinitions="*,Auto">
         <Grid Grid.Row="0" RowDefinitions="Auto,*">
             <!-- Top Curved Header -->
@@ -13,8 +13,8 @@
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Find Clinics" FontSize="20" FontAttributes="Bold" TextColor="White" />
                     <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                        <Image Source="icon_map.png" HeightRequest="14" WidthRequest="14" VerticalOptions="Center" />
-                        <Label Text="Melbourne CBD, VIC" TextColor="#B5D4F4" FontSize="12.5" VerticalOptions="Center" />
+                        <Image Source="icon_map.svg" HeightRequest="14" WidthRequest="14" VerticalOptions="Center" />
+                        <Label Text="Melbourne CBD, VIC" TextColor="{StaticResource Aqua}" FontSize="12.5" VerticalOptions="Center" />
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
@@ -24,15 +24,15 @@
                 <!-- Toggle buttons Map/List -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,0,0,16">
                     <Button x:Name="MapTabBtn" Text="Map View" BackgroundColor="{StaticResource PrimaryBlue}" TextColor="White" CornerRadius="20" HeightRequest="40" Padding="0" Clicked="OnMapTabClicked" FontAttributes="Bold" FontSize="13" />
-                    <Button Grid.Column="1" x:Name="ListTabBtn" Text="List View" BackgroundColor="#E6F1FB" TextColor="{StaticResource MutedText}" CornerRadius="20" HeightRequest="40" Padding="0" Clicked="OnListTabClicked" FontSize="13" />
+                    <Button Grid.Column="1" x:Name="ListTabBtn" Text="List View" BackgroundColor="{StaticResource SkyBlue}" TextColor="{StaticResource MutedText}" CornerRadius="20" HeightRequest="40" Padding="0" Clicked="OnListTabClicked" FontSize="13" />
                 </Grid>
 
                 <Grid Grid.Row="1">
                     <!-- Location Disabled Placeholder (visible when location is not enabled/granted) -->
-                    <Border x:Name="LocationPromptContainer" Stroke="#B5D4F4" StrokeThickness="1" BackgroundColor="#E6F1FB" IsVisible="True">
+                    <Border x:Name="LocationPromptContainer" Stroke="{StaticResource Aqua}" StrokeThickness="1" BackgroundColor="{StaticResource SkyBlue}" IsVisible="True">
                         <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="12" Padding="20">
-                            <Image Source="icon_gps.png" HeightRequest="48" WidthRequest="48" HorizontalOptions="Center" />
+                            <Image Source="icon_gps.svg" HeightRequest="48" WidthRequest="48" HorizontalOptions="Center" />
                             <Label Text="Turn on your location" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
                             <Label Text="To view nearby clinics and calculate road distance, please enable location access." HorizontalTextAlignment="Center" FontSize="12" Style="{StaticResource MutedLabel}" Margin="0,0,0,8" />
                             <Button Text="Enable Location" BackgroundColor="{StaticResource PrimaryBlue}" TextColor="White" CornerRadius="18" HeightRequest="38" Padding="16,0" Clicked="OnEnableLocationClicked" FontSize="12.5" HorizontalOptions="Center" FontAttributes="Bold" />
@@ -42,13 +42,13 @@
                     <!-- Map View Section -->
                     <Grid x:Name="MapViewGrid" RowDefinitions="*,Auto" IsVisible="False">
                         <!-- Real Interactive Map Container -->
-                        <Border x:Name="MapContainer" Stroke="#B5D4F4" StrokeThickness="1" BackgroundColor="Transparent" Margin="0,0,0,14">
+                        <Border x:Name="MapContainer" Stroke="{StaticResource Aqua}" StrokeThickness="1" BackgroundColor="Transparent" Margin="0,0,0,14">
                             <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                             <maps:Map x:Name="ClinicsMap" IsShowingUser="True" MapType="Street" HasZoomEnabled="True" HasScrollEnabled="True" />
                         </Border>
 
                         <!-- Selected Clinic Card Overlay -->
-                        <Border x:Name="SelectedClinicCard" Grid.Row="1" BackgroundColor="White" Padding="16" Stroke="#E6F1FB" StrokeThickness="1" IsVisible="False">
+                        <Border x:Name="SelectedClinicCard" Grid.Row="1" BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Stroke="{StaticResource BorderLight}" StrokeThickness="1" IsVisible="False">
                             <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnSelectedClinicCardTapped" />
@@ -60,12 +60,12 @@
                                         <Label x:Name="MapClinicDistance" Text="0.4 km away" FontSize="12" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
                                         <Label Text="•" FontSize="12" TextColor="{StaticResource MutedText}" />
                                         <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
-                                            <Image Source="icon_star.png" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
+                                            <Image Source="icon_star.svg" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
                                             <Label x:Name="MapClinicRating" Text="4.8" FontSize="12" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
                                         </HorizontalStackLayout>
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
-                                <Border Grid.Column="1" BackgroundColor="#DCFCE7" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
+                                <Border Grid.Column="1" BackgroundColor="{StaticResource SuccessBg}" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
                                     <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
                                     <Label Text="Open" TextColor="{StaticResource Success}" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" />
                                 </Border>
@@ -77,7 +77,7 @@
                     <CollectionView x:Name="ClinicsCollection" IsVisible="False" SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Border BackgroundColor="White" Padding="16" Margin="0,5" Stroke="#E6F1FB" StrokeThickness="1">
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Margin="0,5" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
                                     <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnClinicCardTapped" CommandParameter="{Binding .}" />
@@ -89,13 +89,13 @@
                                                 <Label Text="{Binding DistanceText}" FontSize="12" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
                                                 <Label Text="•" FontSize="12" TextColor="{StaticResource MutedText}" />
                                                 <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
-                                                    <Image Source="icon_star.png" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
+                                                    <Image Source="icon_star.svg" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
                                                     <Label Text="{Binding Rating}" FontSize="12" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
                                                 </HorizontalStackLayout>
                                             </HorizontalStackLayout>
                                             <Label Text="{Binding Address}" FontSize="12" Style="{StaticResource MutedLabel}" Margin="0,2,0,0" />
                                         </VerticalStackLayout>
-                                        <Border Grid.Column="1" BackgroundColor="#DCFCE7" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
+                                        <Border Grid.Column="1" BackgroundColor="{StaticResource SuccessBg}" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
                                             <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
                                             <Label Text="Open" TextColor="{StaticResource Success}" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" />
                                         </Border>

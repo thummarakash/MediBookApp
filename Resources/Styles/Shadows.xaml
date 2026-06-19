@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Card shadows — used via Shadow property on Border/Frame elements -->
+    <!-- Usage: <Border.Shadow><Shadow Brush="{StaticResource ShadowSubtle}" ... /></Border.Shadow> -->
+
+    <Color x:Key="ShadowColor">#33042C53</Color>
+    <Color x:Key="ShadowColorMedium">#4D042C53</Color>
+
+    <!-- Subtle: for regular cards -->
+    <Shadow x:Key="ShadowSubtle"
+            Brush="{StaticResource ShadowColor}"
+            Offset="0,2"
+            Radius="8"
+            Opacity="0.12" />
+
+    <!-- Medium: for elevated cards / action cards -->
+    <Shadow x:Key="ShadowMedium"
+            Brush="{StaticResource ShadowColorMedium}"
+            Offset="0,4"
+            Radius="14"
+            Opacity="0.18" />
+
+    <!-- Strong: for modals / popups -->
+    <Shadow x:Key="ShadowStrong"
+            Brush="{StaticResource ShadowColorMedium}"
+            Offset="0,8"
+            Radius="24"
+            Opacity="0.24" />
+
+</ResourceDictionary>

@@ -1,3 +1,4 @@
+using MediBook.Helpers;
 using MediBook.ViewModels;
 
 namespace MediBook.Pages;
@@ -5,6 +6,7 @@ namespace MediBook.Pages;
 public partial class AppointmentsPage : ContentPage
 {
     private readonly AppointmentsViewModel _vm = new();
+    private bool _firstAppear = true;
 
     public AppointmentsPage()
     {
@@ -15,17 +17,25 @@ public partial class AppointmentsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        if (_firstAppear)
+        {
+            _firstAppear = false;
+            await AnimationHelper.PageEntranceAsync(this);
+        }
+
         var user = await MediBook.Services.DatabaseService.Instance.GetCurrentUserAsync();
         if (user != null)
-        {
             CustomTabBarControl.IsAdmin = user.Role == "Admin";
-        }
+
         await _vm.LoadCommand.ExecuteAsync(null);
     }
 
     private void OnTabTapped(object sender, EventArgs e)
     {
-        if (sender is Border border && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap && tap.CommandParameter is string tab)
+        if (sender is Border border
+            && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap
+            && tap.CommandParameter is string tab)
         {
             _vm.SelectTabCommand.Execute(tab);
             UpdateTabUI(tab);
@@ -52,6 +62,7 @@ public partial class AppointmentsPage : ContentPage
 
     private async void OnBookClicked(object sender, EventArgs e)
     {
+        if (sender is Button btn) await AnimationHelper.ButtonPressAsync(btn);
         await Shell.Current.GoToAsync(nameof(BookAppointmentPage));
     }
 }

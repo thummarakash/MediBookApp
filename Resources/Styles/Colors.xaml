@@ -1,29 +1,56 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- ══ Brand Colors ══════════════════════════════════════════════════════ -->
     <Color x:Key="PrimaryNavy">#042C53</Color>
-    <Color x:Key="Navy2">#042C53</Color>
     <Color x:Key="PrimaryBlue">#185FA5</Color>
     <Color x:Key="Blue2">#378ADD</Color>
+    <Color x:Key="GradientStart">#3E8BDE</Color>
+
+    <!-- ══ Semantic Colors ════════════════════════════════════════════════════ -->
+    <Color x:Key="Accent">#2DD4BF</Color>
+    <Color x:Key="Success">#15803D</Color>
+    <Color x:Key="SuccessBg">#DCFCE7</Color>
+    <Color x:Key="Warning">#C2740C</Color>
+    <Color x:Key="WarningBg">#FEF3C7</Color>
+    <Color x:Key="Danger">#DC2626</Color>
+    <Color x:Key="DangerBg">#FEE2E2</Color>
+    <Color x:Key="StarAmber">#F59E0B</Color>
+
+    <!-- ══ Surface Colors ════════════════════════════════════════════════════ -->
+    <Color x:Key="PageBg">#F3F7FC</Color>
+    <Color x:Key="CardBg">#FFFFFF</Color>
     <Color x:Key="SkyBlue">#E6F1FB</Color>
     <Color x:Key="Aqua">#B5D4F4</Color>
     <Color x:Key="Mint">#DCFCE7</Color>
-    <Color x:Key="Accent">#2DD4BF</Color>
-    <Color x:Key="Warning">#C2740C</Color>
-    <Color x:Key="Danger">#DC2626</Color>
-    <Color x:Key="Error">#DC2626</Color>
-    <Color x:Key="Success">#15803D</Color>
-    <Color x:Key="PageBg">#F3F7FC</Color>
-    <Color x:Key="CardBg">#FFFFFF</Color>
-    <Color x:Key="SoftCard">#E6F1FB</Color>
+    <Color x:Key="OnboardingBg">#EDF5FF</Color>
+    <Color x:Key="OverlayBg">#80000000</Color>
+
+    <!-- ══ Text Colors ════════════════════════════════════════════════════════ -->
     <Color x:Key="TextDark">#042C53</Color>
     <Color x:Key="MutedText">#64748B</Color>
-    <Color x:Key="BorderLight">#E6F1FB</Color>
     <Color x:Key="White">#FFFFFF</Color>
-    
-    <!-- Fallback Dark Theme Tokens mapped to Light values to prevent system theme override issues -->
-    <Color x:Key="PageBgDark">#F3F7FC</Color>
-    <Color x:Key="CardBgDark">#FFFFFF</Color>
-    <Color x:Key="BorderDark">#E6F1FB</Color>
-    <Color x:Key="TextMutedDark">#64748B</Color>
+
+    <!-- ══ Border Colors ═════════════════════════════════════════════════════ -->
+    <Color x:Key="BorderLight">#E6F1FB</Color>
+    <Color x:Key="LightStroke">#D8E6F8</Color>
+
+    <!-- ══ Text on dark backgrounds ═════════════════════════════════════════ -->
+    <Color x:Key="TextOnDark">#D9EAFF</Color>
+
+    <!-- ══ Component-specific Colors ════════════════════════════════════════ -->
+    <Color x:Key="LogoutBg">#FEE2E2</Color>
+    <Color x:Key="LogoutText">#B91C1C</Color>
+    <Color x:Key="Blue3">#3B82F6</Color>
+    <Color x:Key="ConfirmBlue">#1D4ED8</Color>
+    <Color x:Key="SubtleText">#4B5A6A</Color>
+    <Color x:Key="PopupOverlayBg">#80000028</Color>
+
+    <!-- ══ Dark Theme Surfaces ════════════════════════════════════════════════ -->
+    <Color x:Key="PageBgDark">#0F172A</Color>
+    <Color x:Key="CardBgDark">#1E293B</Color>
+    <Color x:Key="BorderDark">#334155</Color>
+    <Color x:Key="TextMutedDark">#94A3B8</Color>
+
 </ResourceDictionary>

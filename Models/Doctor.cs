@@ -3,6 +3,9 @@ namespace MediBook.Models;
 public class Doctor
 {
     public int Id { get; set; }
+    public string FirestoreId { get; set; } = string.Empty;
+    public string ClinicFirestoreId { get; set; } = string.Empty;
+
     public string Name { get; set; } = string.Empty;
     public string Specialty { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;

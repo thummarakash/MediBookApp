@@ -1,4 +1,6 @@
+using MediBook.Helpers;
 using MediBook.Services;
+using MediBook.Services.Email;
 
 namespace MediBook.Pages;
 
@@ -12,8 +14,11 @@ public partial class SettingsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        await AnimationHelper.PageEntranceAsync(this);
         var user = await DatabaseService.Instance.GetCurrentUserAsync();
-        AccountLabel.Text = user == null ? "Not signed in" : $"Signed in as {user.FullName} ({user.Email})";
+        AccountLabel.Text = user == null
+            ? "Not signed in"
+            : $"Signed in as {user.FullName} ({user.Email})";
     }
 
     private async void OnGoogleClicked(object sender, EventArgs e)
@@ -23,11 +28,15 @@ public partial class SettingsPage : ContentPage
             await GoogleAuthService.Instance.SignInAsync();
             var user = await DatabaseService.Instance.GetCurrentUserAsync();
             AccountLabel.Text = user == null ? "Signed in" : $"Signed in as {user.FullName} ({user.Email})";
-            await DisplayAlert("Google", "Google sign-in simulated successfully.", "OK");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In", "Signed in with Google successfully!");
+        }
+        catch (OperationCanceledException)
+        {
+            // User cancelled — no error
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Google", ex.Message, "OK");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In Failed", ex.Message, "icon_warning.svg");
         }
     }
 
@@ -39,21 +48,35 @@ public partial class SettingsPage : ContentPage
         var user = await DatabaseService.Instance.GetCurrentUserAsync();
         if (user == null)
         {
-            await DisplayAlert("Email", "Please sign in first.", "OK");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Not Signed In", "Please sign in first.", "icon_warning.svg");
             return;
         }
 
-        await DisplayAlert("Test Email", $"A test email would be sent to {user.Email}.\n(Mock — no real email sent)", "OK");
+        var btn = sender as Button;
+        if (btn != null) { btn.IsEnabled = false; btn.Text = "Sending..."; }
+        try
+        {
+            bool sent = await SmtpEmailService.Instance.SendWelcomeEmailAsync(user.Email, user.FullName);
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Test Email",
+                sent ? $"Test email sent to {user.Email}" : "Could not send email. Check internet connection.");
+        }
+        finally
+        {
+            if (btn != null) { btn.IsEnabled = true; btn.Text = "Send Test Email"; }
+        }
     }
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
+        bool confirm = await ConfirmationPopupPage.ShowConfirmAsync(Navigation,
+            "Sign Out", "Are you sure you want to sign out?", "Sign Out", "Cancel");
+        if (!confirm) return;
+
         DatabaseService.Instance.Logout();
+        Preferences.Default.Set("medibook_logged_in", false);
         await Shell.Current.GoToAsync("//login");
     }
 
     private async void OnBackClicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync("//profile");
-    }
+        => await Shell.Current.GoToAsync("//profile");
 }

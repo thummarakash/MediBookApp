@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MediBook.Pages.ContactPage">
     <ScrollView>
         <VerticalStackLayout Padding="20,24" Spacing="16">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                <ImageButton Source="icon_back.png" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" Clicked="OnBackClicked" Padding="12" />
+                <ImageButton Source="icon_back.svg" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Clicked="OnBackClicked" Padding="12" />
                 <VerticalStackLayout Grid.Column="1">
                     <Label Text="Contact Clinic" Style="{StaticResource TitleLabel}" />
                     <Label Text="Use native phone, email and map actions." Style="{StaticResource MutedLabel}" />
@@ -22,8 +22,8 @@
                 </Border.Background>
                 <VerticalStackLayout Spacing="8">
                     <Label Text="MediBook Medical Centre" TextColor="White" FontSize="24" FontAttributes="Bold" />
-                    <Label Text="123 Health Street, Sydney NSW" TextColor="#D9EAFF" />
-                    <Label Text="Mon - Fri • 8:30 AM - 6:00 PM" TextColor="#D9EAFF" />
+                    <Label Text="123 Health Street, Sydney NSW" TextColor="{StaticResource TextOnDark}" />
+                    <Label Text="Mon - Fri • 8:30 AM - 6:00 PM" TextColor="{StaticResource TextOnDark}" />
                 </VerticalStackLayout>
             </Border>
 

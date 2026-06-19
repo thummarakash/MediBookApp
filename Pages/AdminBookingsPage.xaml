@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MediBook.Pages.AdminBookingsPage"
@@ -7,7 +7,7 @@
         <VerticalStackLayout Padding="20,24" Spacing="16">
             <!-- Header -->
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                <ImageButton Source="icon_back.png" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" Command="{Binding BackCommand}" Padding="12" />
+                <ImageButton Source="icon_back.svg" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Command="{Binding BackCommand}" Padding="12" />
                 <VerticalStackLayout Grid.Column="1">
                     <Label Text="All Bookings" Style="{StaticResource TitleLabel}" />
                     <Label Text="View all appointments booked across the system" Style="{StaticResource MutedLabel}" />
@@ -18,7 +18,7 @@
             <CollectionView ItemsSource="{Binding Bookings}" SelectionMode="None">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Border BackgroundColor="White" Padding="18" Margin="0,6" Stroke="#D8E6F8" StrokeThickness="1">
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="18" Margin="0,6" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                             <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
                                 <Image Source="icon_calendar.svg" HeightRequest="56" WidthRequest="56" VerticalOptions="Center" />

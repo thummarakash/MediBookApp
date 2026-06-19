@@ -13,7 +13,7 @@
             <CarouselView.ItemTemplate>
                 <DataTemplate>
                     <VerticalStackLayout Spacing="30" VerticalOptions="Center" HorizontalOptions="Center">
-                        <Border BackgroundColor="{AppThemeBinding Light=#EDF5FF, Dark={StaticResource CardBgDark}}" HeightRequest="180" WidthRequest="180" StrokeThickness="0">
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource OnboardingBg}, Dark={StaticResource CardBgDark}}" HeightRequest="180" WidthRequest="180" StrokeThickness="0">
                             <Border.StrokeShape><RoundRectangle CornerRadius="90" /></Border.StrokeShape>
                             <Image Source="{Binding ImageSource}" HeightRequest="110" WidthRequest="110" HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>

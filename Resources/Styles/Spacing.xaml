@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Page padding -->
+    <Thickness x:Key="PagePadding">20,24</Thickness>
+    <Thickness x:Key="PagePaddingH">20,0</Thickness>
+    <Thickness x:Key="SectionPadding">20,20</Thickness>
+
+    <!-- Card padding -->
+    <Thickness x:Key="CardPadding">16</Thickness>
+    <Thickness x:Key="LargeCardPadding">20</Thickness>
+
+    <!-- Item margin -->
+    <Thickness x:Key="ListItemMargin">0,5</Thickness>
+    <Thickness x:Key="SectionMarginBottom">0,0,0,16</Thickness>
+
+    <!-- Spacing doubles -->
+    <x:Double x:Key="SpacingXS">4</x:Double>
+    <x:Double x:Key="SpacingSM">8</x:Double>
+    <x:Double x:Key="SpacingMD">12</x:Double>
+    <x:Double x:Key="SpacingLG">16</x:Double>
+    <x:Double x:Key="SpacingXL">20</x:Double>
+    <x:Double x:Key="Spacing2XL">24</x:Double>
+
+    <!-- Corner radii -->
+    <x:Double x:Key="RadiusSM">10</x:Double>
+    <x:Double x:Key="RadiusMD">14</x:Double>
+    <x:Double x:Key="RadiusLG">20</x:Double>
+    <x:Double x:Key="RadiusXL">24</x:Double>
+    <x:Double x:Key="RadiusRound">100</x:Double>
+
+    <!-- Icon sizes -->
+    <x:Double x:Key="IconXS">16</x:Double>
+    <x:Double x:Key="IconSM">18</x:Double>
+    <x:Double x:Key="IconMD">22</x:Double>
+    <x:Double x:Key="IconLG">24</x:Double>
+    <x:Double x:Key="IconXL">36</x:Double>
+    <x:Double x:Key="IconDisplay">48</x:Double>
+
+</ResourceDictionary>

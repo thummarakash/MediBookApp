@@ -9,8 +9,8 @@
                 <Border.StrokeShape><RoundRectangle CornerRadius="22" /></Border.StrokeShape>
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#3E8BDE" Offset="0.0" />
-                        <GradientStop Color="#185FA5" Offset="1.0" />
+                        <GradientStop Color="{StaticResource GradientStart}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource PrimaryBlue}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Border.Background>
                 <Image Source="icon_doctor.svg" HeightRequest="44" WidthRequest="44" HorizontalOptions="Center" VerticalOptions="Center" />

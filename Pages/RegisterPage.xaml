@@ -8,7 +8,7 @@
         <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,24,20,28" StrokeThickness="0">
             <Border.StrokeShape><RoundRectangle CornerRadius="0,0,26,26" /></Border.StrokeShape>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,10,0,0">
-                <ImageButton Source="icon_back_white.png" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="Transparent" Clicked="OnBackClicked" Padding="12" />
+                <ImageButton Source="{StaticResource IconBackWhite}" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="Transparent" Clicked="OnBackClicked" Padding="12" />
                 <VerticalStackLayout Grid.Column="1" Spacing="4">
                     <Label Text="Create Account" FontSize="26" FontAttributes="Bold" TextColor="White" />
                     <Label Text="Fill in your details below" TextColor="{StaticResource Aqua}" FontSize="13" />
@@ -63,7 +63,7 @@
                     <!-- Confirm Password -->
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
-                            <Image Source="icon_lock_confirm.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
+                            <Image Source="{StaticResource IconLock}" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
                             <Entry x:Name="ConfirmPasswordEntry" Grid.Column="1" Placeholder="Confirm password" IsPassword="True" Style="{StaticResource InputStyle}" />
                         </Grid>
                     </Border>

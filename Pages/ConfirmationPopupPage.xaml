@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MediBook.Pages.ConfirmationPopupPage"
-             BackgroundColor="#80000028"
+             BackgroundColor="{StaticResource PopupOverlayBg}"
              NavigationPage.HasNavigationBar="False">
 
     <Grid>
@@ -12,7 +12,7 @@
 
         <!-- Popup Card -->
         <Border x:Name="PopupCard"
-                BackgroundColor="White"
+                BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}"
                 Stroke="Transparent"
                 StrokeThickness="0"
                 WidthRequest="330"
@@ -43,12 +43,12 @@
 
                     <!-- Icon bubble -->
                     <Border WidthRequest="68" HeightRequest="68" StrokeThickness="3" Stroke="White"
-                            BackgroundColor="#1D4ED8" HorizontalOptions="Center" VerticalOptions="Center">
+                            BackgroundColor="{StaticResource ConfirmBlue}" HorizontalOptions="Center" VerticalOptions="Center">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="34" />
                         </Border.StrokeShape>
                         <Image x:Name="PopupIcon"
-                               Source="icon_lock_confirm.svg"
+                               Source="{StaticResource IconLock}"
                                WidthRequest="32" HeightRequest="32"
                                HorizontalOptions="Center" VerticalOptions="Center" />
                     </Border>
@@ -62,18 +62,12 @@
                            Text="Confirm"
                            FontSize="22"
                            FontAttributes="Bold"
-                           HorizontalTextAlignment="Center">
-                        <Label.TextColor>
-                            <Color>#185FA5</Color>
-                        </Label.TextColor>
-                    </Label>
+                           HorizontalTextAlignment="Center"
+                           TextColor="{StaticResource PrimaryBlue}" />
 
                     <!-- Coloured divider accent -->
-                    <BoxView HeightRequest="3" WidthRequest="48" HorizontalOptions="Center" CornerRadius="2" Margin="0,2,0,6">
-                        <BoxView.Color>
-                            <Color>#3B82F6</Color>
-                        </BoxView.Color>
-                    </BoxView>
+                    <BoxView HeightRequest="3" WidthRequest="48" HorizontalOptions="Center" CornerRadius="2" Margin="0,2,0,6"
+                             Color="{StaticResource Blue3}" />
 
                     <!-- Message -->
                     <Label x:Name="MessageLabel"
@@ -81,11 +75,8 @@
                            FontSize="14.5"
                            HorizontalTextAlignment="Center"
                            LineBreakMode="WordWrap"
-                           Margin="0,0,0,4">
-                        <Label.TextColor>
-                            <Color>#4B5A6A</Color>
-                        </Label.TextColor>
-                    </Label>
+                           Margin="0,0,0,4"
+                           TextColor="{StaticResource SubtleText}" />
                 </VerticalStackLayout>
 
                 <!-- Buttons -->
@@ -117,8 +108,8 @@
                     <!-- Cancel — outlined -->
                     <Border x:Name="CancelBtn"
                             HeightRequest="50"
-                            BackgroundColor="White"
-                            Stroke="#D0E4F8"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}"
+                            Stroke="{StaticResource LightStroke}"
                             StrokeThickness="2"
                             IsVisible="False">
                         <Border.StrokeShape>
@@ -132,11 +123,8 @@
                                FontAttributes="Bold"
                                FontSize="15"
                                HorizontalOptions="Center"
-                               VerticalOptions="Center">
-                            <Label.TextColor>
-                                <Color>#185FA5</Color>
-                            </Label.TextColor>
-                        </Label>
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource PrimaryBlue}" />
                     </Border>
                 </VerticalStackLayout>
 

@@ -1,14 +1,12 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MediBook.Models;
 using MediBook.Services;
 
 namespace MediBook.ViewModels;
 
 public partial class AdminDashboardViewModel : ObservableObject
 {
-    [ObservableProperty] int patientCount = 142;
+    [ObservableProperty] int patientCount;
     [ObservableProperty] int doctorCount;
     [ObservableProperty] int bookingCount;
     [ObservableProperty] bool isLoading;
@@ -19,11 +17,21 @@ public partial class AdminDashboardViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            var doctors = await DatabaseService.Instance.GetDoctorsAsync();
-            DoctorCount = doctors.Count;
+            var doctorsTask = DatabaseService.Instance.GetDoctorsAsync();
+            var appointmentsTask = DatabaseService.Instance.GetAllAppointmentsAsync();
 
-            var bookings = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
-            BookingCount = bookings.Count;
+            await Task.WhenAll(doctorsTask, appointmentsTask);
+
+            DoctorCount = doctorsTask.Result.Count;
+            BookingCount = appointmentsTask.Result.Count;
+
+            // Patient count is estimated from unique user IDs in appointments
+            var uniqueUsers = appointmentsTask.Result
+                .Where(a => !string.IsNullOrEmpty(a.UserFirestoreId))
+                .Select(a => a.UserFirestoreId)
+                .Distinct()
+                .Count();
+            PatientCount = Math.Max(uniqueUsers, BookingCount > 0 ? 1 : 0);
         }
         finally
         {

@@ -8,20 +8,19 @@ namespace MediBook.ViewModels;
 
 public partial class AdminBookingsViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private ObservableCollection<Appointment> _bookings = new();
-
-    [ObservableProperty]
-    private bool _isLoading;
+    [ObservableProperty] ObservableCollection<Appointment> bookings = new();
+    [ObservableProperty] bool isLoading;
 
     [RelayCommand]
-    private async Task LoadBookingsAsync()
+    async Task LoadBookingsAsync()
     {
         IsLoading = true;
         try
         {
-            var appointments = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
-            Bookings = new ObservableCollection<Appointment>(appointments);
+            // Admin sees ALL appointments across all users
+            var all = await DatabaseService.Instance.GetAllAppointmentsAsync();
+            Bookings = new ObservableCollection<Appointment>(
+                all.OrderByDescending(a => a.CreatedAt));
         }
         finally
         {
@@ -30,8 +29,6 @@ public partial class AdminBookingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task BackAsync()
-    {
-        await Shell.Current.GoToAsync("//admindashboard");
-    }
+    async Task BackAsync()
+        => await Shell.Current.GoToAsync("//admindashboard");
 }

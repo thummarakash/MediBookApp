@@ -4,8 +4,7 @@
              xmlns:vm="clr-namespace:MediBook.ViewModels"
              xmlns:controls="clr-namespace:MediBook.Controls"
              x:Class="MediBook.Pages.AppointmentsPage"
-             x:DataType="vm:AppointmentsViewModel"
-             BackgroundColor="#F3F7FC">
+             x:DataType="vm:AppointmentsViewModel">
     <Grid RowDefinitions="*,Auto">
         <Grid Grid.Row="0" RowDefinitions="Auto,Auto,*" Padding="20,24,20,0">
             <!-- Header -->
@@ -14,40 +13,34 @@
                     <Label Text="My Appointments" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
                     <Label Text="View and manage your scheduled visits" Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
-                <Button Grid.Column="1" 
-                        Text="Book Appointment" 
-                        Style="{StaticResource PrimaryButtonStyle}" 
-                        HeightRequest="36" 
-                        CornerRadius="18" 
-                        FontSize="11.5" 
-                        Padding="14,0" 
-                        VerticalOptions="Center" 
+                <Button Grid.Column="1"
+                        Text="Book Appointment"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HeightRequest="36"
+                        CornerRadius="18"
+                        FontSize="11.5"
+                        Padding="14,0"
+                        VerticalOptions="Center"
                         Clicked="OnBookClicked" />
             </Grid>
 
             <!-- Tab Chips -->
             <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,16">
-                <!-- Upcoming -->
-                <Border x:Name="UpcomingChip" BackgroundColor="{StaticResource PrimaryBlue}" Padding="14,6" StrokeThickness="0">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                <Border x:Name="UpcomingChip" Style="{StaticResource ChipActiveStyle}">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Upcoming" />
                     </Border.GestureRecognizers>
                     <Label x:Name="UpcomingChipText" Text="Upcoming" TextColor="White" FontAttributes="Bold" FontSize="11" />
                 </Border>
 
-                <!-- Past -->
-                <Border Grid.Column="1" x:Name="PastChip" BackgroundColor="#E6F1FB" Padding="14,6" StrokeThickness="0">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                <Border Grid.Column="1" x:Name="PastChip" Style="{StaticResource ChipInactiveStyle}">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Past" />
                     </Border.GestureRecognizers>
                     <Label x:Name="PastChipText" Text="Past" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
                 </Border>
 
-                <!-- Cancelled -->
-                <Border Grid.Column="2" x:Name="CancelledChip" BackgroundColor="#E6F1FB" Padding="14,6" StrokeThickness="0">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                <Border Grid.Column="2" x:Name="CancelledChip" Style="{StaticResource ChipInactiveStyle}">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Cancelled" />
                     </Border.GestureRecognizers>
@@ -61,26 +54,25 @@
             <!-- Appointments List -->
             <CollectionView Grid.Row="2" ItemsSource="{Binding Appointments}" SelectionMode="None">
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Padding="30" Spacing="12" HorizontalOptions="Center">
-                        <Image Source="icon_calendar.png" WidthRequest="48" HeightRequest="48" HorizontalOptions="Center" />
+                    <VerticalStackLayout Style="{StaticResource EmptyStateContainerStyle}">
+                        <Image Source="{StaticResource IconCalendar}" WidthRequest="48" HeightRequest="48" HorizontalOptions="Center" />
                         <Label Text="No appointments found" FontAttributes="Bold" FontSize="15" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
                         <Label Text="Your appointments will appear here." Style="{StaticResource MutedLabel}" HorizontalOptions="Center" />
-                        <Button Text="Book Appointment" 
-                                Style="{StaticResource PrimaryButtonStyle}" 
-                                HeightRequest="44" 
-                                CornerRadius="10" 
-                                Padding="16,0" 
-                                HorizontalOptions="Center" 
-                                Margin="0,8,0,0" 
+                        <Button Text="Book Appointment"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                HeightRequest="44"
+                                CornerRadius="10"
+                                Padding="16,0"
+                                HorizontalOptions="Center"
+                                Margin="0,8,0,0"
                                 Clicked="OnBookClicked" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="x:Object">
-                        <Border BackgroundColor="White" Padding="16" Margin="0,5" Stroke="#E6F1FB" StrokeThickness="1">
-                            <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                        <Border Style="{StaticResource CardStyle}">
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
-                                <Image Source="icon_calendar.svg" HeightRequest="50" WidthRequest="50" VerticalOptions="Center" />
+                                <Image Source="{StaticResource IconCalendar}" HeightRequest="50" WidthRequest="50" VerticalOptions="Center" />
                                 <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <Label Text="{Binding DoctorName}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />

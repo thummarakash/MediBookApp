@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MediBook.Controls"
@@ -9,8 +9,8 @@
             <VerticalStackLayout Padding="20,24" Spacing="18">
                 <!-- Header -->
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                    <ImageButton Source="icon_back.png" WidthRequest="46" HeightRequest="46" CornerRadius="23"
-                                 BackgroundColor="White" Command="{Binding BackCommand}" Padding="12" />
+                    <ImageButton Source="icon_back.svg" WidthRequest="46" HeightRequest="46" CornerRadius="23"
+                                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Command="{Binding BackCommand}" Padding="12" />
                     <VerticalStackLayout Grid.Column="1">
                         <Label Text="Manage Doctors" Style="{StaticResource TitleLabel}" />
                         <Label Text="Add or remove medical practitioners" Style="{StaticResource MutedLabel}" />
@@ -18,7 +18,7 @@
                 </Grid>
 
                 <!-- Add / Edit Doctor Form -->
-                <Border BackgroundColor="White" Padding="18" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="18" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                     <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
                     <VerticalStackLayout Spacing="12">
                         <Label Text="{Binding FormTitle}" Style="{StaticResource SectionTitle}" />
@@ -31,7 +31,7 @@
 
                         <!-- Specialty Multi-Select -->
                         <Label Text="Specialties" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
-                        <Border BackgroundColor="#F3F7FC" Padding="14,10" Stroke="#D8E6F8" StrokeThickness="1">
+                        <Border BackgroundColor="{StaticResource PageBg}" Padding="14,10" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                             <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
                             <VerticalStackLayout Spacing="6">
                                 <Grid ColumnDefinitions="*,Auto">
@@ -59,7 +59,7 @@
 
                         <!-- Department Multi-Select -->
                         <Label Text="Departments" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
-                        <Border BackgroundColor="#F3F7FC" Padding="14,10" Stroke="#D8E6F8" StrokeThickness="1">
+                        <Border BackgroundColor="{StaticResource PageBg}" Padding="14,10" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                             <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
                             <VerticalStackLayout Spacing="6">
                                 <Grid ColumnDefinitions="*,Auto">
@@ -96,7 +96,7 @@
 
                         <!-- Clinics & Availability Multi-Select -->
                         <Label Text="Clinics &amp; Availability" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
-                        <Border BackgroundColor="#F3F7FC" Padding="14,10" Stroke="#D8E6F8" StrokeThickness="1">
+                        <Border BackgroundColor="{StaticResource PageBg}" Padding="14,10" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                             <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
                             <VerticalStackLayout Spacing="6">
                                 <Grid ColumnDefinitions="*,Auto">
@@ -144,7 +144,7 @@
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,8,0,0">
                             <Button Text="{Binding SaveButtonText}" Style="{StaticResource PrimaryButtonStyle}"
                                     Command="{Binding SaveDoctorCommand}" />
-                            <Button Grid.Column="1" Text="Cancel" BackgroundColor="#E6F1FB" TextColor="{StaticResource PrimaryBlue}"
+                            <Button Grid.Column="1" Text="Cancel" Style="{StaticResource SecondaryButtonStyle}"
                                     HeightRequest="50" Padding="18,0" CornerRadius="14"
                                     IsVisible="{Binding IsEditMode}"
                                     Command="{Binding CancelEditCommand}" />
@@ -157,7 +157,7 @@
                 <CollectionView ItemsSource="{Binding Doctors}" SelectionMode="None">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Border BackgroundColor="White" Padding="16" Margin="0,5" Stroke="#D8E6F8" StrokeThickness="1">
+                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Margin="0,5" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                                 <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                                 <VerticalStackLayout Spacing="6">
                                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
@@ -167,12 +167,12 @@
                                             <Label Text="{Binding Department}" FontSize="12" TextColor="{StaticResource MutedText}" />
                                         </VerticalStackLayout>
                                         <!-- Edit -->
-                                        <Button Grid.Column="1" Text="Edit" BackgroundColor="#E6F1FB" TextColor="{StaticResource PrimaryBlue}"
+                                        <Button Grid.Column="1" Text="Edit" Style="{StaticResource SecondaryButtonStyle}"
                                                 HeightRequest="40" Padding="12,0" CornerRadius="12"
                                                 Command="{Binding BindingContext.EditDoctorCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                                 CommandParameter="{Binding .}" />
                                         <!-- Delete -->
-                                        <Button Grid.Column="2" Text="Delete" BackgroundColor="#FEE2E2" TextColor="#B91C1C"
+                                        <Button Grid.Column="2" Text="Delete" BackgroundColor="{StaticResource DangerBg}" TextColor="{StaticResource LogoutText}"
                                                 HeightRequest="40" Padding="12,0" CornerRadius="12"
                                                 Command="{Binding BindingContext.DeleteDoctorCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                                 CommandParameter="{Binding .}" />

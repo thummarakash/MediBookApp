@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MediBook.Pages.ClinicDetailPage"
-             BackgroundColor="#F3F7FC">
+             BackgroundColor="{StaticResource PageBg}">
     <Grid RowDefinitions="Auto,*">
         <!-- Top Custom Header -->
         <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,20,20,24" StrokeThickness="0">
@@ -10,17 +10,17 @@
             <VerticalStackLayout Spacing="16">
                 <!-- Back & Page Title -->
                 <Grid ColumnDefinitions="Auto,*">
-                    <ImageButton Source="icon_back.png" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="White" Clicked="OnBackClicked" Padding="12" HorizontalOptions="Start" />
+                    <ImageButton Source="icon_back.svg" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Clicked="OnBackClicked" Padding="12" HorizontalOptions="Start" />
                     <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" VerticalOptions="Center">
                         <Label Text="Clinic Detail" FontSize="19" FontAttributes="Bold" TextColor="White" />
-                        <Label Text="Full clinic info and booking options" TextColor="#B5D4F4" FontSize="12.5" />
+                        <Label Text="Full clinic info and booking options" TextColor="{StaticResource Aqua}" FontSize="12.5" />
                     </VerticalStackLayout>
                 </Grid>
                 
                 <!-- Hero Building Box -->
                 <Border HeightRequest="80" WidthRequest="80" StrokeThickness="0" BackgroundColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" Margin="0,4,0,0">
                     <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
-                    <Image Source="icon_clinic.png" WidthRequest="36" HeightRequest="36" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Image Source="icon_clinic.svg" WidthRequest="36" HeightRequest="36" HorizontalOptions="Center" VerticalOptions="Center" />
                 </Border>
             </VerticalStackLayout>
         </Border>
@@ -29,7 +29,7 @@
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Padding="20" Spacing="16">
                 <!-- Core Clinic Info Card -->
-                <Border BackgroundColor="White" Padding="18" Stroke="#E6F1FB" StrokeThickness="1">
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="18" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
                     <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                     <VerticalStackLayout Spacing="8">
                         <Label x:Name="ClinicNameLabel" Text="City Medical Center" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
@@ -48,7 +48,7 @@
                         
                         <!-- Rating -->
                         <HorizontalStackLayout Spacing="6">
-                            <Image Source="icon_star.png" WidthRequest="14" HeightRequest="14" VerticalOptions="Center" />
+                            <Image Source="icon_star.svg" WidthRequest="14" HeightRequest="14" VerticalOptions="Center" />
                             <Label x:Name="ClinicRatingLabel" Text="4.8 (234 reviews)" FontSize="13" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
@@ -59,11 +59,11 @@
                 <FlexLayout x:Name="SpecialtiesFlex" Wrap="Wrap" Direction="Row" JustifyContent="Start" AlignItems="Center" AlignContent="Center" Margin="0,-4" />
 
                 <!-- Opening Hours Card -->
-                <Border BackgroundColor="White" Padding="18" Stroke="#E6F1FB" StrokeThickness="1">
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="18" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
                     <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                     <VerticalStackLayout Spacing="10">
                         <Label Text="Opening Hours" FontSize="14.5" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
-                        <BoxView HeightRequest="1" BackgroundColor="#E6F1FB" />
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource SkyBlue}" />
                         <Label x:Name="HoursMonFriLabel" Text="Mon–Fri: 8AM–8PM" FontSize="13" TextColor="{StaticResource PrimaryNavy}" />
                         <Label x:Name="HoursSatSunLabel" Text="Sat: 9AM–5PM • Sun: 10AM–2PM" FontSize="13" Style="{StaticResource MutedLabel}" />
                     </VerticalStackLayout>

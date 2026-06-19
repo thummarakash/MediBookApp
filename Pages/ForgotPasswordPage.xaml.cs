@@ -1,5 +1,5 @@
-using System;
-using Microsoft.Maui.Controls;
+using MediBook.Helpers;
+using MediBook.Services.Firebase;
 
 namespace MediBook.Pages;
 
@@ -11,40 +11,54 @@ public partial class ForgotPasswordPage : ContentPage
     }
 
     private async void OnBackClicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync("..");
-    }
+        => await Shell.Current.GoToAsync("..");
 
     private async void OnSendCodeClicked(object sender, EventArgs e)
     {
-        string email = EmailEntry.Text?.Trim() ?? string.Empty;
+        var btn = sender as Button;
+        if (btn != null) await AnimationHelper.ButtonPressAsync(btn);
 
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
+        var email = ValidationHelper.SanitizeInput(EmailEntry.Text);
+
+        if (!ValidationHelper.IsValidEmail(email))
         {
-            await ConfirmationPopupPage.ShowAsync(
-                Navigation,
-                "Validation Error",
-                "Please enter a valid email address.",
-                "icon_warning.svg",
-                "Try Again");
+            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Invalid Email",
+                "Please enter a valid email address.", "icon_warning.svg");
             return;
         }
 
-        // Generate a random mock verification code
-        Random rand = new Random();
-        int code = rand.Next(100000, 999999);
+        if (btn != null)
+        {
+            btn.IsEnabled = false;
+            btn.Text = "Sending...";
+        }
 
-        // Display code in an attractive confirmation pop-up
-        await ConfirmationPopupPage.ShowAsync(
-            Navigation,
-            "Reset Code Sent",
-            $"A verification code has been sent to {email}.\n\nSimulation Code: {code}",
-            "icon_email.svg",
-            "Verify Now",
-            async () =>
+        try
+        {
+            // Firebase sends a real password reset email
+            await FirebaseAuthService.Instance.SendPasswordResetEmailAsync(email);
+
+            await ConfirmationPopupPage.ShowAsync(
+                Navigation,
+                "Email Sent",
+                $"A password reset link has been sent to {email}.\n\nPlease check your inbox (and spam folder).",
+                "icon_email.svg",
+                "OK",
+                async () => await Shell.Current.GoToAsync(".."));
+        }
+        catch (Exception ex)
+        {
+            await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as View ?? this);
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Error", ex.Message, "icon_warning.svg");
+        }
+        finally
+        {
+            if (btn != null)
             {
-                // Navigate to Reset Password screen, passing parameters
-                await Shell.Current.GoToAsync($"{nameof(ResetPasswordPage)}?email={Uri.EscapeDataString(email)}&validCode={code}");
-            });
+                btn.IsEnabled = true;
+                btn.Text = "Send Reset Link";
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MediBook.Pages.PinPage"
@@ -8,7 +8,7 @@
     <Grid RowDefinitions="Auto,*,Auto" Padding="24,30,24,40">
         <!-- Header / Back Button -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0,0,0,10">
-            <ImageButton x:Name="BackBtn" Source="icon_back_white.png" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="{StaticResource PrimaryNavy}" Padding="12" Clicked="OnBackClicked" HorizontalOptions="Start" />
+            <ImageButton x:Name="BackBtn" Source="icon_back_white.svg" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="{StaticResource PrimaryNavy}" Padding="12" Clicked="OnBackClicked" HorizontalOptions="Start" />
             <Label x:Name="PageTitleText" Grid.Column="1" Text="Security PIN" FontAttributes="Bold" FontSize="20" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" VerticalOptions="Center" Margin="-44,0,0,0" />
         </Grid>
 

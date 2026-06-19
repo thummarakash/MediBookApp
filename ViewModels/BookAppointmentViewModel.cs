@@ -136,46 +136,26 @@ public partial class BookAppointmentViewModel : ObservableObject
 
     private void LoadDoctorsForSpecialty()
     {
-        var filtered = _allDoctors.Where(d =>
-            d.Specialty.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase) ||
-            d.Department.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase)
-        ).ToList();
-
-        if (!filtered.Any())
-        {
-            filtered = _allDoctors;
-        }
-
-        FilteredDoctors = new ObservableCollection<Doctor>(filtered);
+        FilteredDoctors = new ObservableCollection<Doctor>(GetBaseListForSpecialty());
         FilterDoctors();
+    }
+
+    private List<Doctor> GetBaseListForSpecialty()
+    {
+        var specialtyMatch = _allDoctors.Where(d =>
+            d.Specialty.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase) ||
+            d.Department.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase)).ToList();
+        return specialtyMatch.Any() ? specialtyMatch : _allDoctors;
     }
 
     private void FilterDoctors()
     {
         var text = SearchText?.Trim().ToLowerInvariant() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            FilteredDoctors = new ObservableCollection<Doctor>(
-                _allDoctors.Where(d => d.Specialty.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase) ||
-                                       d.Department.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase)).ToList()
-            );
-            if (!FilteredDoctors.Any())
-            {
-                FilteredDoctors = new ObservableCollection<Doctor>(_allDoctors);
-            }
-        }
-        else
-        {
-            var searchBase = _allDoctors.Where(d => d.Specialty.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase) ||
-                                                   d.Department.Equals(SelectedSpecialty, StringComparison.OrdinalIgnoreCase)).ToList();
-            if (!searchBase.Any())
-            {
-                searchBase = _allDoctors;
-            }
-            FilteredDoctors = new ObservableCollection<Doctor>(
-                searchBase.Where(d => d.Name.ToLowerInvariant().Contains(text)).ToList()
-            );
-        }
+        var baseList = GetBaseListForSpecialty();
+        FilteredDoctors = string.IsNullOrWhiteSpace(text)
+            ? new ObservableCollection<Doctor>(baseList)
+            : new ObservableCollection<Doctor>(
+                baseList.Where(d => d.Name.ToLowerInvariant().Contains(text)).ToList());
     }
 
     [RelayCommand]

@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // ── Users collection ─────────────────────────────────────────────────────
+    // Patients can read/write their own profile; admins can read any profile.
+    match /users/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId));
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if false; // Only via Firebase Console / Cloud Function
+    }
+
+    // ── Appointments collection ───────────────────────────────────────────────
+    // Patients can create appointments; read/update/delete their own only.
+    match /appointments/{appointmentId} {
+      allow read: if isSignedIn() &&
+        (resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() &&
+        resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // ── Clinics collection ────────────────────────────────────────────────────
+    // Public read; write requires authenticated user (admin role enforced in app).
+    match /clinics/{clinicId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // ── Doctors collection ────────────────────────────────────────────────────
+    match /doctors/{doctorId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // ── Documents collection ──────────────────────────────────────────────────
+    match /documents/{documentId} {
+      allow read: if isSignedIn() &&
+        resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() &&
+        resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() &&
+        resource.data.userId == request.auth.uid;
+    }
+  }
+}

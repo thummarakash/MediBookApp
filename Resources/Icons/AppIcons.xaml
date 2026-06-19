@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Centralized icon path registry.
+         All icon references in XAML pages must use these keys via
+         {StaticResource IconXxx} so renames only need a single edit here.
+         All icons are SVG files in Resources/Images/.
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Navigation ───────────────────────────────────────────────────── -->
+    <x:String x:Key="IconBack">icon_back.svg</x:String>
+    <x:String x:Key="IconBackWhite">icon_back_white.svg</x:String>
+
+    <!-- ── Auth & Account ────────────────────────────────────────────────── -->
+    <x:String x:Key="IconUser">icon_user.svg</x:String>
+    <x:String x:Key="IconEmail">icon_email.svg</x:String>
+    <x:String x:Key="IconPhone">icon_phone.svg</x:String>
+    <x:String x:Key="IconLock">icon_lock.svg</x:String>
+    <x:String x:Key="IconGoogle">icon_google.svg</x:String>
+    <x:String x:Key="IconLogout">icon_logout.svg</x:String>
+
+    <!-- ── Appointments & Booking ─────────────────────────────────────────── -->
+    <x:String x:Key="IconCalendar">icon_calendar.svg</x:String>
+    <x:String x:Key="IconDoctor">icon_doctor.svg</x:String>
+    <x:String x:Key="IconClinic">icon_clinic.svg</x:String>
+
+    <!-- ── Documents & Medical ────────────────────────────────────────────── -->
+    <x:String x:Key="IconDocument">icon_document.svg</x:String>
+    <x:String x:Key="IconBloodTest">icon_blood_test.svg</x:String>
+    <x:String x:Key="IconCamera">icon_camera.svg</x:String>
+    <x:String x:Key="IconGallery">icon_gallery.svg</x:String>
+
+    <!-- ── UI Controls ────────────────────────────────────────────────────── -->
+    <x:String x:Key="IconBell">icon_bell.svg</x:String>
+    <x:String x:Key="IconWarning">icon_warning.svg</x:String>
+    <x:String x:Key="IconStar">icon_star.svg</x:String>
+    <x:String x:Key="IconOptions">icon_options.svg</x:String>
+    <x:String x:Key="IconMap">icon_map.svg</x:String>
+    <x:String x:Key="IconGps">icon_gps.svg</x:String>
+
+    <!-- ── Brand ─────────────────────────────────────────────────────────── -->
+    <x:String x:Key="IconLogo">medibook_logo.svg</x:String>
+
+    <!-- ── Tab Bar (selected) ─────────────────────────────────────────────── -->
+    <x:String x:Key="TabHomeSelected">tab_home_selected.svg</x:String>
+    <x:String x:Key="TabAppointmentsSelected">tab_appointments_selected.svg</x:String>
+    <x:String x:Key="TabClinicsSelected">tab_clinics_selected.svg</x:String>
+    <x:String x:Key="TabDoctorsSelected">tab_doctors_selected.svg</x:String>
+    <x:String x:Key="TabDocumentsSelected">tab_documents_selected.svg</x:String>
+    <x:String x:Key="TabProfileSelected">tab_profile_selected.svg</x:String>
+
+    <!-- ── Tab Bar (unselected) ───────────────────────────────────────────── -->
+    <x:String x:Key="TabHomeUnselected">tab_home_unselected.svg</x:String>
+    <x:String x:Key="TabAppointmentsUnselected">tab_appointments_unselected.svg</x:String>
+    <x:String x:Key="TabClinicsUnselected">tab_clinics_unselected.svg</x:String>
+    <x:String x:Key="TabDoctorsUnselected">tab_doctors_unselected.svg</x:String>
+    <x:String x:Key="TabDocumentsUnselected">tab_documents_unselected.svg</x:String>
+    <x:String x:Key="TabProfileUnselected">tab_profile_unselected.svg</x:String>
+
+</ResourceDictionary>

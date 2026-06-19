@@ -2,7 +2,12 @@ namespace MediBook.Models;
 
 public class UserAccount
 {
+    // Local integer ID for backward compatibility with existing code
     public int Id { get; set; }
+
+    // Firebase UID — used as the Firestore document ID
+    public string FirestoreId { get; set; } = string.Empty;
+
     public string Email { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;

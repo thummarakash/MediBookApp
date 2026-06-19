@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:MediBook.ViewModels"
@@ -21,21 +21,21 @@
                 <!-- Stats Overview Cards -->
                 <Label Text="Overview" Style="{StaticResource SectionTitle}" />
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
-                    <Border Padding="14" Stroke="#D8E6F8" StrokeThickness="1">
+                    <Border Padding="14" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                         <Border.StrokeShape><RoundRectangle CornerRadius="18" /></Border.StrokeShape>
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="{Binding PatientCount}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" />
                             <Label Text="Patients" FontSize="11" TextColor="{StaticResource MutedText}" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                     </Border>
-                    <Border Grid.Column="1" Padding="14" Stroke="#D8E6F8" StrokeThickness="1">
+                    <Border Grid.Column="1" Padding="14" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                         <Border.StrokeShape><RoundRectangle CornerRadius="18" /></Border.StrokeShape>
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="{Binding DoctorCount}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" />
                             <Label Text="Doctors" FontSize="11" TextColor="{StaticResource MutedText}" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                     </Border>
-                    <Border Grid.Column="2" Padding="14" Stroke="#D8E6F8" StrokeThickness="1">
+                    <Border Grid.Column="2" Padding="14" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                         <Border.StrokeShape><RoundRectangle CornerRadius="18" /></Border.StrokeShape>
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="{Binding BookingCount}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" />
@@ -46,7 +46,7 @@
 
                 <!-- Action Panels -->
                 <Label Text="Management Actions" Style="{StaticResource SectionTitle}" />
-                <Border BackgroundColor="White" Padding="18" Stroke="#D8E6F8" StrokeThickness="1">
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="18" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                     <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
                     <VerticalStackLayout Spacing="12">
                         <Button Text="Manage Clinics" Style="{StaticResource OutlineButtonStyle}" Clicked="OnManageClinicsClicked" />

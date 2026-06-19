@@ -24,7 +24,8 @@
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
                             <Image Source="icon_email.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
-                            <Entry x:Name="EmailEntry" Grid.Column="1" Placeholder="Email address" Keyboard="Email" Style="{StaticResource InputStyle}" />
+                            <Entry x:Name="EmailEntry" Grid.Column="1" Placeholder="Email address" Keyboard="Email" Style="{StaticResource InputStyle}"
+                                   SemanticProperties.Description="Email address input" AutomationId="EmailEntry" />
                         </Grid>
                     </Border>
 
@@ -32,7 +33,8 @@
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
                             <Image Source="icon_lock.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
-                            <Entry x:Name="PasswordEntry" Grid.Column="1" Placeholder="Password" IsPassword="True" Style="{StaticResource InputStyle}" />
+                            <Entry x:Name="PasswordEntry" Grid.Column="1" Placeholder="Password" IsPassword="True" Style="{StaticResource InputStyle}"
+                                   SemanticProperties.Description="Password input" AutomationId="PasswordEntry" />
                         </Grid>
                     </Border>
 
@@ -45,8 +47,10 @@
 
                     <!-- Buttons -->
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <Button Text="Sign In" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnLoginClicked" Margin="0" />
-                        <Button x:Name="BiometricBtn" Grid.Column="1" ImageSource="icon_lock.svg" BackgroundColor="#E6F1FB" Clicked="OnBiometricLoginClicked" WidthRequest="52" HeightRequest="52" CornerRadius="12" Padding="0" VerticalOptions="Center" />
+                        <Button Text="Sign In" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnLoginClicked" Margin="0"
+                                AutomationId="SignInBtn" SemanticProperties.Hint="Sign in to your account" />
+                        <Button x:Name="BiometricBtn" Grid.Column="1" ImageSource="icon_lock.svg" BackgroundColor="{StaticResource SkyBlue}" Clicked="OnBiometricLoginClicked" WidthRequest="52" HeightRequest="52" CornerRadius="12" Padding="0" VerticalOptions="Center"
+                                AutomationId="BiometricLoginBtn" SemanticProperties.Description="Biometric login" />
                     </Grid>
 
                     <!-- Quick Testing Buttons -->

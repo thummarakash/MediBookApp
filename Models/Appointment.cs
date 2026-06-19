@@ -2,12 +2,23 @@ namespace MediBook.Models;
 
 public class Appointment
 {
+    // Local ID for backward compatibility
     public int Id { get; set; }
+
+    // Firestore document ID
+    public string FirestoreId { get; set; } = string.Empty;
+
+    // Legacy int UID + new Firestore string UID
     public int UserId { get; set; }
+    public string UserFirestoreId { get; set; } = string.Empty;
+
     public int DoctorId { get; set; }
+    public string DoctorFirestoreId { get; set; } = string.Empty;
+
     public string DoctorName { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
     public string ClinicName { get; set; } = string.Empty;
+    public string ClinicFirestoreId { get; set; } = string.Empty;
     public string DateText { get; set; } = string.Empty;
     public string TimeText { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
@@ -28,31 +39,33 @@ public class Appointment
     {
         get
         {
-            if (DateTime.TryParseExact($"{DateText} {TimeText}", "yyyy-MM-dd hh:mm tt", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var dt))
-            {
+            if (DateTime.TryParseExact($"{DateText} {TimeText}", "yyyy-MM-dd hh:mm tt",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var dt))
                 return dt;
-            }
-            if (DateTime.TryParse(DateText, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
-            {
+
+            if (DateTime.TryParse(DateText, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var d))
                 return d;
-            }
+
             return DateTime.MaxValue;
         }
     }
 
     public string DisplayDateTime => $"{DateText} at {TimeText}";
 
+    // Colors match Colors.xaml: Success, Danger, Warning, SuccessBg, DangerBg, WarningBg
     public Color StatusColor => Status switch
     {
-        "Completed" => Color.FromArgb("#15803D"),
-        "Cancelled" => Color.FromArgb("#DC2626"),
-        _ => Color.FromArgb("#C2740C")
+        "Completed" => Color.FromArgb("#15803D"),   // Success
+        "Cancelled" => Color.FromArgb("#DC2626"),   // Danger
+        _ => Color.FromArgb("#C2740C")              // Warning
     };
 
     public Color StatusBgColor => Status switch
     {
-        "Completed" => Color.FromArgb("#DCFCE7"),
-        "Cancelled" => Color.FromArgb("#FEE2E2"),
-        _ => Color.FromArgb("#FEF3C7")
+        "Completed" => Color.FromArgb("#DCFCE7"),   // SuccessBg
+        "Cancelled" => Color.FromArgb("#FEE2E2"),   // DangerBg
+        _ => Color.FromArgb("#FEF3C7")              // WarningBg
     };
 }

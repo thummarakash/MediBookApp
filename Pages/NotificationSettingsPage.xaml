@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MediBook.Pages.NotificationSettingsPage"
-             BackgroundColor="#F3F7FC">
+             BackgroundColor="{StaticResource PageBg}">
     <Grid RowDefinitions="Auto,*">
         <!-- Top Curved Header -->
         <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,20,20,24" StrokeThickness="0">
@@ -10,10 +10,10 @@
             <VerticalStackLayout Spacing="16">
                 <!-- Back & Page Title -->
                 <Grid ColumnDefinitions="Auto,*">
-                    <ImageButton Source="icon_back.png" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="White" Clicked="OnBackClicked" Padding="12" HorizontalOptions="Start" />
+                    <ImageButton Source="icon_back.svg" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Clicked="OnBackClicked" Padding="12" HorizontalOptions="Start" />
                     <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" VerticalOptions="Center">
                         <Label Text="Notifications" FontSize="19" FontAttributes="Bold" TextColor="White" />
-                        <Label Text="Manage app reminders and alerts" TextColor="#B5D4F4" FontSize="12.5" />
+                        <Label Text="Manage app reminders and alerts" TextColor="{StaticResource Aqua}" FontSize="12.5" />
                     </VerticalStackLayout>
                 </Grid>
             </VerticalStackLayout>
@@ -22,7 +22,7 @@
         <!-- Toggles List -->
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Padding="20" Spacing="16">
-                <Border BackgroundColor="White" Padding="18" Stroke="#E6F1FB" StrokeThickness="1">
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="18" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
                     <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                     <VerticalStackLayout Spacing="14">
                         <!-- Appointment Reminders -->
@@ -33,7 +33,7 @@
                             </VerticalStackLayout>
                             <Switch Grid.Column="1" IsToggled="True" OnColor="{StaticResource PrimaryBlue}" ThumbColor="White" />
                         </Grid>
-                        <BoxView HeightRequest="1" BackgroundColor="#F3F7FC" />
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource PageBg}" />
 
                         <!-- 24 Hour Reminder -->
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -43,7 +43,7 @@
                             </VerticalStackLayout>
                             <Switch Grid.Column="1" IsToggled="True" OnColor="{StaticResource PrimaryBlue}" ThumbColor="White" />
                         </Grid>
-                        <BoxView HeightRequest="1" BackgroundColor="#F3F7FC" />
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource PageBg}" />
 
                         <!-- 1 Hour Reminder -->
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -53,7 +53,7 @@
                             </VerticalStackLayout>
                             <Switch Grid.Column="1" IsToggled="True" OnColor="{StaticResource PrimaryBlue}" ThumbColor="White" />
                         </Grid>
-                        <BoxView HeightRequest="1" BackgroundColor="#F3F7FC" />
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource PageBg}" />
 
                         <!-- Prescription Refills -->
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
