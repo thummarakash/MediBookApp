@@ -8,12 +8,17 @@ public class DatabaseService
     private const string LoggedInKey = "medibook_logged_in";
     public static DatabaseService Instance { get; } = new();
 
-    // Mock Clinics — Melbourne-based as required
+    // Mock Clinics — Melbourne & Surat (Testing)
     public static readonly List<Clinic> StaticClinics = new()
     {
         new() { Id = 1, Name = "Melbourne Central Medical", Address = "123 Collins St, Melbourne VIC 3000", Latitude = -37.8142, Longitude = 144.9631 },
         new() { Id = 2, Name = "City Health Clinic", Address = "45 Bourke St, Melbourne VIC 3000", Latitude = -37.8136, Longitude = 144.9661 },
-        new() { Id = 3, Name = "Family Care Centre", Address = "78 Swanston St, Carlton VIC 3053", Latitude = -37.8005, Longitude = 144.9634 }
+        new() { Id = 3, Name = "Family Care Centre", Address = "78 Swanston St, Carlton VIC 3053", Latitude = -37.8005, Longitude = 144.9634 },
+        new() { Id = 4, Name = "Surat Central Hospital", Address = "Ring Road, Surat, Gujarat 395002", Latitude = 21.1895, Longitude = 72.8315 },
+        new() { Id = 5, Name = "Adajan Medical Clinic", Address = "L.P. Savani Road, Adajan, Surat, Gujarat 395009", Latitude = 21.1964, Longitude = 72.7963 },
+        new() { Id = 6, Name = "Vesu Family Care", Address = "Vip Road, Vesu, Surat, Gujarat 395007", Latitude = 21.1418, Longitude = 72.7845 },
+        new() { Id = 7, Name = "Varachha Health Centre", Address = "Varachha Road, Surat, Gujarat 395006", Latitude = 21.2089, Longitude = 72.8624 },
+        new() { Id = 8, Name = "Piplod Multispecialty Clinic", Address = "Dumas Road, Piplod, Surat, Gujarat 395007", Latitude = 21.1685, Longitude = 72.7794 }
     };
 
     // Mock Doctors — as required
@@ -32,7 +37,12 @@ public class DatabaseService
         new() { Id = 3, ClinicId = 2, DoctorId = 1 },
         new() { Id = 4, ClinicId = 2, DoctorId = 3 },
         new() { Id = 5, ClinicId = 3, DoctorId = 2 },
-        new() { Id = 6, ClinicId = 3, DoctorId = 3 }
+        new() { Id = 6, ClinicId = 3, DoctorId = 3 },
+        new() { Id = 7, ClinicId = 4, DoctorId = 1 },
+        new() { Id = 8, ClinicId = 5, DoctorId = 2 },
+        new() { Id = 9, ClinicId = 6, DoctorId = 3 },
+        new() { Id = 10, ClinicId = 7, DoctorId = 1 },
+        new() { Id = 11, ClinicId = 8, DoctorId = 2 }
     };
 
     // Mock Appointments — Upcoming, Completed, Cancelled

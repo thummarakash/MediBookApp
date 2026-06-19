@@ -1,6 +1,9 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
 namespace MediBook.Models;
 
-public class Clinic
+public class Clinic : INotifyPropertyChanged
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -8,7 +11,25 @@ public class Clinic
     public double Latitude { get; set; }
     public double Longitude { get; set; }
 
-    public string DistanceText => Id == 1 ? "0.4 km away" : Id == 2 ? "1.2 km away" : "2.5 km away";
+    private double? _distanceToUser;
+    public double? DistanceToUser
+    {
+        get => _distanceToUser;
+        set
+        {
+            if (_distanceToUser != value)
+            {
+                _distanceToUser = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DistanceText));
+            }
+        }
+    }
+
+    public string DistanceText => DistanceToUser.HasValue 
+        ? $"{DistanceToUser.Value:F1} km away" 
+        : (Id == 1 ? "0.4 km away" : Id == 2 ? "1.2 km away" : "2.5 km away");
+
     public string Rating => Id == 1 ? "4.8" : Id == 2 ? "4.5" : "4.2";
     public string RatingCount => Id == 1 ? "234" : Id == 2 ? "118" : "64";
     public string Phone => Id == 1 ? "+61 3 9000 0000" : Id == 2 ? "+61 3 9876 5432" : "+61 3 5555 4444";
@@ -24,4 +45,10 @@ public class Clinic
     public string UpdatedBy { get; set; } = "System";
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }

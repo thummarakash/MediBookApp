@@ -7,7 +7,9 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-        builder.UseMauiApp<App>();
+        builder
+            .UseMauiApp<App>()
+            .UseMauiMaps();
 
         // Remove native underlines/borders on Android for clean entry/editor styles
 #if ANDROID

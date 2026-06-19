@@ -1,5 +1,6 @@
 using MediBook.Models;
 using MediBook.Services;
+using Microsoft.Maui.Maps;
 
 namespace MediBook.Pages;
 
@@ -7,6 +8,9 @@ public partial class ClinicsPage : ContentPage
 {
     private List<Clinic> _clinics = new();
     private Clinic? _selectedClinic;
+    private bool _isMapView = true;
+    private bool _isLocationAvailable = false;
+    private IDispatcherTimer? _locationCheckTimer;
 
     public ClinicsPage()
     {
@@ -19,16 +23,183 @@ public partial class ClinicsPage : ContentPage
         _clinics = await DatabaseService.Instance.GetClinicsAsync();
         ClinicsCollection.ItemsSource = _clinics;
         
-        if (_clinics.Any())
+        SetupMapPins();
+
+        // Check immediately on appearing
+        await CheckAndCenterUserLocationAsync(requestIfNeeded: false);
+
+        // Start periodic check timer (polls every 3 seconds to auto-hide map if user turns off GPS)
+        _locationCheckTimer = Dispatcher.CreateTimer();
+        _locationCheckTimer.Interval = TimeSpan.FromSeconds(3);
+        _locationCheckTimer.Tick += async (s, e) =>
         {
-            SelectClinic(_clinics.First());
+            await CheckAndCenterUserLocationAsync(requestIfNeeded: false);
+        };
+        _locationCheckTimer.Start();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _locationCheckTimer?.Stop();
+        _locationCheckTimer = null;
+    }
+
+    private async Task<bool> IsLocationServicesEnabledAsync()
+    {
+#if ANDROID
+        try
+        {
+            var locationManager = (Android.Locations.LocationManager)Android.App.Application.Context.GetSystemService(Android.Content.Context.LocationService);
+            return locationManager != null && (locationManager.IsProviderEnabled(Android.Locations.LocationManager.GpsProvider) || locationManager.IsProviderEnabled(Android.Locations.LocationManager.NetworkProvider));
+        }
+        catch
+        {
+            return false;
+        }
+#else
+        return true;
+#endif
+    }
+
+    private async Task CheckAndCenterUserLocationAsync(bool requestIfNeeded)
+    {
+        try
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted && requestIfNeeded)
+            {
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+            }
+
+            bool isGpsEnabled = await IsLocationServicesEnabledAsync();
+
+            if (status == PermissionStatus.Granted && isGpsEnabled)
+            {
+                // If location wasn't available before, fetch location and center/sort
+                if (!_isLocationAvailable)
+                {
+                    var location = await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5)));
+                    if (location != null)
+                    {
+                        // Calculate driving distance (straight line * 1.3 scaling factor) to clinics
+                        foreach (var clinic in _clinics)
+                        {
+                            var clinicLoc = new Location(clinic.Latitude, clinic.Longitude);
+                            double straightLineDist = location.CalculateDistance(clinicLoc, DistanceUnits.Kilometers);
+                            clinic.DistanceToUser = straightLineDist * 1.3;
+                        }
+
+                        // Sort clinics Closest first (najik to door)
+                        _clinics = _clinics.OrderBy(c => c.DistanceToUser ?? double.MaxValue).ToList();
+
+                        // Re-setup map pins based on sorted order
+                        SetupMapPins();
+
+                        // Force Collections to refresh their display
+                        ClinicsCollection.ItemsSource = null;
+                        ClinicsCollection.ItemsSource = _clinics;
+
+                        _isLocationAvailable = true;
+                        UpdateContentVisibility();
+
+                        if (_selectedClinic == null && _clinics.Any())
+                        {
+                            SelectClinic(_clinics.First());
+                        }
+                        else if (_selectedClinic != null)
+                        {
+                            // Refresh display values on card
+                            _selectedClinic = _clinics.FirstOrDefault(c => c.Id == _selectedClinic.Id) ?? _selectedClinic;
+                            MapClinicName.Text = _selectedClinic.Name;
+                            MapClinicDistance.Text = _selectedClinic.DistanceText;
+                            MapClinicRating.Text = _selectedClinic.Rating;
+                        }
+
+                        ClinicsMap.MoveToRegion(MapSpan.FromCenterAndRadius(location, Distance.FromKilometers(1.5)));
+                    }
+                }
+                return;
+            }
+
+            // If user clicked Enable Location but global GPS is off, open settings directly
+            if (requestIfNeeded && !isGpsEnabled)
+            {
+#if ANDROID
+                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionLocationSourceSettings);
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                Android.App.Application.Context.StartActivity(intent);
+#else
+                await DisplayAlert("GPS Required", "Please enable GPS/location services on your device.", "OK");
+#endif
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error retrieving location: {ex.Message}");
+        }
+
+        // Location is disabled/off/denied
+        _isLocationAvailable = false;
+        UpdateContentVisibility();
+    }
+
+    private void UpdateContentVisibility()
+    {
+        if (_isLocationAvailable)
+        {
+            LocationPromptContainer.IsVisible = false;
+            MapViewGrid.IsVisible = _isMapView;
+            SelectedClinicCard.IsVisible = _isMapView;
+            ClinicsCollection.IsVisible = !_isMapView;
+        }
+        else
+        {
+            LocationPromptContainer.IsVisible = true;
+            MapViewGrid.IsVisible = false;
+            SelectedClinicCard.IsVisible = false;
+            ClinicsCollection.IsVisible = false;
+        }
+    }
+
+    private async void OnEnableLocationClicked(object sender, EventArgs e)
+    {
+        await CheckAndCenterUserLocationAsync(requestIfNeeded: true);
+    }
+
+    private void SetupMapPins()
+    {
+        try
+        {
+            ClinicsMap.Pins.Clear();
+            foreach (var clinic in _clinics)
+            {
+                var pin = new Microsoft.Maui.Controls.Maps.Pin
+                {
+                    Label = clinic.Name,
+                    Address = clinic.Address,
+                    Type = Microsoft.Maui.Controls.Maps.PinType.Place,
+                    Location = new Location(clinic.Latitude, clinic.Longitude)
+                };
+                
+                pin.MarkerClicked += (s, args) =>
+                {
+                    SelectClinic(clinic);
+                };
+
+                ClinicsMap.Pins.Add(pin);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {ex.Message}");
         }
     }
 
     private void OnMapTabClicked(object sender, EventArgs e)
     {
-        MapViewGrid.IsVisible = true;
-        ClinicsCollection.IsVisible = false;
+        _isMapView = true;
+        UpdateContentVisibility();
 
         MapTabBtn.BackgroundColor = (Color)(Application.Current?.Resources["PrimaryBlue"] ?? Color.FromArgb("#155EEF"));
         MapTabBtn.TextColor = Colors.White;
@@ -41,8 +212,8 @@ public partial class ClinicsPage : ContentPage
 
     private void OnListTabClicked(object sender, EventArgs e)
     {
-        MapViewGrid.IsVisible = false;
-        ClinicsCollection.IsVisible = true;
+        _isMapView = false;
+        UpdateContentVisibility();
 
         ListTabBtn.BackgroundColor = (Color)(Application.Current?.Resources["PrimaryBlue"] ?? Color.FromArgb("#155EEF"));
         ListTabBtn.TextColor = Colors.White;
@@ -53,18 +224,6 @@ public partial class ClinicsPage : ContentPage
         MapTabBtn.FontAttributes = FontAttributes.None;
     }
 
-    private void OnMapPinClicked(object sender, EventArgs e)
-    {
-        if (sender is Border border && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap && tap.CommandParameter is string pinIdStr && int.TryParse(pinIdStr, out var pinId))
-        {
-            var clinic = _clinics.FirstOrDefault(c => c.Id == pinId);
-            if (clinic != null)
-            {
-                SelectClinic(clinic);
-            }
-        }
-    }
-
     private void SelectClinic(Clinic clinic)
     {
         _selectedClinic = clinic;
@@ -72,30 +231,15 @@ public partial class ClinicsPage : ContentPage
         MapClinicDistance.Text = clinic.DistanceText;
         MapClinicRating.Text = clinic.Rating;
 
-        // Reset pin colors and scale
-        Pin1Img.Source = "icon_pin_blue.png";
-        Pin2Img.Source = "icon_pin_blue.png";
-        Pin3Img.Source = "icon_pin_blue.png";
-
-        Pin1.Scale = 1.0;
-        Pin2.Scale = 1.0;
-        Pin3.Scale = 1.0;
-
-        // Highlight active pin
-        if (clinic.Id == 1)
+        try
         {
-            Pin1Img.Source = "icon_pin_red.png";
-            Pin1.Scale = 1.25;
+            ClinicsMap.MoveToRegion(MapSpan.FromCenterAndRadius(
+                new Location(clinic.Latitude, clinic.Longitude),
+                Distance.FromKilometers(1.2)));
         }
-        else if (clinic.Id == 2)
+        catch (Exception ex)
         {
-            Pin2Img.Source = "icon_pin_red.png";
-            Pin2.Scale = 1.25;
-        }
-        else if (clinic.Id == 3)
-        {
-            Pin3Img.Source = "icon_pin_red.png";
-            Pin3.Scale = 1.25;
+            System.Diagnostics.Debug.WriteLine($"Error moving map camera: {ex.Message}");
         }
     }
 

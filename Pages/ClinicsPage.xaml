@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MediBook.Controls"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
              x:Class="MediBook.Pages.ClinicsPage"
              BackgroundColor="#F3F7FC">
     <Grid RowDefinitions="*,Auto">
@@ -27,47 +28,27 @@
                 </Grid>
 
                 <Grid Grid.Row="1">
+                    <!-- Location Disabled Placeholder (visible when location is not enabled/granted) -->
+                    <Border x:Name="LocationPromptContainer" Stroke="#B5D4F4" StrokeThickness="1" BackgroundColor="#E6F1FB" IsVisible="True">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="12" Padding="20">
+                            <Image Source="icon_gps.png" HeightRequest="48" WidthRequest="48" HorizontalOptions="Center" />
+                            <Label Text="Turn on your location" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
+                            <Label Text="To view nearby clinics and calculate road distance, please enable location access." HorizontalTextAlignment="Center" FontSize="12" Style="{StaticResource MutedLabel}" Margin="0,0,0,8" />
+                            <Button Text="Enable Location" BackgroundColor="{StaticResource PrimaryBlue}" TextColor="White" CornerRadius="18" HeightRequest="38" Padding="16,0" Clicked="OnEnableLocationClicked" FontSize="12.5" HorizontalOptions="Center" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+                    </Border>
+
                     <!-- Map View Section -->
-                    <Grid x:Name="MapViewGrid" RowDefinitions="*,Auto" IsVisible="True">
-                        <!-- Vector Mock Map Graphic -->
-                        <Border Grid.Row="0" BackgroundColor="#EBF4FD" Stroke="#B5D4F4" StrokeThickness="1" Margin="0,0,0,14">
+                    <Grid x:Name="MapViewGrid" RowDefinitions="*,Auto" IsVisible="False">
+                        <!-- Real Interactive Map Container -->
+                        <Border x:Name="MapContainer" Stroke="#B5D4F4" StrokeThickness="1" BackgroundColor="Transparent" Margin="0,0,0,14">
                             <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
-                            <Grid>
-                                <!-- Background Map Streets -->
-                                <Line X1="0" Y1="100" X2="400" Y2="250" Stroke="White" StrokeThickness="8" />
-                                <Line X1="100" Y1="0" X2="80" Y2="400" Stroke="White" StrokeThickness="8" />
-                                <Line X1="260" Y1="0" X2="290" Y2="400" Stroke="White" StrokeThickness="6" />
-                                <Line X1="0" Y1="300" X2="400" Y2="310" Stroke="White" StrokeThickness="6" />
-
-                                <!-- Map Markers (Pins) -->
-                                <!-- Pin 1 -->
-                                <Border x:Name="Pin1" BackgroundColor="Transparent" HeightRequest="36" WidthRequest="36" HorizontalOptions="Start" VerticalOptions="Start" Margin="60,90" Padding="0" StrokeThickness="0">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnMapPinClicked" CommandParameter="1" />
-                                    </Border.GestureRecognizers>
-                                    <Image x:Name="Pin1Img" Source="icon_pin_blue.png" Aspect="AspectFit" />
-                                </Border>
-
-                                <!-- Pin 2 -->
-                                <Border x:Name="Pin2" BackgroundColor="Transparent" HeightRequest="36" WidthRequest="36" HorizontalOptions="Start" VerticalOptions="Start" Margin="160,180" Padding="0" StrokeThickness="0">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnMapPinClicked" CommandParameter="2" />
-                                    </Border.GestureRecognizers>
-                                    <Image x:Name="Pin2Img" Source="icon_pin_blue.png" Aspect="AspectFit" />
-                                </Border>
-
-                                <!-- Pin 3 -->
-                                <Border x:Name="Pin3" BackgroundColor="Transparent" HeightRequest="36" WidthRequest="36" HorizontalOptions="Start" VerticalOptions="Start" Margin="250,70" Padding="0" StrokeThickness="0">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnMapPinClicked" CommandParameter="3" />
-                                    </Border.GestureRecognizers>
-                                    <Image x:Name="Pin3Img" Source="icon_pin_blue.png" Aspect="AspectFit" />
-                                </Border>
-                            </Grid>
+                            <maps:Map x:Name="ClinicsMap" IsShowingUser="True" MapType="Street" HasZoomEnabled="True" HasScrollEnabled="True" />
                         </Border>
 
                         <!-- Selected Clinic Card Overlay -->
-                        <Border Grid.Row="1" BackgroundColor="White" Padding="16" Stroke="#E6F1FB" StrokeThickness="1">
+                        <Border x:Name="SelectedClinicCard" Grid.Row="1" BackgroundColor="White" Padding="16" Stroke="#E6F1FB" StrokeThickness="1" IsVisible="False">
                             <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnSelectedClinicCardTapped" />
