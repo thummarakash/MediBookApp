@@ -1,93 +1,101 @@
 using MediBook.Models;
 using MediBook.Services;
+using MediBook.ViewModels;
 
 namespace MediBook.Pages;
 
 [QueryProperty(nameof(DoctorId), "doctorId")]
 public partial class BookAppointmentPage : ContentPage
 {
-    private Doctor? _doctor;
+    private readonly BookAppointmentViewModel _vm = new();
 
-    public string DoctorId { get; set; } = string.Empty;
+    public string DoctorId
+    {
+        get => _vm.DoctorId;
+        set => _vm.DoctorId = value;
+    }
 
     public BookAppointmentPage()
     {
         InitializeComponent();
-        AppointmentDatePicker.MinimumDate = DateTime.Today;
-        AppointmentDatePicker.Date = DateTime.Today.AddDays(1);
+        BindingContext = _vm;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        if (int.TryParse(DoctorId, out var doctorId))
-        {
-            _doctor = await DatabaseService.Instance.GetDoctorAsync(doctorId);
-        }
+        _vm.PropertyChanged += OnVmPropertyChanged;
+        await _vm.InitializeAsync();
+        UpdateStepperVisuals(_vm.CurrentStep);
+    }
 
-        if (_doctor != null)
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _vm.PropertyChanged -= OnVmPropertyChanged;
+    }
+
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(BookAppointmentViewModel.CurrentStep))
         {
-            DoctorNameLabel.Text = _doctor.Name;
-            DoctorSpecialtyLabel.Text = $"{_doctor.Specialty} • {_doctor.Department}";
-            DoctorAvailabilityLabel.Text = _doctor.Availability;
+            UpdateStepperVisuals(_vm.CurrentStep);
         }
     }
 
-    private async void OnConfirmClicked(object sender, EventArgs e)
+    private void UpdateStepperVisuals(int step)
     {
-        try
+        // Stepper Visual States
+        ResetStepperCircles();
+
+        if (step >= 1)
         {
-            var user = await DatabaseService.Instance.GetCurrentUserAsync();
-            if (user == null)
-            {
-                await DisplayAlert("Login required", "Please login before booking an appointment.", "OK");
-                await Shell.Current.GoToAsync("//login");
-                return;
-            }
-
-            if (_doctor == null)
-            {
-                await DisplayAlert("Doctor", "Please select a doctor again.", "OK");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(ReasonEditor.Text))
-            {
-                await DisplayAlert("Reason", "Please enter a short reason for your visit.", "OK");
-                return;
-            }
-
-            var appointment = new Appointment
-            {
-                UserId = user.Id,
-                DoctorId = _doctor.Id,
-                DoctorName = _doctor.Name,
-                Department = _doctor.Department,
-                DateText = $"{AppointmentDatePicker.Date:yyyy-MM-dd}",
-                TimeText = $"{AppointmentTimePicker.Time:hh\\:mm}",
-                Reason = ReasonEditor.Text.Trim(),
-                Status = "Upcoming",
-                ReminderEnabled = EmailReminderCheck.IsChecked,
-                EmailReminderQueued = EmailReminderCheck.IsChecked,
-                CreatedAt = DateTime.Now
-            };
-
-            await DatabaseService.Instance.SaveAppointmentAsync(appointment);
-            if (EmailReminderCheck.IsChecked)
-            {
-                await EmailNotificationService.Instance.QueueAndSendAppointmentEmailAsync(user, appointment, _doctor);
-            }
-
-            await Shell.Current.GoToAsync($"{nameof(AppointmentConfirmationPage)}?appointmentId={appointment.Id}");
+            HighlightCircle(Step1Circle, Step1Label);
         }
-        catch (Exception ex)
+        if (step >= 2)
         {
-            await DisplayAlert("Booking error", ex.Message, "OK");
+            HighlightCircle(Step2Circle, Step2Label);
+        }
+        if (step >= 3)
+        {
+            HighlightCircle(Step3Circle, Step3Label);
+        }
+        if (step >= 4)
+        {
+            HighlightCircle(Step4Circle, Step4Label);
         }
     }
 
-    private async void OnBackClicked(object sender, EventArgs e)
+    private void ResetStepperCircles()
     {
-        await Shell.Current.GoToAsync("//doctors");
+        var primaryNavy = (Color)(Application.Current?.Resources["PrimaryNavy"] ?? Color.FromArgb("#042C53"));
+        
+        Step1Circle.BackgroundColor = primaryNavy;
+        Step1Circle.StrokeThickness = 1;
+        Step1Circle.Stroke = Colors.White;
+        Step1Label.TextColor = Color.FromArgb("#B5D4F4");
+
+        Step2Circle.BackgroundColor = primaryNavy;
+        Step2Circle.StrokeThickness = 1;
+        Step2Circle.Stroke = Colors.White;
+        Step2Label.TextColor = Color.FromArgb("#B5D4F4");
+
+        Step3Circle.BackgroundColor = primaryNavy;
+        Step3Circle.StrokeThickness = 1;
+        Step3Circle.Stroke = Colors.White;
+        Step3Label.TextColor = Color.FromArgb("#B5D4F4");
+
+        Step4Circle.BackgroundColor = primaryNavy;
+        Step4Circle.StrokeThickness = 1;
+        Step4Circle.Stroke = Colors.White;
+        Step4Label.TextColor = Color.FromArgb("#B5D4F4");
+    }
+
+    private void HighlightCircle(Border circle, Label label)
+    {
+        var primaryBlue = (Color)(Application.Current?.Resources["PrimaryBlue"] ?? Color.FromArgb("#185FA5"));
+        circle.BackgroundColor = primaryBlue;
+        circle.StrokeThickness = 0;
+        label.TextColor = Colors.White;
     }
 }

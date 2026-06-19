@@ -1,39 +1,38 @@
-using MediBook.Models;
-using MediBook.Services;
+using MediBook.ViewModels;
 
 namespace MediBook.Pages;
 
 public partial class DoctorsPage : ContentPage
 {
-    private List<Doctor> _doctors = new();
+    private readonly DoctorsViewModel _vm = new();
 
     public DoctorsPage()
     {
         InitializeComponent();
+        BindingContext = _vm;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        _doctors = await DatabaseService.Instance.GetDoctorsAsync();
-        DoctorsCollection.ItemsSource = _doctors;
+        await _vm.LoadCommand.ExecuteAsync(null);
     }
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
-        var text = e.NewTextValue?.Trim().ToLowerInvariant() ?? string.Empty;
-        DoctorsCollection.ItemsSource = string.IsNullOrWhiteSpace(text)
-            ? _doctors
-            : _doctors.Where(d => d.Name.ToLowerInvariant().Contains(text)
-                               || d.Department.ToLowerInvariant().Contains(text)
-                               || d.Specialty.ToLowerInvariant().Contains(text)).ToList();
+        _vm.SearchCommand.Execute(e.NewTextValue);
     }
 
-    private async void OnBookDoctorClicked(object sender, EventArgs e)
+    private async void OnDoctorCardTapped(object sender, EventArgs e)
     {
-        if (sender is Button button && button.CommandParameter is Doctor doctor)
+        if (sender is Border border && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap && tap.CommandParameter is Models.Doctor doctor)
         {
             await Shell.Current.GoToAsync($"{nameof(BookAppointmentPage)}?doctorId={doctor.Id}");
         }
+    }
+
+    private async void OnBackClicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("//home");
     }
 }

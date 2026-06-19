@@ -9,17 +9,21 @@
        TitleColor="White">
 
     <ShellContent Route="splash" ContentTemplate="{DataTemplate pages:SplashPage}" />
+    <ShellContent Route="onboarding" ContentTemplate="{DataTemplate pages:OnboardingPage}" />
     <ShellContent Route="login" ContentTemplate="{DataTemplate pages:LoginPage}" />
     <ShellContent Route="register" ContentTemplate="{DataTemplate pages:RegisterPage}" />
+    <!-- Admin Pages -->
+    <ShellContent Route="admindashboard" ContentTemplate="{DataTemplate pages:AdminDashboardPage}" />
+    <ShellContent Route="adminclinics" ContentTemplate="{DataTemplate pages:ManageClinicsPage}" />
+    <ShellContent Route="admindoctors" ContentTemplate="{DataTemplate pages:ManageDoctorsPage}" />
+    <ShellContent Route="adminappointments" ContentTemplate="{DataTemplate pages:AppointmentsPage}" />
+    <ShellContent Route="adminprofile" ContentTemplate="{DataTemplate pages:ProfilePage}" />
 
-    <TabBar Route="main"
-            Shell.TabBarBackgroundColor="White"
-            Shell.TabBarTitleColor="{StaticResource PrimaryBlue}"
-            Shell.TabBarUnselectedColor="{StaticResource MutedText}">
-        <ShellContent Title="Home" Route="home" ContentTemplate="{DataTemplate pages:HomePage}" />
-        <ShellContent Title="Doctors" Route="doctors" ContentTemplate="{DataTemplate pages:DoctorsPage}" />
-        <ShellContent Title="Appointments" Route="appointments" ContentTemplate="{DataTemplate pages:AppointmentsPage}" />
-        <ShellContent Title="Documents" Route="documents" ContentTemplate="{DataTemplate pages:DocumentsPage}" />
-        <ShellContent Title="Profile" Route="profile" ContentTemplate="{DataTemplate pages:ProfilePage}" />
-    </TabBar>
+    <!-- Patient Pages -->
+    <ShellContent Route="home" ContentTemplate="{DataTemplate pages:HomePage}" />
+    <ShellContent Route="appointments" ContentTemplate="{DataTemplate pages:AppointmentsPage}" />
+    <ShellContent Route="clinics" ContentTemplate="{DataTemplate pages:ClinicsPage}" />
+    <ShellContent Route="doctors" ContentTemplate="{DataTemplate pages:DoctorsPage}" />
+    <ShellContent Route="documents" ContentTemplate="{DataTemplate pages:DocumentsPage}" />
+    <ShellContent Route="profile" ContentTemplate="{DataTemplate pages:ProfilePage}" />
 </Shell>

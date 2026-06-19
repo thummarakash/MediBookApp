@@ -1,0 +1,52 @@
+using System;
+using Microsoft.Maui.Controls;
+
+namespace MediBook.Pages;
+
+public partial class ChangePasswordPage : ContentPage
+{
+    public ChangePasswordPage()
+    {
+        InitializeComponent();
+    }
+
+    private async void OnUpdatePasswordClicked(object sender, EventArgs e)
+    {
+        string currentPassword = CurrentPasswordEntry.Text?.Trim() ?? string.Empty;
+        string newPassword = NewPasswordEntry.Text?.Trim() ?? string.Empty;
+        string confirmPassword = ConfirmPasswordEntry.Text?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Validation Error", "All password fields are required.", "icon_warning.svg");
+            return;
+        }
+
+        if (newPassword.Length < 6)
+        {
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Validation Error", "New password must be at least 6 characters long.", "icon_warning.svg");
+            return;
+        }
+
+        if (newPassword != confirmPassword)
+        {
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Validation Error", "New password and confirmation password do not match.", "icon_warning.svg");
+            return;
+        }
+
+        // Simulate password change
+        await ConfirmationPopupPage.ShowAsync(Navigation, "Password Updated", "Your password has been changed successfully!");
+        
+        // Reset form
+        CurrentPasswordEntry.Text = string.Empty;
+        NewPasswordEntry.Text = string.Empty;
+        ConfirmPasswordEntry.Text = string.Empty;
+
+        await Shell.Current.GoToAsync("..");
+    }
+
+    private async void OnBackClicked(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("..");
+    }
+}

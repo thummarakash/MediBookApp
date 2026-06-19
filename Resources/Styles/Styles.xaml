@@ -3,44 +3,67 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <Style TargetType="ContentPage">
-        <Setter Property="BackgroundColor" Value="{StaticResource PageBg}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource PageBg}, Dark={StaticResource PageBgDark}}" />
     </Style>
 
     <Style TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource TextDark}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextDark}, Dark={StaticResource White}}" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
     <Style x:Key="TitleLabel" TargetType="Label">
         <Setter Property="FontSize" Value="28" />
         <Setter Property="FontAttributes" Value="Bold" />
-        <Setter Property="TextColor" Value="{StaticResource PrimaryNavy}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryNavy}, Dark={StaticResource White}}" />
     </Style>
 
     <Style x:Key="SectionTitle" TargetType="Label">
         <Setter Property="FontSize" Value="20" />
         <Setter Property="FontAttributes" Value="Bold" />
-        <Setter Property="TextColor" Value="{StaticResource PrimaryNavy}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryNavy}, Dark={StaticResource White}}" />
     </Style>
 
     <Style x:Key="MutedLabel" TargetType="Label">
-        <Setter Property="TextColor" Value="{StaticResource MutedText}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MutedText}, Dark={StaticResource TextMutedDark}}" />
         <Setter Property="FontSize" Value="13" />
     </Style>
 
+    <Style x:Key="InputBorderStyle" TargetType="Border">
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark={StaticResource CardBgDark}}" />
+        <Setter Property="HeightRequest" Value="50" />
+        <Setter Property="Margin" Value="0,5" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="StrokeShape">
+            <RoundRectangle CornerRadius="14" />
+        </Setter>
+    </Style>
+
+    <Style x:Key="EditorBorderStyle" TargetType="Border">
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark={StaticResource CardBgDark}}" />
+        <Setter Property="HeightRequest" Value="110" />
+        <Setter Property="Margin" Value="0,5" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="StrokeShape">
+            <RoundRectangle CornerRadius="14" />
+        </Setter>
+    </Style>
+
     <Style x:Key="InputStyle" TargetType="Entry">
-        <Setter Property="BackgroundColor" Value="White" />
-        <Setter Property="TextColor" Value="{StaticResource TextDark}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextDark}, Dark=White}" />
         <Setter Property="PlaceholderColor" Value="{StaticResource MutedText}" />
-        <Setter Property="HeightRequest" Value="48" />
-        <Setter Property="Margin" Value="0,4" />
+        <Setter Property="VerticalOptions" Value="Center" />
     </Style>
 
     <Style x:Key="EditorStyle" TargetType="Editor">
-        <Setter Property="BackgroundColor" Value="White" />
-        <Setter Property="TextColor" Value="{StaticResource TextDark}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextDark}, Dark=White}" />
         <Setter Property="PlaceholderColor" Value="{StaticResource MutedText}" />
-        <Setter Property="HeightRequest" Value="96" />
+        <Setter Property="AutoSize" Value="Disabled" />
     </Style>
 
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
@@ -53,8 +76,8 @@
     </Style>
 
     <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="{StaticResource SkyBlue}" />
-        <Setter Property="TextColor" Value="{StaticResource PrimaryBlue}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SkyBlue}, Dark=#1E293B}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryBlue}, Dark={StaticResource Blue2}}" />
         <Setter Property="CornerRadius" Value="18" />
         <Setter Property="HeightRequest" Value="50" />
         <Setter Property="FontAttributes" Value="Bold" />
@@ -62,9 +85,9 @@
     </Style>
 
     <Style x:Key="OutlineButtonStyle" TargetType="Button">
-        <Setter Property="BackgroundColor" Value="White" />
-        <Setter Property="TextColor" Value="{StaticResource PrimaryBlue}" />
-        <Setter Property="BorderColor" Value="{StaticResource BorderLight}" />
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark={StaticResource CardBgDark}}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource PrimaryBlue}, Dark={StaticResource Blue2}}" />
+        <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="CornerRadius" Value="18" />
         <Setter Property="HeightRequest" Value="50" />

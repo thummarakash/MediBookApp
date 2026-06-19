@@ -1,18 +1,10 @@
-using SQLite;
-
 namespace MediBook.Models;
 
 public class EmailReminder
 {
-    [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
-
-    [Indexed]
     public int UserId { get; set; }
-
-    [Indexed]
     public int AppointmentId { get; set; }
-
     public string EmailAddress { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
     public string Body { get; set; } = string.Empty;

@@ -5,7 +5,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20,24" Spacing="16">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                <Button Text="‹" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" TextColor="{StaticResource PrimaryBlue}" Clicked="OnBackClicked" />
+                <ImageButton Source="icon_back.png" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" Clicked="OnBackClicked" Padding="12" />
                 <VerticalStackLayout Grid.Column="1">
                     <Label Text="Contact Clinic" Style="{StaticResource TitleLabel}" />
                     <Label Text="Use native phone, email and map actions." Style="{StaticResource MutedLabel}" />

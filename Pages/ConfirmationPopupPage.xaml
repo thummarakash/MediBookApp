@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.ConfirmationPopupPage"
+             BackgroundColor="#80000028"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid>
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnCancelClicked" />
+        </Grid.GestureRecognizers>
+
+        <!-- Popup Card -->
+        <Border x:Name="PopupCard"
+                BackgroundColor="White"
+                Stroke="Transparent"
+                StrokeThickness="0"
+                WidthRequest="330"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Margin="20">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="32" />
+            </Border.StrokeShape>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnCardTapped" />
+            </Border.GestureRecognizers>
+
+            <VerticalStackLayout Spacing="0">
+
+                <!-- Gradient Header Band -->
+                <Border BackgroundColor="Transparent" HeightRequest="110" StrokeThickness="0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="32,32,0,0" />
+                    </Border.StrokeShape>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#185FA5" Offset="0" />
+                            <GradientStop Color="#3B82F6" Offset="0.55" />
+                            <GradientStop Color="#06B6D4" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <!-- Icon bubble -->
+                    <Border WidthRequest="68" HeightRequest="68" StrokeThickness="3" Stroke="White"
+                            BackgroundColor="#1D4ED8" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="34" />
+                        </Border.StrokeShape>
+                        <Image x:Name="PopupIcon"
+                               Source="icon_lock_confirm.svg"
+                               WidthRequest="32" HeightRequest="32"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                </Border>
+
+                <!-- Body Content -->
+                <VerticalStackLayout Spacing="8" Padding="26,20,26,8" HorizontalOptions="Center">
+
+                    <!-- Title with gradient-like colour -->
+                    <Label x:Name="TitleLabel"
+                           Text="Confirm"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center">
+                        <Label.TextColor>
+                            <Color>#185FA5</Color>
+                        </Label.TextColor>
+                    </Label>
+
+                    <!-- Coloured divider accent -->
+                    <BoxView HeightRequest="3" WidthRequest="48" HorizontalOptions="Center" CornerRadius="2" Margin="0,2,0,6">
+                        <BoxView.Color>
+                            <Color>#3B82F6</Color>
+                        </BoxView.Color>
+                    </BoxView>
+
+                    <!-- Message -->
+                    <Label x:Name="MessageLabel"
+                           Text="Are you sure you want to proceed?"
+                           FontSize="14.5"
+                           HorizontalTextAlignment="Center"
+                           LineBreakMode="WordWrap"
+                           Margin="0,0,0,4">
+                        <Label.TextColor>
+                            <Color>#4B5A6A</Color>
+                        </Label.TextColor>
+                    </Label>
+                </VerticalStackLayout>
+
+                <!-- Buttons -->
+                <VerticalStackLayout Spacing="10" Padding="24,10,24,26">
+
+                    <!-- Confirm — gradient button via Border -->
+                    <Border HeightRequest="50" StrokeThickness="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#185FA5" Offset="0" />
+                                <GradientStop Color="#3B82F6" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnConfirmClicked" />
+                        </Border.GestureRecognizers>
+                        <Label x:Name="ConfirmBtnLabel"
+                               Text="OK"
+                               TextColor="White"
+                               FontAttributes="Bold"
+                               FontSize="15"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+
+                    <!-- Cancel — outlined -->
+                    <Border x:Name="CancelBtn"
+                            HeightRequest="50"
+                            BackgroundColor="White"
+                            Stroke="#D0E4F8"
+                            StrokeThickness="2"
+                            IsVisible="False">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCancelClicked" />
+                        </Border.GestureRecognizers>
+                        <Label x:Name="CancelBtnLabel"
+                               Text="Cancel"
+                               FontAttributes="Bold"
+                               FontSize="15"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center">
+                            <Label.TextColor>
+                                <Color>#185FA5</Color>
+                            </Label.TextColor>
+                        </Label>
+                    </Border>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</ContentPage>

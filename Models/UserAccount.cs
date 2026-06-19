@@ -1,15 +1,9 @@
-using SQLite;
-
 namespace MediBook.Models;
 
 public class UserAccount
 {
-    [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
-
-    [Indexed(Unique = true)]
     public string Email { get; set; } = string.Empty;
-
     public string FullName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string DateOfBirth { get; set; } = string.Empty;
@@ -17,6 +11,28 @@ public class UserAccount
     public string AuthProvider { get; set; } = "Local";
     public string GoogleSubject { get; set; } = string.Empty;
     public string AvatarColor { get; set; } = "#155EEF";
+    public string Role { get; set; } = "Patient";
+    public string FCMToken { get; set; } = string.Empty;
+    public bool NotificationsEnabled { get; set; } = true;
+    public bool LocationPermissionGranted { get; set; } = false;
+    public bool BiometricEnabled { get; set; } = false;
+
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public string CreatedBy { get; set; } = "System";
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public string UpdatedBy { get; set; } = "System";
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
     public DateTime LastLoginAt { get; set; } = DateTime.Now;
+
+    public string Initials
+    {
+        get
+        {
+            var parts = FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length >= 2
+                ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
+                : parts.Length == 1 ? $"{parts[0][0]}".ToUpper() : "US";
+        }
+    }
 }

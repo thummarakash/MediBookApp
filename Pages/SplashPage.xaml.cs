@@ -1,5 +1,3 @@
-using MediBook.Services;
-
 namespace MediBook.Pages;
 
 public partial class SplashPage : ContentPage
@@ -12,8 +10,25 @@ public partial class SplashPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await Task.Delay(900);
-        var user = await DatabaseService.Instance.GetCurrentUserAsync();
-        await Shell.Current.GoToAsync(user == null ? "//login" : "//home");
+        await Task.Delay(2000);
+
+        bool hasSeenOnboarding = Preferences.Get("medibook_onboarding_seen", false);
+
+        if (!hasSeenOnboarding)
+        {
+            await Shell.Current.GoToAsync("//onboarding");
+            return;
+        }
+
+        bool isLoggedIn = Preferences.Get("medibook_logged_in", false);
+
+        if (isLoggedIn)
+        {
+            await Shell.Current.GoToAsync("//home");
+        }
+        else
+        {
+            await Shell.Current.GoToAsync("//login");
+        }
     }
 }

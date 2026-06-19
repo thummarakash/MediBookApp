@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.AdminBookingsPage"
+             Title="All Bookings Log">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="16">
+            <!-- Header -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <ImageButton Source="icon_back.png" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" Command="{Binding BackCommand}" Padding="12" />
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="All Bookings" Style="{StaticResource TitleLabel}" />
+                    <Label Text="View all appointments booked across the system" Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Bookings List -->
+            <CollectionView ItemsSource="{Binding Bookings}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border BackgroundColor="White" Padding="18" Margin="0,6" Stroke="#D8E6F8" StrokeThickness="1">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                                <Image Source="icon_calendar.svg" HeightRequest="56" WidthRequest="56" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="{Binding DoctorName}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                                        <Label Grid.Column="1" Text="{Binding Status}" TextColor="{StaticResource Success}" FontAttributes="Bold" FontSize="12" />
+                                    </Grid>
+                                    <Label Text="{Binding Department}" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" FontSize="13" />
+                                    <Label Text="{Binding DisplayDateTime}" Style="{StaticResource MutedLabel}" />
+                                    <Label Text="{Binding Reason, StringFormat='Reason: {0}'}" FontSize="13" Style="{StaticResource MutedLabel}" />
+                                    <Label Text="{Binding TotalFee, StringFormat='Fee paid: ${0:F2}'}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

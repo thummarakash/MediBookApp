@@ -1,7 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.Maui.Storage;
-using SQLite;
 using MediBook.Models;
 
 namespace MediBook.Services;
@@ -9,271 +5,251 @@ namespace MediBook.Services;
 public class DatabaseService
 {
     private const string CurrentUserKey = "medibook_current_user_id";
-    private SQLiteAsyncConnection? _database;
+    private const string LoggedInKey = "medibook_logged_in";
     public static DatabaseService Instance { get; } = new();
 
-    private DatabaseService()
+    // Mock Clinics — Melbourne-based as required
+    public static readonly List<Clinic> StaticClinics = new()
     {
-    }
+        new() { Id = 1, Name = "Melbourne Central Medical", Address = "123 Collins St, Melbourne VIC 3000", Latitude = -37.8142, Longitude = 144.9631 },
+        new() { Id = 2, Name = "City Health Clinic", Address = "45 Bourke St, Melbourne VIC 3000", Latitude = -37.8136, Longitude = 144.9661 },
+        new() { Id = 3, Name = "Family Care Centre", Address = "78 Swanston St, Carlton VIC 3053", Latitude = -37.8005, Longitude = 144.9634 }
+    };
 
-    private async Task InitAsync()
+    // Mock Doctors — as required
+    public static readonly List<Doctor> StaticDoctors = new()
     {
-        if (_database != null)
-        {
-            return;
-        }
+        new() { Id = 1, Name = "Dr Emily Carter", Specialty = "General Practitioner", Department = "General Care", Availability = "Mon-Fri • 9:00 AM - 4:00 PM", Experience = "9 years", Rating = "4.9", Bio = "General health checks, family medicine and referrals.", FeePerAppointment = 85.00, SlotDurationMinutes = 20, AccentColor = "#155EEF" },
+        new() { Id = 2, Name = "Dr Michael Brown", Specialty = "Cardiologist", Department = "Heart Clinic", Availability = "Tue-Thu • 10:00 AM - 2:00 PM", Experience = "14 years", Rating = "4.8", Bio = "Cardiology consultations, blood pressure checks and ECG review.", FeePerAppointment = 150.00, SlotDurationMinutes = 30, AccentColor = "#EF4444" },
+        new() { Id = 3, Name = "Dr Sarah Wilson", Specialty = "Dermatologist", Department = "Skin Care", Availability = "Wed-Fri • 11:30 AM - 5:00 PM", Experience = "7 years", Rating = "4.7", Bio = "Mole mapping, skin cancer screening, and acne management.", FeePerAppointment = 120.00, SlotDurationMinutes = 15, AccentColor = "#2DD4BF" }
+    };
 
-        SQLitePCL.Batteries_V2.Init();
-        var databasePath = Path.Combine(FileSystem.AppDataDirectory, "medibook.db3");
-        _database = new SQLiteAsyncConnection(databasePath, SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.SharedCache);
-        await _database.CreateTableAsync<UserAccount>();
-        await _database.CreateTableAsync<Doctor>();
-        await _database.CreateTableAsync<Appointment>();
-        await _database.CreateTableAsync<MedicalDocument>();
-        await _database.CreateTableAsync<EmailReminder>();
-        await SeedDoctorsAsync();
-    }
-
-    public async Task SeedDoctorsAsync()
+    // Many-to-Many — which doctors work at which clinics
+    public static readonly List<ClinicDoctor> StaticClinicDoctors = new()
     {
-        await InitWithoutSeedAsync();
-        if (_database == null)
-        {
-            return;
-        }
+        new() { Id = 1, ClinicId = 1, DoctorId = 1 },
+        new() { Id = 2, ClinicId = 1, DoctorId = 2 },
+        new() { Id = 3, ClinicId = 2, DoctorId = 1 },
+        new() { Id = 4, ClinicId = 2, DoctorId = 3 },
+        new() { Id = 5, ClinicId = 3, DoctorId = 2 },
+        new() { Id = 6, ClinicId = 3, DoctorId = 3 }
+    };
 
-        var doctorCount = await _database.Table<Doctor>().CountAsync();
-        if (doctorCount > 0)
-        {
-            return;
-        }
-
-        var doctors = new List<Doctor>
-        {
-            new() { Name = "Dr Emily Carter", Specialty = "General Practitioner", Department = "General Care", Availability = "Today • 9:00 AM - 4:00 PM", Experience = "9 years", Rating = "4.9", Bio = "General health checks, prescriptions, referrals and family medicine.", AccentColor = "#155EEF" },
-            new() { Name = "Dr Noah Williams", Specialty = "Cardiologist", Department = "Heart Clinic", Availability = "Tomorrow • 10:00 AM - 2:00 PM", Experience = "12 years", Rating = "4.8", Bio = "Heart health screening, chest pain review and blood pressure care.", AccentColor = "#EF4444" },
-            new() { Name = "Dr Olivia Brown", Specialty = "Dermatologist", Department = "Skin Care", Availability = "Wed • 11:30 AM - 5:00 PM", Experience = "7 years", Rating = "4.7", Bio = "Skin checks, allergy review, acne treatment and mole assessments.", AccentColor = "#2DD4BF" },
-            new() { Name = "Dr Lucas Martin", Specialty = "Physiotherapist", Department = "Physiotherapy", Availability = "Thu • 8:30 AM - 3:30 PM", Experience = "8 years", Rating = "4.8", Bio = "Pain management, injury recovery, mobility and rehabilitation plans.", AccentColor = "#F59E0B" },
-            new() { Name = "Dr Ava Wilson", Specialty = "Mental Health Clinician", Department = "Mental Health", Availability = "Fri • 9:00 AM - 1:00 PM", Experience = "10 years", Rating = "4.9", Bio = "Stress, anxiety support, wellbeing plans and confidential counselling.", AccentColor = "#7C3AED" }
-        };
-
-        await _database.InsertAllAsync(doctors);
-    }
-
-    private async Task InitWithoutSeedAsync()
+    // Mock Appointments — Upcoming, Completed, Cancelled
+    private static readonly List<Appointment> StaticAppointments = new()
     {
-        if (_database != null)
-        {
-            return;
-        }
+        new() { Id = 1, UserId = 1, DoctorId = 1, DoctorName = "Dr Emily Carter", Department = "General Care", ClinicName = "Melbourne Central Medical", DateText = "2026-06-22", TimeText = "10:30 AM", Reason = "Annual General Checkup", Status = "Upcoming", TotalFee = 85.00 },
+        new() { Id = 2, UserId = 1, DoctorId = 2, DoctorName = "Dr Michael Brown", Department = "Heart Clinic", ClinicName = "City Health Clinic", DateText = "2026-06-10", TimeText = "02:00 PM", Reason = "Follow-up ECG consultation", Status = "Completed", TotalFee = 150.00 },
+        new() { Id = 3, UserId = 1, DoctorId = 3, DoctorName = "Dr Sarah Wilson", Department = "Skin Care", ClinicName = "Family Care Centre", DateText = "2026-06-05", TimeText = "11:30 AM", Reason = "Mole check cancelled by patient", Status = "Cancelled", TotalFee = 120.00 }
+    };
 
-        SQLitePCL.Batteries_V2.Init();
-        var databasePath = Path.Combine(FileSystem.AppDataDirectory, "medibook.db3");
-        _database = new SQLiteAsyncConnection(databasePath, SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.SharedCache);
-        await _database.CreateTableAsync<UserAccount>();
-        await _database.CreateTableAsync<Doctor>();
-        await _database.CreateTableAsync<Appointment>();
-        await _database.CreateTableAsync<MedicalDocument>();
-        await _database.CreateTableAsync<EmailReminder>();
-    }
-
-    public static string HashPassword(string password)
+    // Mock Documents — PDF Reports, Blood Tests, Prescriptions
+    private static readonly List<MedicalDocument> StaticDocuments = new()
     {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password.Trim()));
-        return Convert.ToHexString(bytes);
-    }
+        new() { Id = 1, UserId = 1, DocumentType = "Report", FileName = "general_checkup_report.pdf", FilePath = "local_cache/checkup.pdf", Notes = "Annual checkup summary from Dr Carter.", UploadedAt = DateTime.Now.AddDays(-4) },
+        new() { Id = 2, UserId = 1, DocumentType = "Blood Test", FileName = "blood_test_june2026.pdf", FilePath = "local_cache/blood_test.pdf", Notes = "Full blood count, iron, vitamin D check.", UploadedAt = DateTime.Now.AddDays(-10) },
+        new() { Id = 3, UserId = 1, DocumentType = "Prescription", FileName = "prescription_metformin.pdf", FilePath = "local_cache/prescription.pdf", Notes = "Metformin 500mg twice daily for 3 months.", UploadedAt = DateTime.Now.AddDays(-15) }
+    };
+
+    private static readonly List<EmailReminder> StaticEmailReminders = new();
+    private static UserAccount? _currentUser;
+    private static bool _isLoggedIn;
+
+    private DatabaseService() { }
 
     public async Task<UserAccount> RegisterUserAsync(string fullName, string email, string phone, string dateOfBirth, string password)
     {
-        await InitAsync();
-        email = email.Trim().ToLowerInvariant();
-        var existing = await _database!.Table<UserAccount>().Where(u => u.Email == email).FirstOrDefaultAsync();
-        if (existing != null)
+        _currentUser = new UserAccount
         {
-            throw new InvalidOperationException("An account already exists with this email.");
-        }
-
-        var user = new UserAccount
-        {
-            FullName = fullName.Trim(),
+            Id = 1,
+            FullName = fullName,
             Email = email,
-            Phone = phone.Trim(),
-            DateOfBirth = dateOfBirth.Trim(),
-            PasswordHash = HashPassword(password),
-            AuthProvider = "Local",
-            CreatedAt = DateTime.Now,
-            LastLoginAt = DateTime.Now
+            Phone = phone,
+            DateOfBirth = dateOfBirth,
+            Role = email.Contains("admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "Patient"
         };
-
-        await _database.InsertAsync(user);
-        Preferences.Set(CurrentUserKey, user.Id);
-        return user;
+        _isLoggedIn = true;
+        Preferences.Set(LoggedInKey, true);
+        Preferences.Set(CurrentUserKey, _currentUser.Id);
+        Preferences.Set("medibook_onboarding_seen", true);
+        return _currentUser;
     }
 
     public async Task<UserAccount?> LoginAsync(string email, string password)
     {
-        await InitAsync();
-        email = email.Trim().ToLowerInvariant();
-        var hash = HashPassword(password);
-        var user = await _database!.Table<UserAccount>().Where(u => u.Email == email && u.PasswordHash == hash).FirstOrDefaultAsync();
-        if (user != null)
+        bool isAdmin = email.Contains("admin", StringComparison.OrdinalIgnoreCase);
+        _currentUser = new UserAccount
         {
-            user.LastLoginAt = DateTime.Now;
-            await _database.UpdateAsync(user);
-            Preferences.Set(CurrentUserKey, user.Id);
-        }
-        return user;
+            Id = isAdmin ? 2 : 1,
+            FullName = isAdmin ? "Admin Principal" : "Akash Bhai",
+            Email = email,
+            Phone = isAdmin ? "+61 400 999 999" : "+61 400 123 456",
+            DateOfBirth = isAdmin ? "01/01/1980" : "15/08/1995",
+            Role = isAdmin ? "Admin" : "Patient"
+        };
+        _isLoggedIn = true;
+        Preferences.Set(LoggedInKey, true);
+        Preferences.Set(CurrentUserKey, _currentUser.Id);
+        Preferences.Set("medibook_onboarding_seen", true);
+        return _currentUser;
     }
 
     public async Task<UserAccount> SaveGoogleUserAsync(string fullName, string email, string googleSubject)
     {
-        await InitAsync();
-        email = email.Trim().ToLowerInvariant();
-        var user = await _database!.Table<UserAccount>().Where(u => u.Email == email).FirstOrDefaultAsync();
-        if (user == null)
+        _currentUser = new UserAccount
         {
-            user = new UserAccount
-            {
-                FullName = fullName,
-                Email = email,
-                Phone = string.Empty,
-                DateOfBirth = string.Empty,
-                PasswordHash = string.Empty,
-                AuthProvider = "Google",
-                GoogleSubject = googleSubject,
-                CreatedAt = DateTime.Now,
-                LastLoginAt = DateTime.Now
-            };
-            await _database.InsertAsync(user);
-        }
-        else
-        {
-            user.FullName = string.IsNullOrWhiteSpace(user.FullName) ? fullName : user.FullName;
-            user.AuthProvider = "Google";
-            user.GoogleSubject = googleSubject;
-            user.LastLoginAt = DateTime.Now;
-            await _database.UpdateAsync(user);
-        }
-
-        Preferences.Set(CurrentUserKey, user.Id);
-        return user;
+            Id = 1,
+            FullName = fullName,
+            Email = email,
+            Phone = "+61 400 123 456",
+            DateOfBirth = "15/08/1995",
+            Role = "Patient",
+            AuthProvider = "Google"
+        };
+        _isLoggedIn = true;
+        Preferences.Set(LoggedInKey, true);
+        Preferences.Set(CurrentUserKey, _currentUser.Id);
+        Preferences.Set("medibook_onboarding_seen", true);
+        return _currentUser;
     }
 
     public async Task<UserAccount?> GetCurrentUserAsync()
     {
-        await InitAsync();
-        var id = Preferences.Get(CurrentUserKey, 0);
-        if (id <= 0)
+        if (_isLoggedIn && _currentUser != null)
+            return _currentUser;
+
+        // Check if user was previously logged in
+        if (Preferences.Get(LoggedInKey, false))
         {
-            return null;
+            _currentUser = new UserAccount
+            {
+                Id = 1,
+                FullName = "Akash Bhai",
+                Email = "akash@medibook.com",
+                Phone = "+61 400 123 456",
+                DateOfBirth = "15/08/1995",
+                Role = "Patient"
+            };
+            _isLoggedIn = true;
+            return _currentUser;
         }
 
-        return await _database!.Table<UserAccount>().Where(u => u.Id == id).FirstOrDefaultAsync();
+        return null;
     }
+
+    public bool IsLoggedIn => _isLoggedIn || Preferences.Get(LoggedInKey, false);
 
     public void Logout()
     {
+        _currentUser = null;
+        _isLoggedIn = false;
         Preferences.Remove(CurrentUserKey);
+        Preferences.Remove(LoggedInKey);
     }
 
     public async Task UpdateUserAsync(UserAccount user)
     {
-        await InitAsync();
-        await _database!.UpdateAsync(user);
+        _currentUser = user;
+        await Task.CompletedTask;
     }
+
+    public async Task<List<Clinic>> GetClinicsAsync() => StaticClinics;
 
     public async Task<List<Doctor>> GetDoctorsAsync()
     {
-        await InitAsync();
-        return await _database!.Table<Doctor>().Where(d => d.IsActive).ToListAsync();
+        foreach (var doctor in StaticDoctors)
+        {
+            var mapping = StaticClinicDoctors.FirstOrDefault(cd => cd.DoctorId == doctor.Id);
+            if (mapping != null)
+            {
+                var clinic = StaticClinics.FirstOrDefault(c => c.Id == mapping.ClinicId);
+                if (clinic != null)
+                {
+                    doctor.ClinicName = clinic.Name;
+                    doctor.DistanceText = clinic.DistanceText;
+                }
+            }
+        }
+        return StaticDoctors;
     }
 
     public async Task<Doctor?> GetDoctorAsync(int id)
     {
-        await InitAsync();
-        return await _database!.Table<Doctor>().Where(d => d.Id == id).FirstOrDefaultAsync();
+        var doctor = StaticDoctors.FirstOrDefault(d => d.Id == id);
+        if (doctor != null)
+        {
+            var mapping = StaticClinicDoctors.FirstOrDefault(cd => cd.DoctorId == doctor.Id);
+            if (mapping != null)
+            {
+                var clinic = StaticClinics.FirstOrDefault(c => c.Id == mapping.ClinicId);
+                if (clinic != null)
+                {
+                    doctor.ClinicName = clinic.Name;
+                    doctor.DistanceText = clinic.DistanceText;
+                }
+            }
+        }
+        return doctor;
     }
 
     public async Task<int> SaveAppointmentAsync(Appointment appointment)
     {
-        await InitAsync();
-        await _database!.InsertAsync(appointment);
+        appointment.Id = StaticAppointments.Count > 0 ? StaticAppointments.Max(a => a.Id) + 1 : 1;
+        StaticAppointments.Add(appointment);
         return appointment.Id;
     }
 
     public async Task<Appointment?> GetAppointmentAsync(int id)
-    {
-        await InitAsync();
-        return await _database!.Table<Appointment>().Where(a => a.Id == id).FirstOrDefaultAsync();
-    }
+        => StaticAppointments.FirstOrDefault(a => a.Id == id);
 
     public async Task<List<Appointment>> GetAppointmentsForCurrentUserAsync()
-    {
-        await InitAsync();
-        var user = await GetCurrentUserAsync();
-        if (user == null)
-        {
-            return new List<Appointment>();
-        }
-
-        var appointments = await _database!.Table<Appointment>().Where(a => a.UserId == user.Id).ToListAsync();
-        return appointments.OrderByDescending(a => a.DateText).ThenBy(a => a.TimeText).ToList();
-    }
+        => StaticAppointments;
 
     public async Task<Appointment?> GetNextAppointmentAsync()
-    {
-        var appointments = await GetAppointmentsForCurrentUserAsync();
-        var today = DateTime.Today.ToString("yyyy-MM-dd");
-        return appointments.Where(a => a.Status == "Upcoming" && string.Compare(a.DateText, today, StringComparison.Ordinal) >= 0)
-                           .OrderBy(a => a.DateText)
-                           .ThenBy(a => a.TimeText)
-                           .FirstOrDefault();
-    }
+        => StaticAppointments.FirstOrDefault(a => a.Status == "Upcoming");
 
     public async Task SaveDocumentAsync(MedicalDocument document)
     {
-        await InitAsync();
-        await _database!.InsertAsync(document);
+        document.Id = StaticDocuments.Count > 0 ? StaticDocuments.Max(d => d.Id) + 1 : 1;
+        StaticDocuments.Add(document);
+        await Task.CompletedTask;
     }
 
     public async Task<List<MedicalDocument>> GetDocumentsForCurrentUserAsync()
-    {
-        await InitAsync();
-        var user = await GetCurrentUserAsync();
-        if (user == null)
-        {
-            return new List<MedicalDocument>();
-        }
+        => StaticDocuments;
 
-        var docs = await _database!.Table<MedicalDocument>().Where(d => d.UserId == user.Id).ToListAsync();
-        return docs.OrderByDescending(d => d.UploadedAt).ToList();
+    public async Task DeleteDocumentAsync(int documentId)
+    {
+        var doc = StaticDocuments.FirstOrDefault(d => d.Id == documentId);
+        if (doc != null)
+        {
+            StaticDocuments.Remove(doc);
+        }
+        await Task.CompletedTask;
     }
 
     public async Task SaveEmailReminderAsync(EmailReminder reminder)
     {
-        await InitAsync();
-        await _database!.InsertAsync(reminder);
+        if (reminder.Id == 0)
+            reminder.Id = StaticEmailReminders.Count + 1;
+        StaticEmailReminders.Add(reminder);
+        await Task.CompletedTask;
     }
 
     public async Task<List<EmailReminder>> GetDueEmailRemindersAsync()
     {
-        await InitAsync();
         var today = DateTime.Today.ToString("yyyy-MM-dd");
-        var user = await GetCurrentUserAsync();
-        if (user == null)
-        {
-            return new List<EmailReminder>();
-        }
-
-        var reminders = await _database!.Table<EmailReminder>().Where(r => r.UserId == user.Id && r.Status == "Pending").ToListAsync();
-        return reminders.Where(r => string.Compare(r.DueDateText, today, StringComparison.Ordinal) <= 0).ToList();
+        return StaticEmailReminders.Where(r => r.DueDateText == today && r.Status == "Pending").ToList();
     }
 
     public async Task MarkEmailReminderSentAsync(EmailReminder reminder)
     {
-        await InitAsync();
-        reminder.Status = "Sent";
-        reminder.SentAt = DateTime.Now;
-        await _database!.UpdateAsync(reminder);
+        var existing = StaticEmailReminders.FirstOrDefault(r => r.Id == reminder.Id);
+        if (existing != null)
+        {
+            existing.Status = "Sent";
+            existing.SentAt = DateTime.Now;
+        }
+        await Task.CompletedTask;
     }
 }

@@ -1,3 +1,5 @@
+using Microsoft.Maui.Controls.Hosting;
+
 namespace MediBook;
 
 public static class MauiProgram
@@ -6,6 +8,22 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
         builder.UseMauiApp<App>();
+
+        // Remove native underlines/borders on Android for clean entry/editor styles
+#if ANDROID
+        Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+        {
+            handler.PlatformView.Background = null;
+            handler.PlatformView.SetBackgroundColor(Android.Graphics.Color.Transparent);
+        });
+        Microsoft.Maui.Handlers.EditorHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+        {
+            handler.PlatformView.Background = null;
+            handler.PlatformView.SetBackgroundColor(Android.Graphics.Color.Transparent);
+        });
+#endif
+
         return builder.Build();
     }
 }
+

@@ -1,56 +1,135 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MediBook.Pages.HomePage">
-    <ScrollView>
-        <VerticalStackLayout Padding="20,24" Spacing="18">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                <VerticalStackLayout>
-                    <Label x:Name="WelcomeLabel" Text="Welcome" Style="{StaticResource TitleLabel}" />
-                    <Label Text="Manage appointments with MediBook" Style="{StaticResource MutedLabel}" />
+             xmlns:vm="clr-namespace:MediBook.ViewModels"
+             xmlns:controls="clr-namespace:MediBook.Controls"
+             x:Class="MediBook.Pages.HomePage"
+             x:DataType="vm:HomeViewModel"
+             BackgroundColor="#F3F7FC">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Top Curved Header -->
+        <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,28,20,24" StrokeThickness="0">
+            <Border.StrokeShape><RoundRectangle CornerRadius="0,0,26,26" /></Border.StrokeShape>
+            <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding Greeting}" FontSize="22" FontAttributes="Bold" TextColor="White" />
+                    <Label Text="{Binding DateText}" TextColor="#B5D4F4" FontSize="12.5" />
                 </VerticalStackLayout>
-                <Image Grid.Column="1" Source="medibook_logo.svg" HeightRequest="58" WidthRequest="58" />
+                <Border Grid.Column="1" HeightRequest="46" WidthRequest="46" StrokeThickness="0" BackgroundColor="{StaticResource PrimaryBlue}">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="23" /></Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnProfileAvatarTapped" />
+                    </Border.GestureRecognizers>
+                    <Label Text="{Binding UserInitials}" TextColor="White" FontAttributes="Bold" FontSize="15" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
             </Grid>
+        </Border>
 
-            <Border Padding="22" StrokeThickness="0">
-                <Border.StrokeShape><RoundRectangle CornerRadius="30" /></Border.StrokeShape>
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#071A3D" Offset="0.0" />
-                        <GradientStop Color="#155EEF" Offset="0.68" />
-                        <GradientStop Color="#2DD4BF" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Text="Your digital clinic desk" TextColor="White" FontSize="22" FontAttributes="Bold" />
-                        <Label Text="Book doctors, upload documents and receive email reminders." TextColor="#D9EAFF" FontSize="14" />
-                        <Button Text="Book Appointment" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnBookClicked" Margin="0,8,0,0" />
-                    </VerticalStackLayout>
-                    <Image Grid.Column="1" Source="icon_doctor.svg" HeightRequest="96" WidthRequest="96" VerticalOptions="Center" />
+        <!-- Scrollable Main Area -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,20" Spacing="20">
+
+                <!-- Loading Indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource PrimaryBlue}" HorizontalOptions="Center" />
+
+                <!-- Quick Action Cards -->
+                <Label Text="Quick Actions" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                    <!-- Book -->
+                    <Border Padding="8,14" BackgroundColor="#E6F1FB" StrokeThickness="0">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBookTapped" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Image Source="icon_calendar.svg" HeightRequest="24" WidthRequest="24" HorizontalOptions="Center" />
+                            <Label Text="Book" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <!-- Doctors -->
+                    <Border Grid.Column="1" Padding="8,14" BackgroundColor="#E6F1FB" StrokeThickness="0">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDoctorsTapped" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Image Source="icon_doctor.svg" HeightRequest="24" WidthRequest="24" HorizontalOptions="Center" />
+                            <Label Text="Doctors" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <!-- Clinics -->
+                    <Border Grid.Column="2" Padding="8,14" BackgroundColor="#E6F1FB" StrokeThickness="0">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnClinicsTapped" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Image Source="icon_clinic.svg" HeightRequest="24" WidthRequest="24" HorizontalOptions="Center" />
+                            <Label Text="Clinics" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <!-- Records -->
+                    <Border Grid.Column="3" Padding="8,14" BackgroundColor="#E6F1FB" StrokeThickness="0">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDocumentsTapped" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Image Source="icon_document.svg" HeightRequest="24" WidthRequest="24" HorizontalOptions="Center" />
+                            <Label Text="Records" FontAttributes="Bold" FontSize="11" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Border>
                 </Grid>
-            </Border>
 
-            <Label Text="Next appointment" Style="{StaticResource SectionTitle}" />
-            <Border BackgroundColor="White" Padding="18" Stroke="#D8E6F8" StrokeThickness="1">
-                <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
-                    <Image Source="icon_calendar.svg" HeightRequest="64" WidthRequest="64" />
-                    <VerticalStackLayout Grid.Column="1" Spacing="4">
-                        <Label x:Name="NextDoctorLabel" Text="No appointment booked" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
-                        <Label x:Name="NextDateLabel" Text="Book your first appointment today." Style="{StaticResource MutedLabel}" />
-                        <Label x:Name="NextStatusLabel" Text="Email reminder and document upload ready" TextColor="{StaticResource Success}" FontSize="13" FontAttributes="Bold" />
-                    </VerticalStackLayout>
-                </Grid>
-            </Border>
+                <!-- Next Appointment Card -->
+                <Label Text="Next Appointment" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                <Border BackgroundColor="White" Padding="18" Stroke="#E6F1FB" StrokeThickness="1">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="22" /></Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAppointmentsTapped" />
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                        <Border HeightRequest="48" WidthRequest="48" BackgroundColor="{StaticResource PrimaryBlue}" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="14" /></Border.StrokeShape>
+                            <Image Source="icon_clinic.svg" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="{Binding NextDoctorName}" FontAttributes="Bold" FontSize="15" TextColor="{StaticResource PrimaryNavy}" />
+                                <Label Grid.Column="1" Text="{Binding NextStatus}" FontSize="11" TextColor="{StaticResource Warning}" FontAttributes="Bold" />
+                            </Grid>
+                            <Label Text="{Binding NextDoctorDetail}" FontSize="12" Style="{StaticResource MutedLabel}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
 
-            <Label Text="Quick actions" Style="{StaticResource SectionTitle}" />
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
-                <Button Text="Doctors" ImageSource="icon_doctor.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnDoctorsClicked" />
-                <Button Grid.Column="1" Text="Upload" ImageSource="icon_camera.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnUploadClicked" />
-                <Button Grid.Row="1" Text="Call Clinic" ImageSource="icon_phone.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnCallClicked" />
-                <Button Grid.Row="1" Grid.Column="1" Text="Directions" ImageSource="icon_map.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnMapClicked" />
-            </Grid>
-        </VerticalStackLayout>
-    </ScrollView>
+                <!-- Upcoming Appointments -->
+                <Label Text="Upcoming" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                <CollectionView ItemsSource="{Binding UpcomingAppointments}" SelectionMode="None">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Padding="30" Spacing="8" HorizontalOptions="Center">
+                            <Image Source="icon_calendar.svg" HeightRequest="36" WidthRequest="36" HorizontalOptions="Center" />
+                            <Label Margin="0,6,0,0" Text="No upcoming appointments" FontAttributes="Bold" FontSize="14" TextColor="{StaticResource PrimaryNavy}" HorizontalOptions="Center" />
+                            <Label Text="Book an appointment to get started." Style="{StaticResource MutedLabel}" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="x:Object">
+                            <Border BackgroundColor="White" Padding="16" Margin="0,4" Stroke="#E6F1FB" StrokeThickness="1">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="18" /></Border.StrokeShape>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                                    <Image Source="icon_calendar.svg" HeightRequest="44" WidthRequest="44" VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                        <Label Text="{Binding DoctorName}" FontAttributes="Bold" FontSize="14.5" TextColor="{StaticResource PrimaryNavy}" />
+                                        <Label Text="{Binding DisplayDateTime}" FontSize="12" Style="{StaticResource MutedLabel}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+        <controls:CustomTabBar Grid.Row="2" ActiveTab="Home" />
+    </Grid>
 </ContentPage>

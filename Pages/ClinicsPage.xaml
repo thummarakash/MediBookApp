@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MediBook.Controls"
+             x:Class="MediBook.Pages.ClinicsPage"
+             BackgroundColor="#F3F7FC">
+    <Grid RowDefinitions="*,Auto">
+        <Grid Grid.Row="0" RowDefinitions="Auto,*">
+            <!-- Top Curved Header -->
+            <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,24,20,28" StrokeThickness="0">
+                <Border.StrokeShape><RoundRectangle CornerRadius="0,0,26,26" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Find Clinics" FontSize="20" FontAttributes="Bold" TextColor="White" />
+                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                        <Image Source="icon_map.png" HeightRequest="14" WidthRequest="14" VerticalOptions="Center" />
+                        <Label Text="Melbourne CBD, VIC" TextColor="#B5D4F4" FontSize="12.5" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Content Area -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,*" Padding="20,16,20,0">
+                <!-- Toggle buttons Map/List -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,0,0,16">
+                    <Button x:Name="MapTabBtn" Text="Map View" BackgroundColor="{StaticResource PrimaryBlue}" TextColor="White" CornerRadius="20" HeightRequest="40" Padding="0" Clicked="OnMapTabClicked" FontAttributes="Bold" FontSize="13" />
+                    <Button Grid.Column="1" x:Name="ListTabBtn" Text="List View" BackgroundColor="#E6F1FB" TextColor="{StaticResource MutedText}" CornerRadius="20" HeightRequest="40" Padding="0" Clicked="OnListTabClicked" FontSize="13" />
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <!-- Map View Section -->
+                    <Grid x:Name="MapViewGrid" RowDefinitions="*,Auto" IsVisible="True">
+                        <!-- Vector Mock Map Graphic -->
+                        <Border Grid.Row="0" BackgroundColor="#EBF4FD" Stroke="#B5D4F4" StrokeThickness="1" Margin="0,0,0,14">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                            <Grid>
+                                <!-- Background Map Streets -->
+                                <Line X1="0" Y1="100" X2="400" Y2="250" Stroke="White" StrokeThickness="8" />
+                                <Line X1="100" Y1="0" X2="80" Y2="400" Stroke="White" StrokeThickness="8" />
+                                <Line X1="260" Y1="0" X2="290" Y2="400" Stroke="White" StrokeThickness="6" />
+                                <Line X1="0" Y1="300" X2="400" Y2="310" Stroke="White" StrokeThickness="6" />
+
+                                <!-- Map Markers (Pins) -->
+                                <!-- Pin 1 -->
+                                <Border x:Name="Pin1" BackgroundColor="Transparent" HeightRequest="36" WidthRequest="36" HorizontalOptions="Start" VerticalOptions="Start" Margin="60,90" Padding="0" StrokeThickness="0">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnMapPinClicked" CommandParameter="1" />
+                                    </Border.GestureRecognizers>
+                                    <Image x:Name="Pin1Img" Source="icon_pin_blue.png" Aspect="AspectFit" />
+                                </Border>
+
+                                <!-- Pin 2 -->
+                                <Border x:Name="Pin2" BackgroundColor="Transparent" HeightRequest="36" WidthRequest="36" HorizontalOptions="Start" VerticalOptions="Start" Margin="160,180" Padding="0" StrokeThickness="0">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnMapPinClicked" CommandParameter="2" />
+                                    </Border.GestureRecognizers>
+                                    <Image x:Name="Pin2Img" Source="icon_pin_blue.png" Aspect="AspectFit" />
+                                </Border>
+
+                                <!-- Pin 3 -->
+                                <Border x:Name="Pin3" BackgroundColor="Transparent" HeightRequest="36" WidthRequest="36" HorizontalOptions="Start" VerticalOptions="Start" Margin="250,70" Padding="0" StrokeThickness="0">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnMapPinClicked" CommandParameter="3" />
+                                    </Border.GestureRecognizers>
+                                    <Image x:Name="Pin3Img" Source="icon_pin_blue.png" Aspect="AspectFit" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Selected Clinic Card Overlay -->
+                        <Border Grid.Row="1" BackgroundColor="White" Padding="16" Stroke="#E6F1FB" StrokeThickness="1">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnSelectedClinicCardTapped" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label x:Name="MapClinicName" Text="City Medical Center" FontAttributes="Bold" FontSize="15.5" TextColor="{StaticResource PrimaryNavy}" />
+                                    <HorizontalStackLayout Spacing="8">
+                                        <Label x:Name="MapClinicDistance" Text="0.4 km away" FontSize="12" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
+                                        <Label Text="•" FontSize="12" TextColor="{StaticResource MutedText}" />
+                                        <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                            <Image Source="icon_star.png" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
+                                            <Label x:Name="MapClinicRating" Text="4.8" FontSize="12" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                                <Border Grid.Column="1" BackgroundColor="#DCFCE7" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                    <Label Text="Open" TextColor="{StaticResource Success}" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- List View Section -->
+                    <CollectionView x:Name="ClinicsCollection" IsVisible="False" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border BackgroundColor="White" Padding="16" Margin="0,5" Stroke="#E6F1FB" StrokeThickness="1">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnClinicCardTapped" CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="15.5" TextColor="{StaticResource PrimaryNavy}" />
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="{Binding DistanceText}" FontSize="12" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
+                                                <Label Text="•" FontSize="12" TextColor="{StaticResource MutedText}" />
+                                                <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                                    <Image Source="icon_star.png" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
+                                                    <Label Text="{Binding Rating}" FontSize="12" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+                                            </HorizontalStackLayout>
+                                            <Label Text="{Binding Address}" FontSize="12" Style="{StaticResource MutedLabel}" Margin="0,2,0,0" />
+                                        </VerticalStackLayout>
+                                        <Border Grid.Column="1" BackgroundColor="#DCFCE7" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                            <Label Text="Open" TextColor="{StaticResource Success}" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+            </Grid>
+        </Grid>
+        <controls:CustomTabBar Grid.Row="1" ActiveTab="Clinics" />
+    </Grid>
+</ContentPage>

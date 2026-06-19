@@ -15,13 +15,13 @@ public partial class RegisterPage : ContentPage
         {
             if (string.IsNullOrWhiteSpace(FullNameEntry.Text) || string.IsNullOrWhiteSpace(EmailEntry.Text) || string.IsNullOrWhiteSpace(PasswordEntry.Text))
             {
-                await DisplayAlert("Missing details", "Please complete your name, email and password.", "OK");
+                await ConfirmationPopupPage.ShowAsync(Navigation, "Missing Details", "Please complete your name, email and password.", "icon_warning.svg");
                 return;
             }
 
             if (PasswordEntry.Text != ConfirmPasswordEntry.Text)
             {
-                await DisplayAlert("Password", "Password and confirm password do not match.", "OK");
+                await ConfirmationPopupPage.ShowAsync(Navigation, "Password Mismatch", "Password and confirm password do not match.", "icon_warning.svg");
                 return;
             }
 
@@ -30,7 +30,7 @@ public partial class RegisterPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Registration error", ex.Message, "OK");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Registration Error", ex.Message, "icon_warning.svg");
         }
     }
 
@@ -43,7 +43,7 @@ public partial class RegisterPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Google sign-up", ex.Message, "OK");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-Up", ex.Message, "icon_warning.svg");
         }
     }
 

@@ -23,6 +23,7 @@ public partial class SettingsPage : ContentPage
             await GoogleAuthService.Instance.SignInAsync();
             var user = await DatabaseService.Instance.GetCurrentUserAsync();
             AccountLabel.Text = user == null ? "Signed in" : $"Signed in as {user.FullName} ({user.Email})";
+            await DisplayAlert("Google", "Google sign-in simulated successfully.", "OK");
         }
         catch (Exception ex)
         {
@@ -30,7 +31,8 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    private async void OnContactClicked(object sender, EventArgs e) => await Shell.Current.GoToAsync(nameof(ContactPage));
+    private async void OnContactClicked(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync(nameof(ContactPage));
 
     private async void OnTestEmailClicked(object sender, EventArgs e)
     {
@@ -41,7 +43,7 @@ public partial class SettingsPage : ContentPage
             return;
         }
 
-        await NativeActionService.Instance.ComposeEmailAsync(user.Email, "MediBook test email", "This is a MediBook email notification test.");
+        await DisplayAlert("Test Email", $"A test email would be sent to {user.Email}.\n(Mock — no real email sent)", "OK");
     }
 
     private async void OnLogoutClicked(object sender, EventArgs e)

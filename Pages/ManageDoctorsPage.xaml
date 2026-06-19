@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MediBook.Controls"
+             x:Class="MediBook.Pages.ManageDoctorsPage"
+             Title="Manage Doctors">
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="20,24" Spacing="18">
+                <!-- Header -->
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <ImageButton Source="icon_back.png" WidthRequest="46" HeightRequest="46" CornerRadius="23"
+                                 BackgroundColor="White" Command="{Binding BackCommand}" Padding="12" />
+                    <VerticalStackLayout Grid.Column="1">
+                        <Label Text="Manage Doctors" Style="{StaticResource TitleLabel}" />
+                        <Label Text="Add or remove medical practitioners" Style="{StaticResource MutedLabel}" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Add / Edit Doctor Form -->
+                <Border BackgroundColor="White" Padding="18" Stroke="#D8E6F8" StrokeThickness="1">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="24" /></Border.StrokeShape>
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="{Binding FormTitle}" Style="{StaticResource SectionTitle}" />
+
+                        <Border Style="{StaticResource InputBorderStyle}">
+                            <Entry Text="{Binding DoctorName, Mode=TwoWay}"
+                                   Placeholder="Doctor Name (e.g. Dr Sarah Connor)"
+                                   Style="{StaticResource InputStyle}" />
+                        </Border>
+
+                        <!-- Specialty Multi-Select -->
+                        <Label Text="Specialties" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Border BackgroundColor="#F3F7FC" Padding="14,10" Stroke="#D8E6F8" StrokeThickness="1">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding SelectedSpecialtiesText}" VerticalOptions="Center"
+                                           FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                                    <ImageButton Grid.Column="1" Source="icon_options.svg" WidthRequest="32" HeightRequest="32"
+                                                 Command="{Binding ToggleSpecialtiesDropdownCommand}" />
+                                </Grid>
+                                <VerticalStackLayout IsVisible="{Binding IsSpecialtiesExpanded}"
+                                                     BindableLayout.ItemsSource="{Binding SpecialtySelections}"
+                                                     Spacing="4" Margin="0,6,0,0">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="Auto,*" Padding="0,2">
+                                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          Color="{StaticResource PrimaryBlue}" />
+                                                <Label Grid.Column="1" Text="{Binding Name}" VerticalOptions="Center"
+                                                       FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Department Multi-Select -->
+                        <Label Text="Departments" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Border BackgroundColor="#F3F7FC" Padding="14,10" Stroke="#D8E6F8" StrokeThickness="1">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding SelectedDepartmentsText}" VerticalOptions="Center"
+                                           FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                                    <ImageButton Grid.Column="1" Source="icon_options.svg" WidthRequest="32" HeightRequest="32"
+                                                 Command="{Binding ToggleDepartmentsDropdownCommand}" />
+                                </Grid>
+                                <VerticalStackLayout IsVisible="{Binding IsDepartmentsExpanded}"
+                                                     BindableLayout.ItemsSource="{Binding DepartmentSelections}"
+                                                     Spacing="4" Margin="0,6,0,0">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="Auto,*" Padding="0,2">
+                                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          Color="{StaticResource PrimaryBlue}" />
+                                                <Label Grid.Column="1" Text="{Binding Name}" VerticalOptions="Center"
+                                                       FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Fee Per Session -->
+                        <Label Text="Fee Per Session (30 Min) ($)" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Border Style="{StaticResource InputBorderStyle}">
+                            <Entry Text="{Binding FeePerSession, Mode=TwoWay}"
+                                   Placeholder="e.g. 90.00"
+                                   Keyboard="Numeric"
+                                   Style="{StaticResource InputStyle}" />
+                        </Border>
+
+                        <!-- Clinics & Availability Multi-Select -->
+                        <Label Text="Clinics &amp; Availability" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Border BackgroundColor="#F3F7FC" Padding="14,10" Stroke="#D8E6F8" StrokeThickness="1">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                            <VerticalStackLayout Spacing="6">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="Select Clinics &amp; Set Hours" VerticalOptions="Center"
+                                           FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                                    <ImageButton Grid.Column="1" Source="icon_options.svg" WidthRequest="32" HeightRequest="32"
+                                                 Command="{Binding ToggleClinicsDropdownCommand}" />
+                                </Grid>
+                                <VerticalStackLayout IsVisible="{Binding IsClinicsDropdownExpanded}"
+                                                     BindableLayout.ItemsSource="{Binding ClinicSelections}"
+                                                     Spacing="10" Margin="0,8,0,0">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <VerticalStackLayout Spacing="6" Margin="0,0,0,10">
+                                                <Grid ColumnDefinitions="Auto,*">
+                                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                              Color="{StaticResource PrimaryBlue}" />
+                                                    <Label Grid.Column="1" Text="{Binding Clinic.Name}" VerticalOptions="Center"
+                                                           FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                                                </Grid>
+                                                <VerticalStackLayout IsVisible="{Binding IsSelected}" Spacing="6" Margin="32,0,0,0">
+                                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                                        <VerticalStackLayout>
+                                                            <Label Text="Days (e.g. Mon-Fri)" FontSize="11" TextColor="{StaticResource MutedText}" />
+                                                            <Border Style="{StaticResource InputBorderStyle}" HeightRequest="38">
+                                                                <Entry Text="{Binding Days, Mode=TwoWay}" Style="{StaticResource InputStyle}" FontSize="12.5" />
+                                                            </Border>
+                                                        </VerticalStackLayout>
+                                                        <VerticalStackLayout>
+                                                            <Label Text="Hours (e.g. 9am-5pm)" FontSize="11" TextColor="{StaticResource MutedText}" />
+                                                            <Border Style="{StaticResource InputBorderStyle}" HeightRequest="38">
+                                                                <Entry Text="{Binding TimeSlot, Mode=TwoWay}" Style="{StaticResource InputStyle}" FontSize="12.5" />
+                                                            </Border>
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                            </VerticalStackLayout>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Save / Cancel Buttons -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,8,0,0">
+                            <Button Text="{Binding SaveButtonText}" Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding SaveDoctorCommand}" />
+                            <Button Grid.Column="1" Text="Cancel" BackgroundColor="#E6F1FB" TextColor="{StaticResource PrimaryBlue}"
+                                    HeightRequest="50" Padding="18,0" CornerRadius="14"
+                                    IsVisible="{Binding IsEditMode}"
+                                    Command="{Binding CancelEditCommand}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Doctors List -->
+                <Label Text="Registered Doctors" Style="{StaticResource SectionTitle}" />
+                <CollectionView ItemsSource="{Binding Doctors}" SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border BackgroundColor="White" Padding="16" Margin="0,5" Stroke="#D8E6F8" StrokeThickness="1">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                                <VerticalStackLayout Spacing="6">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource PrimaryNavy}" />
+                                            <Label Text="{Binding Specialty}" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" FontSize="12.5" />
+                                            <Label Text="{Binding Department}" FontSize="12" TextColor="{StaticResource MutedText}" />
+                                        </VerticalStackLayout>
+                                        <!-- Edit -->
+                                        <Button Grid.Column="1" Text="Edit" BackgroundColor="#E6F1FB" TextColor="{StaticResource PrimaryBlue}"
+                                                HeightRequest="40" Padding="12,0" CornerRadius="12"
+                                                Command="{Binding BindingContext.EditDoctorCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding .}" />
+                                        <!-- Delete -->
+                                        <Button Grid.Column="2" Text="Delete" BackgroundColor="#FEE2E2" TextColor="#B91C1C"
+                                                HeightRequest="40" Padding="12,0" CornerRadius="12"
+                                                Command="{Binding BindingContext.DeleteDoctorCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                                CommandParameter="{Binding .}" />
+                                    </Grid>
+                                    <Label Text="{Binding ClinicName, StringFormat='Clinic: {0}'}" FontSize="12" FontAttributes="Italic" TextColor="{StaticResource MutedText}" />
+                                    <Label Text="{Binding FeePerAppointment, StringFormat='Fee: ${0:F2} / 30 min session'}" FontSize="12" TextColor="{StaticResource PrimaryNavy}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+        <controls:CustomTabBar Grid.Row="1" IsAdmin="True" ActiveTab="Doctors" />
+    </Grid>
+</ContentPage>

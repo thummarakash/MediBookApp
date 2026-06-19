@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Controls.CustomTabBar"
+             x:Name="this">
+
+    <Border BackgroundColor="White" HeightRequest="70" Stroke="#E2E8F0" StrokeThickness="1" Padding="0,6,0,8" VerticalOptions="End">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="20,20,0,0" />
+        </Border.StrokeShape>
+
+        <Grid>
+            <!-- Patient Tab Bar: Home / Appointments / Clinics / Doctors / Profile -->
+            <Grid x:Name="PatientGrid" ColumnDefinitions="*,*,*,*,*">
+                <!-- Home -->
+                <VerticalStackLayout Grid.Column="0" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnHomeTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding HomeIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Home" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding HomeColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Appointments -->
+                <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAppointmentsTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding AppointmentsIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Appointments" FontSize="8.5" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding AppointmentsColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Clinics -->
+                <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnClinicsTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding ClinicsIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Clinics" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding ClinicsColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Doctors -->
+                <VerticalStackLayout Grid.Column="3" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDoctorsTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding DoctorsIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Doctors" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding DoctorsColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Profile -->
+                <VerticalStackLayout Grid.Column="4" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnProfileTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding ProfileIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Profile" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding ProfileColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Admin Tab Bar: Console / Clinics / Doctors / Appointments / Profile -->
+            <Grid x:Name="AdminGrid" ColumnDefinitions="*,*,*,*,*" IsVisible="False">
+                <!-- Dashboard -->
+                <VerticalStackLayout Grid.Column="0" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAdminDashboardTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding HomeIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Console" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding HomeColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Clinics -->
+                <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAdminClinicsTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding ClinicsIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Clinics" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding ClinicsColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Doctors -->
+                <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAdminDoctorsTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding DoctorsIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Doctors" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding DoctorsColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Appointments -->
+                <VerticalStackLayout Grid.Column="3" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAdminAppointmentsTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding AppointmentsIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Appointments" FontSize="9" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding AppointmentsColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+
+                <!-- Profile -->
+                <VerticalStackLayout Grid.Column="4" Spacing="4" VerticalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAdminProfileTapped" />
+                    </VerticalStackLayout.GestureRecognizers>
+                    <Image Source="{Binding ProfileIcon, Source={x:Reference this}}" HeightRequest="22" WidthRequest="22" HorizontalOptions="Center" />
+                    <Label Text="Profile" FontSize="11" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{Binding ProfileColor, Source={x:Reference this}}" />
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+    </Border>
+</ContentView>

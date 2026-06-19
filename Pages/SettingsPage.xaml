@@ -5,14 +5,14 @@
     <ScrollView>
         <VerticalStackLayout Padding="20,24" Spacing="16">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                <Button Text="‹" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" TextColor="{StaticResource PrimaryBlue}" Clicked="OnBackClicked" />
+                <ImageButton Source="icon_back.png" WidthRequest="46" HeightRequest="46" CornerRadius="23" BackgroundColor="White" Clicked="OnBackClicked" Padding="12" />
                 <VerticalStackLayout Grid.Column="1">
                     <Label Text="Settings" Style="{StaticResource TitleLabel}" />
                     <Label Text="No dark mode toggle. Clean professional settings only." Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
             </Grid>
 
-            <Border BackgroundColor="White" Padding="20" Stroke="#D8E6F8" StrokeThickness="1">
+            <Border BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Navy2}}" Padding="20" Stroke="{AppThemeBinding Light=#D8E6F8, Dark=#1E293B}" StrokeThickness="1">
                 <Border.StrokeShape><RoundRectangle CornerRadius="28" /></Border.StrokeShape>
                 <VerticalStackLayout Spacing="14">
                     <Label Text="Account" Style="{StaticResource SectionTitle}" />
@@ -20,7 +20,8 @@
                     <Button Text="Google Sign-up / Switch Account" ImageSource="icon_google.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnGoogleClicked" />
                     <Button Text="Contact Clinic" ImageSource="icon_phone.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnContactClicked" />
                     <Button Text="Send Test Email" ImageSource="icon_email.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnTestEmailClicked" />
-                    <Button Text="Logout" BackgroundColor="#FEE2E2" TextColor="#B91C1C" CornerRadius="18" HeightRequest="50" FontAttributes="Bold" Clicked="OnLogoutClicked" />
+
+                    <Button Text="Logout" BackgroundColor="#FEE2E2" TextColor="#B91C1C" CornerRadius="18" HeightRequest="50" FontAttributes="Bold" Clicked="OnLogoutClicked" Margin="0,8,0,0" />
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>

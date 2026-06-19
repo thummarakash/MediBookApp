@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MediBook.Pages.PrivacyPolicyPage"
+             BackgroundColor="#F3F7FC"
+             Title="Privacy Policy">
+    <Grid RowDefinitions="Auto,*">
+        <!-- Top Curved Header -->
+        <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,20,20,24" StrokeThickness="0">
+            <Border.StrokeShape><RoundRectangle CornerRadius="0,0,26,26" /></Border.StrokeShape>
+            <VerticalStackLayout Spacing="16">
+                <!-- Back & Page Title -->
+                <Grid ColumnDefinitions="Auto,*">
+                    <ImageButton Source="icon_back.png" WidthRequest="44" HeightRequest="44" CornerRadius="22" BackgroundColor="White" Clicked="OnBackClicked" Padding="12" HorizontalOptions="Start" />
+                    <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" VerticalOptions="Center">
+                        <Label Text="Privacy Policy" FontSize="19" FontAttributes="Bold" TextColor="White" />
+                        <Label Text="How we protect your medical data" TextColor="#B5D4F4" FontSize="12.5" />
+                    </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20" Spacing="16">
+                <Border BackgroundColor="White" Padding="18" Stroke="#E6F1FB" StrokeThickness="1">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="MediBook Privacy Commitment" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                        <Label Text="Last updated: June 2026" FontSize="11.5" Style="{StaticResource MutedLabel}" />
+                        
+                        <BoxView HeightRequest="1" BackgroundColor="#F3F7FC" />
+
+                        <!-- 1. Data Collection -->
+                        <Label Text="1. Data Collection" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" FontSize="14" />
+                        <Label Text="We collect personal identifiers including your full name, email address, contact number, date of birth, and credentials. This information is strictly used to facilitate clinic routing, appointment bookings, and identity verification." Style="{StaticResource MutedLabel}" FontSize="12.5" />
+
+                        <!-- 2. Device Permissions -->
+                        <Label Text="2. Permissions &amp; Access" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" FontSize="14" />
+                        <Label Text="The application requests access to the device camera (to scan or upload medical records), local storage (to download reports and view health summaries), and biometric sensors (for secure and fast login verification)." Style="{StaticResource MutedLabel}" FontSize="12.5" />
+
+                        <!-- 3. Medical Documents -->
+                        <Label Text="3. Medical Document Security" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" FontSize="14" />
+                        <Label Text="Your uploaded medical documents, prescriptions, and test results are processed using secure channels. These files are kept completely confidential and are only accessible by you and the medical clinics you explicitly book appointments with." Style="{StaticResource MutedLabel}" FontSize="12.5" />
+
+                        <!-- 4. User Accounts -->
+                        <Label Text="4. User Account &amp; Autonomy" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" FontSize="14" />
+                        <Label Text="Users have the right to modify their profile details, change passwords, toggle biometric logins, and delete their accounts. Deletion removes all registered personal data from our systems." Style="{StaticResource MutedLabel}" FontSize="12.5" />
+
+                        <!-- 5. Contact Information -->
+                        <Label Text="5. Contact Information" FontAttributes="Bold" TextColor="{StaticResource PrimaryBlue}" FontSize="14" />
+                        <Label Text="For any privacy concerns, data inquiries, or security reports, please reach out to our privacy officer at privacy@medibook.com.au." Style="{StaticResource MutedLabel}" FontSize="12.5" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

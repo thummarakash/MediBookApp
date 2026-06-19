@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MediBook.Pages.AppointmentConfirmationPage">
+             x:Class="MediBook.Pages.AppointmentConfirmationPage"
+             BackgroundColor="#F3F7FC">
     <ScrollView>
         <VerticalStackLayout Padding="24,34" Spacing="20">
+            <!-- Gradient Success Card -->
             <Border Padding="28" StrokeThickness="0">
                 <Border.StrokeShape><RoundRectangle CornerRadius="34" /></Border.StrokeShape>
                 <Border.Background>
@@ -12,25 +14,66 @@
                         <GradientStop Color="#2DD4BF" Offset="1" />
                     </LinearGradientBrush>
                 </Border.Background>
-                <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
-                    <Image Source="medibook_logo.svg" HeightRequest="104" WidthRequest="104" />
-                    <Label Text="Appointment Confirmed" TextColor="White" FontSize="28" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                    <Label Text="Your details have been saved to the local database." TextColor="#D9EAFF" HorizontalTextAlignment="Center" />
+                <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+                    <!-- Checkmark Badge -->
+                    <Border HeightRequest="72" WidthRequest="72" StrokeThickness="0" BackgroundColor="White" HorizontalOptions="Center" Margin="0,4">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="36" /></Border.StrokeShape>
+                        <Label Text="✓" FontSize="36" TextColor="#155EEF" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="Appointment Confirmed" TextColor="White" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                    <Label Text="Your booking is secured. You can view or manage it anytime in your appointments list." TextColor="#D9EAFF" HorizontalTextAlignment="Center" FontSize="13" />
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="White" Padding="20" Stroke="#D8E6F8" StrokeThickness="1">
+            <!-- Detailed Confirmation Info -->
+            <Border BackgroundColor="White" Padding="22" Stroke="#D8E6F8" StrokeThickness="1">
                 <Border.StrokeShape><RoundRectangle CornerRadius="26" /></Border.StrokeShape>
-                <VerticalStackLayout Spacing="8">
-                    <Label x:Name="DoctorLabel" Text="Doctor" Style="{StaticResource SectionTitle}" />
-                    <Label x:Name="DepartmentLabel" Text="Department" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
-                    <Label x:Name="DateTimeLabel" Text="Date and time" Style="{StaticResource MutedLabel}" />
-                    <Label x:Name="EmailLabel" Text="Email reminder queued" TextColor="{StaticResource Success}" FontAttributes="Bold" />
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Booking Details" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                    <BoxView HeightRequest="1" BackgroundColor="#E6F1FB" />
+
+                    <!-- Doctor -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border BackgroundColor="#E6F1FB" HeightRequest="38" WidthRequest="38" StrokeThickness="0" VerticalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                            <Image Source="icon_doctor.png" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                            <Label x:Name="DoctorLabel" Text="Doctor" FontAttributes="Bold" FontSize="14.5" TextColor="{StaticResource PrimaryNavy}" />
+                            <Label x:Name="DepartmentLabel" Text="Department" FontSize="12" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Date & Time -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border BackgroundColor="#E6F1FB" HeightRequest="38" WidthRequest="38" StrokeThickness="0" VerticalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                            <Image Source="icon_calendar.png" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                            <Label Text="Date &amp; Time" FontSize="11.5" Style="{StaticResource MutedLabel}" />
+                            <Label x:Name="DateTimeLabel" Text="Date and time" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Reminder Status -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border BackgroundColor="#DCFCE7" HeightRequest="38" WidthRequest="38" StrokeThickness="0" VerticalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                            <Image Source="icon_email.png" WidthRequest="18" HeightRequest="18" HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label x:Name="EmailLabel" Text="Email reminder active" TextColor="{StaticResource Success}" FontAttributes="Bold" FontSize="13" />
+                        </VerticalStackLayout>
+                    </Grid>
                 </VerticalStackLayout>
             </Border>
 
-            <Button Text="View My Appointments" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnAppointmentsClicked" />
-            <Button Text="Back to Home" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnHomeClicked" />
+            <!-- Actions -->
+            <VerticalStackLayout Spacing="10" Margin="0,10,0,0">
+                <Button Text="View My Appointments" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnAppointmentsClicked" HeightRequest="48" CornerRadius="12" />
+                <Button Text="Back to Home" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnHomeClicked" HeightRequest="48" CornerRadius="12" />
+            </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

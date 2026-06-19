@@ -1,51 +1,38 @@
-using MediBook.Services;
+using MediBook.ViewModels;
 
 namespace MediBook.Pages;
 
 public partial class HomePage : ContentPage
 {
+    private readonly HomeViewModel _vm = new();
+
     public HomePage()
     {
         InitializeComponent();
+        BindingContext = _vm;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await LoadDataAsync();
-        await EmailNotificationService.Instance.ProcessDueReminderEmailsAsync();
+        await _vm.LoadCommand.ExecuteAsync(null);
     }
 
-    private async Task LoadDataAsync()
-    {
-        var user = await DatabaseService.Instance.GetCurrentUserAsync();
-        WelcomeLabel.Text = user == null ? "Welcome" : $"Hi, {user.FullName}";
-        var next = await DatabaseService.Instance.GetNextAppointmentAsync();
-        if (next != null)
-        {
-            NextDoctorLabel.Text = next.DoctorName;
-            NextDateLabel.Text = $"{next.Department} • {next.DisplayDateTime}";
-            NextStatusLabel.Text = next.EmailReminderQueued ? "Email reminder queued" : "Reminder not enabled";
-        }
-        else
-        {
-            NextDoctorLabel.Text = "No appointment booked";
-            NextDateLabel.Text = "Book your first appointment today.";
-            NextStatusLabel.Text = "Email reminder and document upload ready";
-        }
-    }
+    private async void OnBookTapped(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync(nameof(BookAppointmentPage));
 
-    private async void OnBookClicked(object sender, EventArgs e) => await Shell.Current.GoToAsync("//doctors");
-    private async void OnDoctorsClicked(object sender, EventArgs e) => await Shell.Current.GoToAsync("//doctors");
-    private async void OnUploadClicked(object sender, EventArgs e) => await Shell.Current.GoToAsync(nameof(UploadDocumentPage));
-    private async void OnCallClicked(object sender, EventArgs e)
-    {
-        try { NativeActionService.Instance.CallClinic("0290011234"); }
-        catch (Exception ex) { await DisplayAlert("Phone", ex.Message, "OK"); }
-    }
-    private async void OnMapClicked(object sender, EventArgs e)
-    {
-        try { await NativeActionService.Instance.OpenClinicMapAsync(); }
-        catch (Exception ex) { await DisplayAlert("Maps", ex.Message, "OK"); }
-    }
+    private async void OnDoctorsTapped(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync(nameof(DoctorsPage));
+
+    private async void OnClinicsTapped(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("//clinics");
+
+    private async void OnDocumentsTapped(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("//documents");
+
+    private async void OnAppointmentsTapped(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("//appointments");
+
+    private async void OnProfileAvatarTapped(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync(nameof(ProfilePage));
 }
