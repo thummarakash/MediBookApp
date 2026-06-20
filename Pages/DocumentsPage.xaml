@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:MediBook.ViewModels"
@@ -59,7 +59,7 @@
                 <ActivityIndicator Grid.Row="3" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,30" />
 
                 <!-- Documents List -->
-                <CollectionView Grid.Row="3" ItemsSource="{Binding Documents}" IsGrouped="True" SelectionMode="None">
+                <CollectionView Grid.Row="3" ItemsSource="{Binding Documents}" IsGrouped="True" SelectionMode="None" ShowVerticalScrollIndicator="False">
                     <CollectionView.EmptyView>
                         <VerticalStackLayout Padding="30" Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
                             <Image Source="icon_document.svg" WidthRequest="48" HeightRequest="48" HorizontalOptions="Center" />

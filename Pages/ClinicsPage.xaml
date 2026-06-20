@@ -8,14 +8,49 @@
     <Grid RowDefinitions="*,Auto">
         <Grid Grid.Row="0" RowDefinitions="Auto,*">
             <!-- Top Curved Header -->
-            <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,24,20,28" StrokeThickness="0">
+            <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,20,20,24" StrokeThickness="0">
                 <Border.StrokeShape><RoundRectangle CornerRadius="0,0,26,26" /></Border.StrokeShape>
-                <VerticalStackLayout Spacing="4">
-                    <Label Text="Find Clinics" FontSize="20" FontAttributes="Bold" TextColor="White" />
-                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                        <Image Source="icon_map.svg" HeightRequest="14" WidthRequest="14" VerticalOptions="Center" />
-                        <Label Text="Melbourne CBD, VIC" TextColor="{StaticResource Aqua}" FontSize="12.5" VerticalOptions="Center" />
-                    </HorizontalStackLayout>
+                <VerticalStackLayout Spacing="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Find Clinics" FontSize="20" FontAttributes="Bold" TextColor="White" />
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <Image Source="icon_map.svg" HeightRequest="14" WidthRequest="14" VerticalOptions="Center" />
+                            <Label Text="Melbourne CBD, VIC" TextColor="{StaticResource Aqua}" FontSize="12.5" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+
+                    <!-- Search Bar -->
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="12,0" HeightRequest="48" StrokeThickness="0">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="14" /></Border.StrokeShape>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Image Source="{StaticResource IconOptions}" WidthRequest="16" HeightRequest="16" VerticalOptions="Center" Margin="0,0,8,0" />
+                            <Entry Grid.Column="1" x:Name="SearchEntry" Placeholder="Search clinics..." TextChanged="OnSearchTextChanged" VerticalOptions="Center" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Filter Chips for Clinic Specialties -->
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,4">
+                        <Border x:Name="AllChip" BackgroundColor="{StaticResource PrimaryBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="All" /></Border.GestureRecognizers>
+                            <Label x:Name="AllChipText" Text="All" TextColor="White" FontAttributes="Bold" FontSize="11" />
+                        </Border>
+                        <Border Grid.Column="1" x:Name="GeneralChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="General Practice" /></Border.GestureRecognizers>
+                            <Label x:Name="GeneralChipText" Text="General" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+                        <Border Grid.Column="2" x:Name="CardiologyChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="Cardiology" /></Border.GestureRecognizers>
+                            <Label x:Name="CardiologyChipText" Text="Cardiology" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+                        <Border Grid.Column="3" x:Name="PediatricsChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="Pediatrics" /></Border.GestureRecognizers>
+                            <Label x:Name="PediatricsChipText" Text="Pediatrics" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+                    </Grid>
                 </VerticalStackLayout>
             </Border>
 
@@ -74,7 +109,7 @@
                     </Grid>
 
                     <!-- List View Section -->
-                    <CollectionView x:Name="ClinicsCollection" IsVisible="False" SelectionMode="None">
+                    <CollectionView x:Name="ClinicsCollection" IsVisible="False" SelectionMode="None" ShowVerticalScrollIndicator="False">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Margin="0,5" Stroke="{StaticResource BorderLight}" StrokeThickness="1">

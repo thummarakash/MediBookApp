@@ -166,7 +166,7 @@ public partial class UploadDocumentPage : ContentPage
                 storageUrl != null
                     ? "Document uploaded to the cloud successfully!"
                     : "Document saved locally. Will sync when online.");
-            await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync("//documents");
         }
         catch (Exception ex)
         {

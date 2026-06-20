@@ -97,8 +97,15 @@ public class GoogleSignInService
                                 Log($"Exception details during cancellation: {taskEx.GetType().Name}: {taskEx.Message}");
                                 if (taskEx is Android.Gms.Common.Apis.ApiException apiEx)
                                 {
-                                    Log($"API Exception Status Code: {apiEx.StatusCode} (Common: 12500=Sign in failed, 12501=Sign in cancelled, 10=Developer error/SHA-1 mismatch)");
-                                    tcs.TrySetException(new Exception($"Google Sign-In canceled with Status Code: {apiEx.StatusCode}."));
+                                    Log($"API Exception Status Code: {apiEx.StatusCode}");
+                                    string friendlyError = apiEx.StatusCode switch
+                                    {
+                                        7 => "Network error. Please check your internet connection or Google Play Services.",
+                                        10 => "Developer configuration error. Please verify the SHA-1 fingerprint configuration in Firebase console.",
+                                        12501 => "Sign-in was cancelled.",
+                                        _ => $"Sign-in failed (Error Code: {apiEx.StatusCode})."
+                                    };
+                                    tcs.TrySetException(new Exception(friendlyError));
                                     return;
                                 }
                             }

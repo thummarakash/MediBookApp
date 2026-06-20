@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:MediBook.ViewModels"
@@ -11,13 +11,11 @@
             <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,20,20,24" StrokeThickness="0">
                 <Border.StrokeShape><RoundRectangle CornerRadius="0,0,26,26" /></Border.StrokeShape>
                 <VerticalStackLayout Spacing="16">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <ImageButton Source="{StaticResource IconBack}" Style="{StaticResource BackButtonStyle}" Clicked="OnBackClicked" />
-                        <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" VerticalOptions="Center">
-                            <Label Text="Find a Doctor" FontSize="19" FontAttributes="Bold" TextColor="White" />
-                            <Label Text="Choose a specialist for your appointment" Style="{StaticResource HeaderSubtitleLabel}" />
-                        </VerticalStackLayout>
-                    </Grid>
+                    <!-- Title & Subtitle without back button -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Find a Doctor" FontSize="20" FontAttributes="Bold" TextColor="White" />
+                        <Label Text="Choose a specialist for your appointment" TextColor="{StaticResource Aqua}" FontSize="12.5" />
+                    </VerticalStackLayout>
 
                     <!-- Search Bar -->
                     <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="12,0" HeightRequest="48" StrokeThickness="0">
@@ -27,6 +25,30 @@
                             <Entry Grid.Column="1" Placeholder="Search doctors..." TextChanged="OnSearchTextChanged" VerticalOptions="Center" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
                         </Grid>
                     </Border>
+
+                    <!-- Filter Chips for Specialties -->
+                    <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,4">
+                        <Border x:Name="AllChip" BackgroundColor="{StaticResource PrimaryBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="All" /></Border.GestureRecognizers>
+                            <Label x:Name="AllChipText" Text="All" TextColor="White" FontAttributes="Bold" FontSize="11" />
+                        </Border>
+                        <Border Grid.Column="1" x:Name="GeneralChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="General" /></Border.GestureRecognizers>
+                            <Label x:Name="GeneralChipText" Text="General" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+                        <Border Grid.Column="2" x:Name="CardiologyChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="Cardiology" /></Border.GestureRecognizers>
+                            <Label x:Name="CardiologyChipText" Text="Cardiology" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+                        <Border Grid.Column="3" x:Name="PediatricsChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnChipTapped" CommandParameter="Pediatrics" /></Border.GestureRecognizers>
+                            <Label x:Name="PediatricsChipText" Text="Pediatrics" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+                    </Grid>
                 </VerticalStackLayout>
             </Border>
 

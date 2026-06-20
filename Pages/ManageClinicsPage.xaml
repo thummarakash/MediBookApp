@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MediBook.Controls"
@@ -76,8 +76,8 @@
 
                 <!-- Clinics List -->
                 <Label Text="Registered Clinics" Style="{StaticResource SectionTitle}" />
-                <CollectionView ItemsSource="{Binding Clinics}" SelectionMode="None">
-                    <CollectionView.ItemTemplate>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Clinics}">
+                    <BindableLayout.ItemTemplate>
                         <DataTemplate>
                             <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Margin="0,5" Stroke="{StaticResource LightStroke}" StrokeThickness="1">
                                 <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
@@ -100,8 +100,8 @@
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
         <controls:CustomTabBar Grid.Row="1" IsAdmin="True" ActiveTab="Clinics" />

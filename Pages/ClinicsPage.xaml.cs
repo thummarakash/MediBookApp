@@ -11,6 +11,8 @@ public partial class ClinicsPage : ContentPage
     private bool _isMapView = true;
     private bool _isLocationAvailable = false;
     private IDispatcherTimer? _locationCheckTimer;
+    private string _searchText = "";
+    private string _selectedCategory = "All";
 
     public ClinicsPage()
     {
@@ -21,9 +23,8 @@ public partial class ClinicsPage : ContentPage
     {
         base.OnAppearing();
         _clinics = await DatabaseService.Instance.GetClinicsAsync();
-        ClinicsCollection.ItemsSource = _clinics;
         
-        SetupMapPins();
+        ApplyFilterAndSearch();
 
         // Check immediately on appearing
         await CheckAndCenterUserLocationAsync(requestIfNeeded: false);
@@ -257,5 +258,108 @@ public partial class ClinicsPage : ContentPage
         {
             await Shell.Current.GoToAsync($"{nameof(ClinicDetailPage)}?clinicId={clinic.Id}");
         }
+    }
+
+    private void ApplyFilterAndSearch()
+    {
+        var filtered = _clinics.AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(_searchText))
+        {
+            filtered = filtered.Where(c => c.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase)
+                                        || c.Address.Contains(_searchText, StringComparison.OrdinalIgnoreCase));
+        }
+        if (_selectedCategory != "All")
+        {
+            filtered = filtered.Where(c => c.SpecialtiesList.Contains(_selectedCategory, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var list = filtered.ToList();
+        ClinicsCollection.ItemsSource = list;
+        SetupMapPinsWithList(list);
+
+        if (_isLocationAvailable)
+        {
+            if (list.Any())
+            {
+                if (_selectedClinic == null || !list.Any(c => c.Id == _selectedClinic.Id))
+                {
+                    SelectClinic(list.First());
+                }
+            }
+            else
+            {
+                _selectedClinic = null;
+                SelectedClinicCard.IsVisible = false;
+            }
+        }
+    }
+
+    private void SetupMapPinsWithList(List<Clinic> list)
+    {
+        try
+        {
+            ClinicsMap.Pins.Clear();
+            foreach (var clinic in list)
+            {
+                var pin = new Microsoft.Maui.Controls.Maps.Pin
+                {
+                    Label = clinic.Name,
+                    Address = clinic.Address,
+                    Type = Microsoft.Maui.Controls.Maps.PinType.Place,
+                    Location = new Location(clinic.Latitude, clinic.Longitude)
+                };
+                
+                pin.MarkerClicked += (s, args) =>
+                {
+                    SelectClinic(clinic);
+                };
+
+                ClinicsMap.Pins.Add(pin);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {ex.Message}");
+        }
+    }
+
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        _searchText = e.NewTextValue ?? "";
+        ApplyFilterAndSearch();
+    }
+
+    private void OnChipTapped(object sender, EventArgs e)
+    {
+        if (sender is Border border
+            && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap
+            && tap.CommandParameter is string category)
+        {
+            _selectedCategory = category;
+            UpdateChipUI(category);
+            ApplyFilterAndSearch();
+        }
+    }
+
+    private void UpdateChipUI(string active)
+    {
+        var activeBlue = (Color)(Application.Current?.Resources["PrimaryBlue"] ?? Color.FromArgb("#185FA5"));
+        var lightBlue = Color.FromArgb("#E6F1FB");
+
+        AllChip.BackgroundColor = active == "All" ? activeBlue : lightBlue;
+        AllChipText.TextColor = active == "All" ? Colors.White : activeBlue;
+        AllChipText.FontAttributes = active == "All" ? FontAttributes.Bold : FontAttributes.None;
+
+        GeneralChip.BackgroundColor = active == "General Practice" ? activeBlue : lightBlue;
+        GeneralChipText.TextColor = active == "General Practice" ? Colors.White : activeBlue;
+        GeneralChipText.FontAttributes = active == "General Practice" ? FontAttributes.Bold : FontAttributes.None;
+
+        CardiologyChip.BackgroundColor = active == "Cardiology" ? activeBlue : lightBlue;
+        CardiologyChipText.TextColor = active == "Cardiology" ? Colors.White : activeBlue;
+        CardiologyChipText.FontAttributes = active == "Cardiology" ? FontAttributes.Bold : FontAttributes.None;
+
+        PediatricsChip.BackgroundColor = active == "Pediatrics" ? activeBlue : lightBlue;
+        PediatricsChipText.TextColor = active == "Pediatrics" ? Colors.White : activeBlue;
+        PediatricsChipText.FontAttributes = active == "Pediatrics" ? FontAttributes.Bold : FontAttributes.None;
     }
 }

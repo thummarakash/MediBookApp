@@ -58,7 +58,12 @@ public partial class RegisterPage : ContentPage
         catch (Exception ex)
         {
             await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Registration Failed", ex.Message, "icon_warning.svg");
+            string friendlyMsg = ex.Message;
+            if (ex is System.Net.Http.HttpRequestException || ex.InnerException is System.Net.Http.HttpRequestException || ex is TaskCanceledException)
+            {
+                friendlyMsg = "Network error. Please check your internet connection and try again.";
+            }
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Registration Failed", friendlyMsg, "icon_warning.svg");
         }
         finally
         {
@@ -94,6 +99,10 @@ public partial class RegisterPage : ContentPage
         if (btn == null) return;
         btn.IsEnabled = !isLoading;
         btn.Text = isLoading ? "Creating Account..." : "Create Account";
+        if (isLoading)
+            await AnimationHelper.FadeOutAsync(btn, 100);
+        else
+            await AnimationHelper.FadeInAsync(btn, 150);
     }
 
     private void OnTogglePasswordClicked(object sender, EventArgs e)

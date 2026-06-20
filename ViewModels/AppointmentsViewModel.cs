@@ -10,6 +10,7 @@ public partial class AppointmentsViewModel : ObservableObject
 {
     private List<Appointment> _all = new();
 
+    [ObservableProperty] string searchQuery = string.Empty;
     [ObservableProperty] ObservableCollection<Appointment> appointments = new();
     [ObservableProperty] string selectedTab = "Upcoming";
     [ObservableProperty] bool isLoading;
@@ -22,7 +23,7 @@ public partial class AppointmentsViewModel : ObservableObject
         try
         {
             _all = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
-            FilterByTab(SelectedTab);
+            FilterAndSearch();
         }
         finally
         {
@@ -34,30 +35,44 @@ public partial class AppointmentsViewModel : ObservableObject
     void SelectTab(string tab)
     {
         SelectedTab = tab;
-        FilterByTab(tab);
+        FilterAndSearch();
     }
 
-    private void FilterByTab(string tab)
+    [RelayCommand]
+    void Search(string query)
+    {
+        SearchQuery = query ?? string.Empty;
+        FilterAndSearch();
+    }
+
+    private void FilterAndSearch()
     {
         var docs = _all.AsEnumerable();
-        if (tab == "Past")
+        
+        // Tab Filter
+        if (SelectedTab == "Past")
         {
-            var filtered = docs
-                .Where(a => a.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase) || 
-                            a.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(a => a.FullDateTime)
-                .ToList();
-            Appointments = new ObservableCollection<Appointment>(filtered);
-            IsEmpty = filtered.Count == 0;
+            docs = docs.Where(a => a.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase) || 
+                                   a.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase));
         }
         else
         {
-            var filtered = docs
-                .Where(a => a.Status.Equals(tab, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(a => a.FullDateTime)
-                .ToList();
-            Appointments = new ObservableCollection<Appointment>(filtered);
-            IsEmpty = filtered.Count == 0;
+            docs = docs.Where(a => a.Status.Equals(SelectedTab, StringComparison.OrdinalIgnoreCase));
         }
+
+        // Search Filter
+        if (!string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            docs = docs.Where(a => a.DoctorName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)
+                                || a.ClinicName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)
+                                || a.Department.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var sorted = SelectedTab == "Past"
+            ? docs.OrderByDescending(a => a.FullDateTime).ToList()
+            : docs.OrderBy(a => a.FullDateTime).ToList();
+
+        Appointments = new ObservableCollection<Appointment>(sorted);
+        IsEmpty = sorted.Count == 0;
     }
 }

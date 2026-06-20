@@ -13,6 +13,7 @@ public partial class DoctorsViewModel : ObservableObject
     [ObservableProperty] ObservableCollection<Doctor> doctors = new();
     [ObservableProperty] bool isLoading;
     [ObservableProperty] bool isEmpty;
+    [ObservableProperty] string selectedCategory = "All";
     [ObservableProperty] string searchText = string.Empty;
 
     [RelayCommand]
@@ -22,8 +23,7 @@ public partial class DoctorsViewModel : ObservableObject
         try
         {
             _allDoctors = await DatabaseService.Instance.GetDoctorsAsync();
-            Doctors = new ObservableCollection<Doctor>(_allDoctors);
-            IsEmpty = !_allDoctors.Any();
+            ApplyFilters();
         }
         finally
         {
@@ -32,21 +32,40 @@ public partial class DoctorsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    void SelectCategory(string category)
+    {
+        SelectedCategory = category;
+        ApplyFilters();
+    }
+
+    [RelayCommand]
     void Search(string text)
     {
-        var query = text?.Trim().ToLowerInvariant() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(query))
+        SearchText = text ?? string.Empty;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = _allDoctors.AsEnumerable();
+
+        if (!SelectedCategory.Equals("All", StringComparison.OrdinalIgnoreCase))
         {
-            Doctors = new ObservableCollection<Doctor>(_allDoctors);
+            filtered = filtered.Where(d => 
+                d.Specialty.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase) ||
+                d.Department.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase));
         }
-        else
+
+        var query = SearchText.Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(query))
         {
-            var filtered = _allDoctors.Where(d =>
+            filtered = filtered.Where(d =>
                 d.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 d.Department.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                d.Specialty.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
-            Doctors = new ObservableCollection<Doctor>(filtered);
+                d.Specialty.Contains(query, StringComparison.OrdinalIgnoreCase));
         }
+
+        Doctors = new ObservableCollection<Doctor>(filtered.ToList());
         IsEmpty = Doctors.Count == 0;
     }
 }

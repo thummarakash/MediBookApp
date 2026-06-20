@@ -60,6 +60,11 @@ public partial class AppointmentsPage : ContentPage
         CancelledChipText.FontAttributes = activeTab == "Cancelled" ? FontAttributes.Bold : FontAttributes.None;
     }
 
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        _vm.SearchCommand.Execute(e.NewTextValue);
+    }
+
     private async void OnBookClicked(object sender, EventArgs e)
     {
         if (sender is Button btn) await AnimationHelper.ButtonPressAsync(btn);

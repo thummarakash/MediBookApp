@@ -50,7 +50,7 @@
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                         <Button Text="Sign In" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnLoginClicked" Margin="0"
                                 AutomationId="SignInBtn" SemanticProperties.Hint="Sign in to your account" />
-                        <Button x:Name="BiometricBtn" Grid.Column="1" ImageSource="icon_lock.svg" BackgroundColor="{StaticResource SkyBlue}" Clicked="OnBiometricLoginClicked" WidthRequest="52" HeightRequest="52" CornerRadius="12" Padding="0" VerticalOptions="Center"
+                        <Button x:Name="BiometricBtn" Grid.Column="1" ImageSource="icon_lock.svg" BackgroundColor="{StaticResource SkyBlue}" Clicked="OnBiometricLoginClicked" WidthRequest="44" HeightRequest="44" CornerRadius="10" Padding="0" VerticalOptions="Center"
                                 AutomationId="BiometricLoginBtn" SemanticProperties.Description="Biometric login" />
                     </Grid>
 

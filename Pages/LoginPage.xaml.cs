@@ -22,13 +22,6 @@ public partial class LoginPage : ContentPage
         var formContent = this.FindByName<ScrollView>("FormScrollView");
         if (formContent != null)
             await AnimationHelper.PageEntranceAsync(formContent, 350);
-
-        bool isAuthenticated = SessionService.Instance.IsAuthenticated;
-        if (biometricsEnabled && isAuthenticated)
-        {
-            await Task.Delay(400);
-            await PerformBiometricLoginAsync();
-        }
     }
 
     private async void OnLoginClicked(object sender, EventArgs e)
@@ -63,7 +56,12 @@ public partial class LoginPage : ContentPage
         catch (Exception ex)
         {
             await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Login Failed", ex.Message, "icon_warning.svg");
+            string friendlyMsg = ex.Message;
+            if (ex is System.Net.Http.HttpRequestException || ex.InnerException is System.Net.Http.HttpRequestException || ex is TaskCanceledException)
+            {
+                friendlyMsg = "Network error. Please check your internet connection and try again.";
+            }
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Login Failed", friendlyMsg, "icon_warning.svg");
         }
         finally
         {
@@ -134,7 +132,12 @@ public partial class LoginPage : ContentPage
         }
         catch (Exception ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In", ex.Message, "icon_warning.svg");
+            string msg = ex.Message;
+            if (msg.Contains("EMAIL_EXISTS") || msg.Contains("account-exists-with-different-credential"))
+            {
+                msg = "This email is already registered with a password. Please sign in using your email and password.";
+            }
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In", msg, "icon_warning.svg");
         }
     }
 

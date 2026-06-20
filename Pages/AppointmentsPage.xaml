@@ -6,53 +6,71 @@
              x:Class="MediBook.Pages.AppointmentsPage"
              x:DataType="vm:AppointmentsViewModel">
     <Grid RowDefinitions="*,Auto">
-        <Grid Grid.Row="0" RowDefinitions="Auto,Auto,*" Padding="20,24,20,0">
-            <!-- Header -->
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
-                <VerticalStackLayout Spacing="4" VerticalOptions="Center">
-                    <Label Text="My Appointments" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
-                    <Label Text="View and manage your scheduled visits" Style="{StaticResource MutedLabel}" />
+        <Grid Grid.Row="0" RowDefinitions="Auto,*">
+            <!-- Top Curved Header -->
+            <Border Grid.Row="0" BackgroundColor="{StaticResource PrimaryNavy}" Padding="20,20,20,24" StrokeThickness="0">
+                <Border.StrokeShape><RoundRectangle CornerRadius="0,0,26,26" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="16">
+                    <!-- Title & Book Button -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="My Appointments" FontSize="20" FontAttributes="Bold" TextColor="White" />
+                            <Label Text="View and manage your scheduled visits" TextColor="{StaticResource Aqua}" FontSize="12.5" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1"
+                                Text="Book Appointment"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                HeightRequest="36"
+                                CornerRadius="18"
+                                FontSize="11.5"
+                                Padding="14,0"
+                                VerticalOptions="Center"
+                                Clicked="OnBookClicked" />
+                    </Grid>
+
+                    <!-- Search Bar -->
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="12,0" HeightRequest="48" StrokeThickness="0">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="14" /></Border.StrokeShape>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Image Source="{StaticResource IconOptions}" WidthRequest="16" HeightRequest="16" VerticalOptions="Center" Margin="0,0,8,0" />
+                            <Entry Grid.Column="1" Placeholder="Search appointments..." TextChanged="OnSearchTextChanged" VerticalOptions="Center" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Tab Chips -->
+                    <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,4">
+                        <Border x:Name="UpcomingChip" BackgroundColor="{StaticResource PrimaryBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Upcoming" />
+                            </Border.GestureRecognizers>
+                            <Label x:Name="UpcomingChipText" Text="Upcoming" TextColor="White" FontAttributes="Bold" FontSize="11" />
+                        </Border>
+
+                        <Border Grid.Column="1" x:Name="PastChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Past" />
+                            </Border.GestureRecognizers>
+                            <Label x:Name="PastChipText" Text="Past" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+
+                        <Border Grid.Column="2" x:Name="CancelledChip" BackgroundColor="{StaticResource SkyBlue}" Padding="14,6" StrokeThickness="0">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Cancelled" />
+                            </Border.GestureRecognizers>
+                            <Label x:Name="CancelledChipText" Text="Cancelled" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
+                        </Border>
+                    </Grid>
                 </VerticalStackLayout>
-                <Button Grid.Column="1"
-                        Text="Book Appointment"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        HeightRequest="36"
-                        CornerRadius="18"
-                        FontSize="11.5"
-                        Padding="14,0"
-                        VerticalOptions="Center"
-                        Clicked="OnBookClicked" />
-            </Grid>
-
-            <!-- Tab Chips -->
-            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,16">
-                <Border x:Name="UpcomingChip" Style="{StaticResource ChipActiveStyle}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Upcoming" />
-                    </Border.GestureRecognizers>
-                    <Label x:Name="UpcomingChipText" Text="Upcoming" TextColor="White" FontAttributes="Bold" FontSize="11" />
-                </Border>
-
-                <Border Grid.Column="1" x:Name="PastChip" Style="{StaticResource ChipInactiveStyle}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Past" />
-                    </Border.GestureRecognizers>
-                    <Label x:Name="PastChipText" Text="Past" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
-                </Border>
-
-                <Border Grid.Column="2" x:Name="CancelledChip" Style="{StaticResource ChipInactiveStyle}">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnTabTapped" CommandParameter="Cancelled" />
-                    </Border.GestureRecognizers>
-                    <Label x:Name="CancelledChipText" Text="Cancelled" TextColor="{StaticResource PrimaryBlue}" FontSize="11" />
-                </Border>
-            </Grid>
+            </Border>
 
             <!-- Loading -->
-            <ActivityIndicator Grid.Row="2" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,30" />
+            <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,30" />
 
             <!-- Appointments List -->
-            <CollectionView Grid.Row="2" ItemsSource="{Binding Appointments}" SelectionMode="None">
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Appointments}" SelectionMode="None" ShowVerticalScrollIndicator="False" Margin="20,16,20,0">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Style="{StaticResource EmptyStateContainerStyle}">
                         <Image Source="{StaticResource IconCalendar}" WidthRequest="48" HeightRequest="48" HorizontalOptions="Center" />
