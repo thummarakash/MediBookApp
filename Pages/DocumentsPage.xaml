@@ -59,7 +59,7 @@
                 <ActivityIndicator Grid.Row="3" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,30" />
 
                 <!-- Documents List -->
-                <CollectionView Grid.Row="3" ItemsSource="{Binding Documents}" IsGrouped="True" SelectionMode="None" ShowVerticalScrollIndicator="False">
+                <CollectionView Grid.Row="3" ItemsSource="{Binding Documents}" IsGrouped="True" SelectionMode="None" ScrollView.VerticalScrollBarVisibility="Never">
                     <CollectionView.EmptyView>
                         <VerticalStackLayout Padding="30" Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
                             <Image Source="icon_document.svg" WidthRequest="48" HeightRequest="48" HorizontalOptions="Center" />

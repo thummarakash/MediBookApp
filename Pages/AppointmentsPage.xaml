@@ -70,7 +70,7 @@
             <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" Color="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,30" />
 
             <!-- Appointments List -->
-            <CollectionView Grid.Row="1" ItemsSource="{Binding Appointments}" SelectionMode="None" ShowVerticalScrollIndicator="False" Margin="20,16,20,0">
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Appointments}" SelectionMode="None" ScrollView.VerticalScrollBarVisibility="Never" Margin="20,16,20,0">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Style="{StaticResource EmptyStateContainerStyle}">
                         <Image Source="{StaticResource IconCalendar}" WidthRequest="48" HeightRequest="48" HorizontalOptions="Center" />

@@ -109,7 +109,7 @@
                     </Grid>
 
                     <!-- List View Section -->
-                    <CollectionView x:Name="ClinicsCollection" IsVisible="False" SelectionMode="None" ShowVerticalScrollIndicator="False">
+                    <CollectionView x:Name="ClinicsCollection" IsVisible="False" SelectionMode="None" ScrollView.VerticalScrollBarVisibility="Never">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Margin="0,5" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
