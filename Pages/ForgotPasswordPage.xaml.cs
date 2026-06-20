@@ -47,10 +47,10 @@ public partial class ForgotPasswordPage : ContentPage
                 "OK",
                 async () => await Shell.Current.GoToAsync(".."));
         }
-        catch (Exception ex)
+        catch (Exception reset_ex)
         {
             await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Error", ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Error", reset_ex.Message, "icon_warning.svg");
         }
         finally
         {

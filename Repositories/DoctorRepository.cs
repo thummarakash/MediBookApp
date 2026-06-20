@@ -12,45 +12,94 @@ public class DoctorRepository
 
     public async Task<List<Doctor>> GetAllAsync()
     {
-        var docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Doctors);
-        return docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        try
+        {
+            var collection_docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Doctors);
+            return collection_docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] GetAllAsync query failed: {read_ex.Message}");
+            return new List<Doctor>();
+        }
     }
 
     public async Task<Doctor?> GetByIdAsync(string doctorId)
     {
-        var doc = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Doctors, doctorId);
-        if (doc == null) return null;
-        var fields = doc.Value.TryGetProperty("fields", out var f) ? f : default;
-        return MapFromFirestore(doctorId, fields);
+        try
+        {
+            var doc_snap = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Doctors, doctorId);
+            if (doc_snap == null) return null;
+            var deserialized_fields = doc_snap.Value.TryGetProperty("fields", out var f) ? f : default;
+            return MapFromFirestore(doctorId, deserialized_fields);
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] GetByIdAsync query failed for {doctorId}: {read_ex.Message}");
+            return null;
+        }
     }
 
-    public async Task<string> CreateAsync(Doctor doctor)
+    public async Task<string> CreateAsync(Doctor doctor_obj)
     {
-        var fields = MapToFirestore(doctor);
-        var docId = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Doctors, fields);
-        doctor.FirestoreId = docId;
-        return docId;
+        try
+        {
+            var deserialized_fields = MapToFirestore(doctor_obj);
+            var inserted_doc_id = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Doctors, deserialized_fields);
+            doctor_obj.FirestoreId = inserted_doc_id;
+            return inserted_doc_id;
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] CreateAsync error: {fire_ex.Message}");
+            throw;
+        }
     }
 
-    public async Task UpdateAsync(Doctor doctor)
+    public async Task UpdateAsync(Doctor doctor_obj)
     {
-        if (string.IsNullOrEmpty(doctor.FirestoreId)) return;
-        var fields = MapToFirestore(doctor);
-        await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Doctors, doctor.FirestoreId, fields);
+        try
+        {
+            if (string.IsNullOrEmpty(doctor_obj.FirestoreId)) return;
+            var deserialized_fields = MapToFirestore(doctor_obj);
+            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Doctors, doctor_obj.FirestoreId, deserialized_fields);
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] UpdateAsync error: {fire_ex.Message}");
+            throw;
+        }
     }
 
     public async Task DeleteAsync(string doctorId)
-        => await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Doctors, doctorId);
+    {
+        try
+        {
+            await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Doctors, doctorId);
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] DeleteAsync failed for {doctorId}: {fire_ex.Message}");
+            throw;
+        }
+    }
 
     public async Task SeedIfEmptyAsync(List<Doctor> seedData)
     {
-        var existing = await GetAllAsync();
-        if (existing.Count > 0) return;
-
-        foreach (var doctor in seedData)
+        try
         {
-            var docId = await CreateAsync(doctor);
-            doctor.FirestoreId = docId;
+            var doctors_list = await GetAllAsync();
+            if (doctors_list.Count > 0) return;
+
+            foreach (var doctor_obj in seedData)
+            {
+                var inserted_doc_id = await CreateAsync(doctor_obj);
+                doctor_obj.FirestoreId = inserted_doc_id;
+            }
+        }
+        catch (Exception seed_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] SeedIfEmptyAsync failed: {seed_ex.Message}");
         }
     }
 

@@ -34,9 +34,9 @@ public partial class SettingsPage : ContentPage
         {
             // User cancelled — no error
         }
-        catch (Exception ex)
+        catch (Exception oauth_ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In Failed", ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In Failed", oauth_ex.Message, "icon_warning.svg");
         }
     }
 

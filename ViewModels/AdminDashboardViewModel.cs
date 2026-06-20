@@ -33,6 +33,10 @@ public partial class AdminDashboardViewModel : ObservableObject
                 .Count();
             PatientCount = Math.Max(uniqueUsers, BookingCount > 0 ? 1 : 0);
         }
+        catch (Exception dash_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AdminDashVM] Failed to compile admin dashboard stats: {dash_ex.Message}");
+        }
         finally
         {
             IsLoading = false;

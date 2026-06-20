@@ -34,6 +34,10 @@ public partial class DocumentsViewModel : ObservableObject
             _all = await DatabaseService.Instance.GetDocumentsForCurrentUserAsync();
             ApplyFilters();
         }
+        catch (Exception doc_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DocumentsVM] Failed to load documents: {doc_ex.Message}");
+        }
         finally
         {
             IsLoading = false;

@@ -35,9 +35,9 @@ public partial class UploadDocumentPage : ContentPage
                 SelectedFileLabel.Text = "Camera not supported on this device.";
             }
         }
-        catch (Exception ex)
+        catch (Exception camera_ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Camera Error", ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Camera Error", camera_ex.Message, "icon_warning.svg");
         }
     }
 
@@ -80,9 +80,9 @@ public partial class UploadDocumentPage : ContentPage
                 await AnimationHelper.SuccessPulseAsync(SelectedFileLabel);
             }
         }
-        catch (Exception ex)
+        catch (Exception pick_ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Picker Error", ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Picker Error", pick_ex.Message, "icon_warning.svg");
         }
     }
 
@@ -168,9 +168,9 @@ public partial class UploadDocumentPage : ContentPage
                     : "Document saved locally. Will sync when online.");
             await Shell.Current.GoToAsync("//documents");
         }
-        catch (Exception ex)
+        catch (Exception upload_ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Upload Error", ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Upload Error", upload_ex.Message, "icon_warning.svg");
         }
         finally
         {

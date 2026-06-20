@@ -4,40 +4,34 @@ using MediBook.Services.Firebase;
 
 namespace MediBook.Services.Auth;
 
-/// <summary>
-/// Single source of truth for the authenticated session.
-/// Handles token storage, auto-refresh, and session validation.
-/// </summary>
 public class SessionService
 {
     public static SessionService Instance { get; } = new();
     private SessionService() { }
 
-    private string? _cachedToken;
-    private DateTime _cachedTokenExpiry = DateTime.MinValue;
+    private string? _tok;
+    private DateTime _tokExp = DateTime.MinValue;
 
     public bool IsAuthenticated => SecureStorageHelper.IsLoggedIn();
 
     public async Task<string?> GetValidTokenAsync()
     {
-        // Return in-memory cached token if still valid
-        if (!string.IsNullOrEmpty(_cachedToken) && DateTime.UtcNow < _cachedTokenExpiry.AddMinutes(-AppConfig.TokenRefreshBufferMinutes))
-            return _cachedToken;
+        if (!string.IsNullOrEmpty(_tok) && DateTime.UtcNow < _tokExp.AddMinutes(-AppConfig.TokenRefreshBufferMinutes))
+            return _tok;
 
-        // Load from secure storage
-        var storedToken = await SecureStorageHelper.GetIdTokenAsync();
-        if (string.IsNullOrEmpty(storedToken)) return null;
+        var st_tok = await SecureStorageHelper.GetIdTokenAsync();
+        if (string.IsNullOrEmpty(st_tok)) return null;
 
-        bool isExpired = await SecureStorageHelper.IsTokenExpiredAsync();
-        if (!isExpired)
+        bool exp_flag = await SecureStorageHelper.IsTokenExpiredAsync();
+        if (!exp_flag)
         {
-            _cachedToken = storedToken;
+            _tok = st_tok;
             var expiry = await SecureStorageHelper.GetTokenExpiryAsync();
-            _cachedTokenExpiry = expiry ?? DateTime.UtcNow.AddHours(1);
-            return _cachedToken;
+            _tokExp = expiry ?? DateTime.UtcNow.AddHours(1);
+            return _tok;
         }
 
-        // Token expired — attempt silent refresh
+        // Silent refresh since token is invalid
         return await TryRefreshTokenAsync();
     }
 
@@ -45,40 +39,40 @@ public class SessionService
     {
         try
         {
-            var refreshToken = await SecureStorageHelper.GetRefreshTokenAsync();
-            if (string.IsNullOrEmpty(refreshToken)) return null;
+            var refresh = await SecureStorageHelper.GetRefreshTokenAsync();
+            if (string.IsNullOrEmpty(refresh)) return null;
 
-            var result = await FirebaseAuthService.Instance.RefreshTokenAsync(refreshToken);
+            var res = await FirebaseAuthService.Instance.RefreshTokenAsync(refresh);
 
-            var newExpiry = DateTime.UtcNow.AddSeconds(result.ExpiresIn);
-            await SecureStorageHelper.UpdateTokenAsync(result.IdToken, newExpiry);
-            await SecureStorage.Default.SetAsync(AppConfig.SecureKeys.RefreshToken, result.RefreshToken);
+            var newExpiry = DateTime.UtcNow.AddSeconds(res.ExpiresIn);
+            await SecureStorageHelper.UpdateTokenAsync(res.IdToken, newExpiry);
+            await SecureStorage.Default.SetAsync(AppConfig.SecureKeys.RefreshToken, res.RefreshToken);
 
-            _cachedToken = result.IdToken;
-            _cachedTokenExpiry = newExpiry;
-            return _cachedToken;
+            _tok = res.IdToken;
+            _tokExp = newExpiry;
+            return _tok;
         }
-        catch
+        catch (Exception refresh_ex)
         {
-            // Refresh failed — session is invalid, force logout
+            System.Diagnostics.Debug.WriteLine($"[SessionService] Silent token refresh failed, signing out: {refresh_ex.Message}");
             SignOut();
             return null;
         }
     }
 
-    public async Task SaveSessionAsync(AuthResult authResult, string role)
+    public async Task SaveSessionAsync(AuthResult res, string role)
     {
-        var expiry = authResult.ExpiresAt;
+        var expiry = res.ExpiresAt;
         await SecureStorageHelper.SaveSessionAsync(
-            authResult.IdToken,
-            authResult.RefreshToken,
-            authResult.UserId,
-            authResult.Email,
+            res.IdToken,
+            res.RefreshToken,
+            res.UserId,
+            res.Email,
             role,
             expiry);
 
-        _cachedToken = authResult.IdToken;
-        _cachedTokenExpiry = expiry;
+        _tok = res.IdToken;
+        _tokExp = expiry;
     }
 
     public async Task<string?> GetUserIdAsync()
@@ -92,8 +86,8 @@ public class SessionService
 
     public void SignOut()
     {
-        _cachedToken = null;
-        _cachedTokenExpiry = DateTime.MinValue;
+        _tok = null;
+        _tokExp = DateTime.MinValue;
         SecureStorageHelper.ClearSession();
     }
 }

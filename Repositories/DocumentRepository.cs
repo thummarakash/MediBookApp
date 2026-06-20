@@ -9,36 +9,70 @@ public class DocumentRepository
     public static DocumentRepository Instance { get; } = new();
     private DocumentRepository() { }
 
-    public async Task<string> CreateAsync(MedicalDocument document)
+    public async Task<string> CreateAsync(MedicalDocument doc_obj)
     {
-        var fields = MapToFirestore(document);
-        var docId = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.MedicalDocuments, fields);
-        document.FirestoreId = docId;
-        return docId;
+        try
+        {
+            var deserialized_fields = MapToFirestore(doc_obj);
+            var inserted_doc_id = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.MedicalDocuments, deserialized_fields);
+            doc_obj.FirestoreId = inserted_doc_id;
+            return inserted_doc_id;
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] CreateAsync error: {fire_ex.Message}");
+            throw;
+        }
     }
 
-    public async Task UpdateAsync(MedicalDocument document)
+    public async Task UpdateAsync(MedicalDocument doc_obj)
     {
-        if (string.IsNullOrEmpty(document.FirestoreId)) return;
-        await FirestoreService.Instance.UpdateDocumentAsync(
-            AppConfig.Collections.MedicalDocuments,
-            document.FirestoreId,
-            MapToFirestore(document));
+        try
+        {
+            if (string.IsNullOrEmpty(doc_obj.FirestoreId)) return;
+            await FirestoreService.Instance.UpdateDocumentAsync(
+                AppConfig.Collections.MedicalDocuments,
+                doc_obj.FirestoreId,
+                MapToFirestore(doc_obj));
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] UpdateAsync error for {doc_obj.FirestoreId}: {fire_ex.Message}");
+            throw;
+        }
     }
 
     public async Task DeleteAsync(string documentId)
-        => await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.MedicalDocuments, documentId);
+    {
+        try
+        {
+            await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.MedicalDocuments, documentId);
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] DeleteAsync failed for {documentId}: {fire_ex.Message}");
+            throw;
+        }
+    }
 
     public async Task<List<MedicalDocument>> GetByUserIdAsync(string userId)
     {
-        var docs = await FirestoreService.Instance.QueryAsync(
-            AppConfig.Collections.MedicalDocuments,
-            whereField: "userId",
-            whereValue: userId,
-            orderByField: "uploadedAt",
-            descending: true);
+        try
+        {
+            var collection_docs = await FirestoreService.Instance.QueryAsync(
+                AppConfig.Collections.MedicalDocuments,
+                whereField: "userId",
+                whereValue: userId,
+                orderByField: "uploadedAt",
+                descending: true);
 
-        return docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+            return collection_docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] GetByUserIdAsync query failed for user {userId}: {read_ex.Message}");
+            return new List<MedicalDocument>();
+        }
     }
 
     private static MedicalDocument MapFromFirestore(string id, System.Text.Json.JsonElement fields)

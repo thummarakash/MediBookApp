@@ -19,24 +19,25 @@ public class SmtpEmailService
     {
         try
         {
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(AppConfig.Smtp.SenderName, AppConfig.Smtp.SenderAddress));
-            message.To.Add(new MailboxAddress(toName, toAddress));
-            message.Subject = subject;
+            var mime_msg = new MimeMessage();
+            mime_msg.From.Add(new MailboxAddress(AppConfig.Smtp.SenderName, AppConfig.Smtp.SenderAddress));
+            mime_msg.To.Add(new MailboxAddress(toName, toAddress));
+            mime_msg.Subject = subject;
 
-            var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
-            message.Body = bodyBuilder.ToMessageBody();
+            var body_builder = new BodyBuilder { HtmlBody = htmlBody };
+            mime_msg.Body = body_builder.ToMessageBody();
 
-            using var client = new SmtpClient();
-            await client.ConnectAsync(AppConfig.Smtp.Host, AppConfig.Smtp.Port, SecureSocketOptions.StartTls);
-            await client.AuthenticateAsync(AppConfig.Smtp.SenderAddress, AppConfig.Smtp.AppPassword);
-            await client.SendAsync(message);
-            await client.DisconnectAsync(true);
+            using var smtp_client = new SmtpClient();
+            await smtp_client.ConnectAsync(AppConfig.Smtp.Host, AppConfig.Smtp.Port, SecureSocketOptions.StartTls);
+            await smtp_client.AuthenticateAsync(AppConfig.Smtp.SenderAddress, AppConfig.Smtp.AppPassword);
+            await smtp_client.SendAsync(mime_msg);
+            await smtp_client.DisconnectAsync(true);
             return true;
         }
-        catch (Exception ex)
+        catch (Exception smtp_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SMTP] Send failed: {ex.Message}");
+            // Standard console logging for SMTP delivery errors
+            System.Diagnostics.Debug.WriteLine($"[SMTP] Send failed: {smtp_ex.Message}");
             return false;
         }
     }

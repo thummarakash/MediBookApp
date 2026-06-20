@@ -31,17 +31,17 @@ public class BiometricService
     {
         try
         {
-            var availability = await CrossFingerprint.Current.GetAvailabilityAsync();
-            return availability == FingerprintAvailability.Available;
+            var avail_status = await CrossFingerprint.Current.GetAvailabilityAsync();
+            return avail_status == FingerprintAvailability.Available;
         }
-        catch
+        catch (Exception avail_ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[BiometricService] CrossFingerprint availability check threw an exception: {avail_ex.Message}");
             return DeviceInfo.Platform == DevicePlatform.Android
                 || DeviceInfo.Platform == DevicePlatform.iOS;
         }
     }
 
-    // Kept for backward compatibility with SplashPage/SecuritySettingsPage
     public bool IsBiometricsAvailable()
         => DeviceInfo.Platform == DevicePlatform.Android
         || DeviceInfo.Platform == DevicePlatform.iOS;
@@ -50,10 +50,9 @@ public class BiometricService
     {
         try
         {
-            bool available = await IsBiometricsAvailableAsync();
-            if (!available)
+            bool active = await IsBiometricsAvailableAsync();
+            if (!active)
             {
-                // Fall back to PIN if biometrics not available
                 if (allowPinFallback && IsPinEnabled())
                     return await AuthenticateWithPinFallbackAsync();
 
@@ -67,7 +66,7 @@ public class BiometricService
                 return false;
             }
 
-            var config = new AuthenticationRequestConfiguration(
+            var req_config = new AuthenticationRequestConfiguration(
                 "MediBook Authentication",
                 reason)
             {
@@ -76,13 +75,13 @@ public class BiometricService
                 AllowAlternativeAuthentication = true
             };
 
-            var result = await CrossFingerprint.Current.AuthenticateAsync(config);
+            var auth_res = await CrossFingerprint.Current.AuthenticateAsync(req_config);
 
-            if (result.Authenticated)
+            if (auth_res.Authenticated)
                 return true;
 
-            if (result.Status == FingerprintAuthenticationResultStatus.FallbackRequested
-                || result.Status == FingerprintAuthenticationResultStatus.Canceled)
+            if (auth_res.Status == FingerprintAuthenticationResultStatus.FallbackRequested
+                || auth_res.Status == FingerprintAuthenticationResultStatus.Canceled)
             {
                 if (allowPinFallback && IsPinEnabled())
                     return await AuthenticateWithPinFallbackAsync();
@@ -90,9 +89,10 @@ public class BiometricService
 
             return false;
         }
-        catch
+        catch (Exception auth_ex)
         {
-            // If Plugin.Fingerprint fails, fall back to PIN or simple prompt
+            System.Diagnostics.Debug.WriteLine($"[BiometricService] Authentication threw an exception: {auth_ex.Message}");
+            
             if (allowPinFallback && IsPinEnabled())
                 return await AuthenticateWithPinFallbackAsync();
 
@@ -111,13 +111,13 @@ public class BiometricService
 
     private async Task<bool> AuthenticateWithPinFallbackAsync()
     {
-        string? enteredPin = await Shell.Current.DisplayPromptAsync(
+        string? pin_input = await Shell.Current.DisplayPromptAsync(
             "Enter PIN",
             "Enter your MediBook security PIN to continue.",
             keyboard: Keyboard.Numeric,
             maxLength: 6);
 
-        if (string.IsNullOrEmpty(enteredPin)) return false;
-        return enteredPin == GetSecurityPin();
+        if (string.IsNullOrEmpty(pin_input)) return false;
+        return pin_input == GetSecurityPin();
     }
 }

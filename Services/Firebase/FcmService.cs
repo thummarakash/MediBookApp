@@ -2,10 +2,6 @@ using MediBook.Configuration;
 
 namespace MediBook.Services.Firebase;
 
-/// <summary>
-/// Manages the FCM device token and persists it to Firestore when the user is authenticated.
-/// The actual FCM receiver is in Platforms/Android/MediBookFirebaseMessagingService.cs.
-/// </summary>
 public class FcmService
 {
     public static FcmService Instance { get; } = new();
@@ -17,49 +13,46 @@ public class FcmService
     {
         try
         {
-            // Read the last known token from preferences
             CurrentToken = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
             if (!string.IsNullOrEmpty(CurrentToken))
                 await SyncTokenToFirestoreAsync(CurrentToken);
         }
-        catch
+        catch (Exception init_ex)
         {
-            // FCM init is non-critical — never crash the app
+            System.Diagnostics.Debug.WriteLine($"[FcmService] Token initialization failed: {init_ex.Message}");
         }
     }
 
-    public async Task OnTokenRefreshedAsync(string newToken)
+    public async Task OnTokenRefreshedAsync(string new_tok)
     {
-        CurrentToken = newToken;
-        Preferences.Default.Set(AppConfig.PrefKeys.FcmToken, newToken);
-        await SyncTokenToFirestoreAsync(newToken);
+        CurrentToken = new_tok;
+        Preferences.Default.Set(AppConfig.PrefKeys.FcmToken, new_tok);
+        await SyncTokenToFirestoreAsync(new_tok);
     }
 
     private async Task SyncTokenToFirestoreAsync(string token)
     {
         try
         {
-            var userId = await Helpers.SecureStorageHelper.GetUserIdAsync();
-            if (string.IsNullOrEmpty(userId)) return;
+            var u_id = await Helpers.SecureStorageHelper.GetUserIdAsync();
+            if (string.IsNullOrEmpty(u_id)) return;
 
             await FirestoreService.Instance.UpdateDocumentAsync(
                 AppConfig.Collections.Users,
-                userId,
+                u_id,
                 new Dictionary<string, object> { { "fcmToken", token } }
             );
         }
-        catch
+        catch (Exception sync_ex)
         {
-            // Non-critical — will retry on next app launch
+            System.Diagnostics.Debug.WriteLine($"[FcmService] Token synchronization to Firestore failed: {sync_ex.Message}");
         }
     }
 
     public async Task RequestNotificationPermissionAsync()
     {
-        // On Android 13+ a runtime permission is required (POST_NOTIFICATIONS)
-        // Handled in AndroidManifest + MainActivity via PermissionStatus check
-        var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
-        if (status != PermissionStatus.Granted)
+        var perm_status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+        if (perm_status != PermissionStatus.Granted)
             await Permissions.RequestAsync<Permissions.PostNotifications>();
     }
 }

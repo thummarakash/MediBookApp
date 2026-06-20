@@ -13,10 +13,6 @@ using Android.Util;
 
 namespace MediBook.Services.Auth;
 
-/// <summary>
-/// Implements native Google Sign-In on Android, obtaining the ID token
-/// and exchanging it with the Firebase Auth REST API.
-/// </summary>
 public class GoogleSignInService
 {
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(AppConfig.HttpTimeoutSeconds) };
@@ -37,50 +33,48 @@ public class GoogleSignInService
     {
         Log("SignInAsync called.");
 #if ANDROID
-        var tcs = new TaskCompletionSource<GoogleSignInResult>();
+        var signin_tcs = new TaskCompletionSource<GoogleSignInResult>();
 
         Log($"Configured Client ID: {AppConfig.GoogleWebClientId}");
 
-        // Build Google Sign-In options with the Web Client ID
-        // This requests an ID token that can be verified by Firebase
-        var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+        // Build standard google signin options
+        var cfg_opts = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
             .RequestIdToken(AppConfig.GoogleWebClientId)
             .RequestEmail()
             .RequestProfile()
             .Build();
 
-        var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
-        if (activity == null)
+        var curr_activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+        if (curr_activity == null)
         {
             Log("Error: Android Activity is null!");
             throw new Exception("Android Activity is not available.");
         }
 
         Log("Creating GoogleSignIn client...");
-        var client = GoogleSignIn.GetClient(activity, gso);
+        var signin_client = GoogleSignIn.GetClient(curr_activity, cfg_opts);
 
-        // Sign out first to ensure the account selection prompt appears
         try
         {
             Log("Signing out of previous session...");
-            await client.SignOutAsync();
+            await signin_client.SignOutAsync();
             Log("Sign out complete.");
         }
-        catch (Exception ex)
+        catch (Exception signOutErr)
         {
-            Log($"Sign out warning: {ex.Message}");
+            // Minor warning, usually fine to ignore
+            Log($"Could not sign out prior google session (non-fatal): {signOutErr.Message}");
         }
 
-        const int RequestCode = 9001;
+        const int SigninRequestCode = 9001;
 
-        Action<int, Result, Intent?>? handler = null;
-        handler = async (reqCode, resultCode, intentData) =>
+        Action<int, Result, Intent?>? on_act_res = null;
+        on_act_res = async (reqCode, resultCode, intentData) =>
         {
             Log($"ActivityResult handler triggered. Request: {reqCode}, Result: {resultCode}");
-            if (reqCode == RequestCode)
+            if (reqCode == SigninRequestCode)
             {
-                // Unsubscribe from the event
-                MainActivity.ActivityResult -= handler;
+                MainActivity.ActivityResult -= on_act_res;
                 Log("Unsubscribed from MainActivity.ActivityResult.");
 
                 if (resultCode == Result.Canceled)
@@ -90,32 +84,32 @@ public class GoogleSignInService
                     {
                         try
                         {
-                            var task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
-                            if (!task.IsSuccessful && task.Exception != null)
+                            var cancel_task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
+                            if (!cancel_task.IsSuccessful && cancel_task.Exception != null)
                             {
-                                var taskEx = task.Exception;
-                                Log($"Exception details during cancellation: {taskEx.GetType().Name}: {taskEx.Message}");
-                                if (taskEx is Android.Gms.Common.Apis.ApiException apiEx)
+                                var cancel_ex = cancel_task.Exception;
+                                Log($"Exception details during cancellation: {cancel_ex.GetType().Name}: {cancel_ex.Message}");
+                                if (cancel_ex is Android.Gms.Common.Apis.ApiException apiEx)
                                 {
                                     Log($"API Exception Status Code: {apiEx.StatusCode}");
                                     string friendlyError = apiEx.StatusCode switch
                                     {
-                                        7 => "Network error. Please check your internet connection or Google Play Services.",
-                                        10 => "Developer configuration error. Please verify the SHA-1 fingerprint configuration in Firebase console.",
-                                        12501 => "Sign-in was cancelled.",
-                                        _ => $"Sign-in failed (Error Code: {apiEx.StatusCode})."
+                                        7 => "Network connection failed. Check your internet access and try again.",
+                                        10 => "OAuth client config issue. Verify SHA-1 setup.",
+                                        12501 => "Sign-in cancelled by user.",
+                                        _ => $"Sign-in failed with error code: {apiEx.StatusCode}."
                                     };
-                                    tcs.TrySetException(new Exception(friendlyError));
+                                    signin_tcs.TrySetException(new Exception(friendlyError));
                                     return;
                                 }
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception parseErr)
                         {
-                            Log($"Failed to parse cancellation intent data: {ex.Message}");
+                            Log($"Failed to parse cancellation intent data: {parseErr.Message}");
                         }
                     }
-                    tcs.TrySetCanceled();
+                    signin_tcs.TrySetCanceled();
                     return;
                 }
 
@@ -124,17 +118,17 @@ public class GoogleSignInService
                     if (intentData == null)
                     {
                         Log("Error: intentData is null!");
-                        tcs.TrySetException(new Exception("No data received from Google Sign-In."));
+                        signin_tcs.TrySetException(new Exception("No data received from Google Sign-In."));
                         return;
                     }
 
                     Log("Parsing account from intent data...");
-                    var task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
-                    Log($"Task returned. IsComplete: {task.IsComplete}, IsSuccessful: {task.IsSuccessful}");
+                    var signin_task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
+                    Log($"Task returned. IsComplete: {signin_task.IsComplete}, IsSuccessful: {signin_task.IsSuccessful}");
 
-                    if (!task.IsSuccessful)
+                    if (!signin_task.IsSuccessful)
                     {
-                        var taskEx = task.Exception;
+                        var taskEx = signin_task.Exception;
                         var errorMsg = taskEx != null ? $"{taskEx.GetType().Name}: {taskEx.Message}" : "Unknown task error";
                         Log($"Google Sign-In Task failed: {errorMsg}");
                         
@@ -143,39 +137,39 @@ public class GoogleSignInService
                             Log($"API Exception Status Code: {apiEx.StatusCode}");
                         }
                         
-                        tcs.TrySetException(new Exception($"Google Sign-In task failed: {errorMsg}"));
+                        signin_tcs.TrySetException(new Exception($"Google Sign-In task failed: {errorMsg}"));
                         return;
                     }
 
-                    var account = task.Result as GoogleSignInAccount;
-                    if (account == null)
+                    var google_usr = signin_task.Result as GoogleSignInAccount;
+                    if (google_usr == null)
                     {
                         Log("Error: GoogleSignInAccount is null!");
-                        tcs.TrySetException(new Exception("Google account data is null."));
+                        signin_tcs.TrySetException(new Exception("Google account data is null."));
                         return;
                     }
 
-                    Log($"Google Account details retrieved: Email={account.Email}, DisplayName={account.DisplayName}");
+                    Log($"Google Account details retrieved: Email={google_usr.Email}, DisplayName={google_usr.DisplayName}");
 
-                    var idToken = account.IdToken;
-                    if (string.IsNullOrEmpty(idToken))
+                    var raw_token = google_usr.IdToken;
+                    if (string.IsNullOrEmpty(raw_token))
                     {
                         Log("Error: Google ID Token is null or empty!");
-                        tcs.TrySetException(new Exception("Failed to retrieve Google ID Token. (Likely SHA-1 fingerprint mismatch in Firebase console)"));
+                        signin_tcs.TrySetException(new Exception("Failed to retrieve Google ID Token. (Likely SHA-1 fingerprint mismatch in Firebase console)"));
                         return;
                     }
 
-                    Log($"Google ID Token retrieved successfully. Length: {idToken.Length}");
-
+                    Log($"Google ID Token retrieved successfully. Length: {raw_token.Length}");
                     Log("Exchanging Google ID Token with Firebase...");
-                    var result = await SignInWithGoogleIdTokenAsync(idToken);
+                    
+                    var fb_creds = await SignInWithGoogleIdTokenAsync(raw_token);
                     Log("Firebase exchange successful!");
-                    tcs.TrySetResult(result);
+                    signin_tcs.TrySetResult(fb_creds);
                 }
-                catch (Exception ex)
+                catch (Exception handlerErr)
                 {
-                    Log($"Exception inside activity result handler: {ex.Message}");
-                    tcs.TrySetException(new Exception($"Google Sign-In failed: {ex.Message}"));
+                    Log($"Exception inside activity result handler: {handlerErr.Message}");
+                    signin_tcs.TrySetException(new Exception($"Google Sign-In handler failed: {handlerErr.Message}"));
                 }
             }
             else
@@ -184,23 +178,23 @@ public class GoogleSignInService
             }
         };
 
-        MainActivity.ActivityResult += handler;
+        MainActivity.ActivityResult += on_act_res;
         Log("Subscribed to MainActivity.ActivityResult.");
 
         try
         {
             Log("Launching Google Sign-In activity...");
-            activity.StartActivityForResult(client.SignInIntent, RequestCode);
+            curr_activity.StartActivityForResult(signin_client.SignInIntent, SigninRequestCode);
             Log("Activity launched successfully.");
         }
-        catch (Exception ex)
+        catch (Exception launchErr)
         {
-            Log($"Failed to launch Google Sign-In: {ex.Message}");
-            MainActivity.ActivityResult -= handler;
-            throw new Exception($"Failed to launch Google Sign-In screen: {ex.Message}");
+            Log($"Failed to launch Google Sign-In: {launchErr.Message}");
+            MainActivity.ActivityResult -= on_act_res;
+            throw new Exception($"Failed to launch Google Sign-In screen: {launchErr.Message}");
         }
 
-        return await tcs.Task;
+        return await signin_tcs.Task;
 #else
         Log("Error: Platform is not Android!");
         throw new NotImplementedException("Google Sign-In is only implemented for Android in this project.");
@@ -217,18 +211,18 @@ public class GoogleSignInService
             returnSecureToken = true
         };
 
-        var url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:signInWithIdp?key={AppConfig.FirebaseWebApiKey}";
-        Log($"Firebase Request URL: {url}");
+        var target_url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:signInWithIdp?key={AppConfig.FirebaseWebApiKey}";
+        Log($"Firebase Request URL: {target_url}");
 
-        var response = await _http.PostAsJsonAsync(url, payload);
-        var json = await response.Content.ReadAsStringAsync();
-        Log($"Firebase Response status: {response.StatusCode}");
+        var http_resp = await _http.PostAsJsonAsync(target_url, payload);
+        var raw_json_str = await http_resp.Content.ReadAsStringAsync();
+        Log($"Firebase Response status: {http_resp.StatusCode}");
 
-        var doc = JsonDocument.Parse(json);
+        var json_doc = JsonDocument.Parse(raw_json_str);
 
-        if (!response.IsSuccessStatusCode)
+        if (!http_resp.IsSuccessStatusCode)
         {
-            var errorMsg = doc.RootElement
+            var errorMsg = json_doc.RootElement
                 .TryGetProperty("error", out var err)
                 ? err.GetProperty("message").GetString() ?? "Sign-in failed"
                 : "Google Sign-In failed";
@@ -236,19 +230,19 @@ public class GoogleSignInService
             throw new Exception(errorMsg);
         }
 
-        var root = doc.RootElement;
+        var root_node = json_doc.RootElement;
         return new GoogleSignInResult
         {
-            IdToken = root.TryGetProperty("idToken", out var tok) ? tok.GetString() ?? "" : "",
-            RefreshToken = root.TryGetProperty("refreshToken", out var rt) ? rt.GetString() ?? "" : "",
-            UserId = root.TryGetProperty("localId", out var uid) ? uid.GetString() ?? "" : "",
-            Email = root.TryGetProperty("email", out var em) ? em.GetString() ?? "" : "",
-            DisplayName = root.TryGetProperty("displayName", out var dn) ? dn.GetString() ?? "" : "",
-            PhotoUrl = root.TryGetProperty("photoUrl", out var ph) ? ph.GetString() ?? "" : "",
+            IdToken = root_node.TryGetProperty("idToken", out var tok) ? tok.GetString() ?? "" : "",
+            RefreshToken = root_node.TryGetProperty("refreshToken", out var rt) ? rt.GetString() ?? "" : "",
+            UserId = root_node.TryGetProperty("localId", out var uid) ? uid.GetString() ?? "" : "",
+            Email = root_node.TryGetProperty("email", out var em) ? em.GetString() ?? "" : "",
+            DisplayName = root_node.TryGetProperty("displayName", out var dn) ? dn.GetString() ?? "" : "",
+            PhotoUrl = root_node.TryGetProperty("photoUrl", out var ph) ? ph.GetString() ?? "" : "",
             ExpiresIn = int.TryParse(
-                root.TryGetProperty("expiresIn", out var exp) ? exp.GetString() : "3600", out var expVal)
+                root_node.TryGetProperty("expiresIn", out var exp) ? exp.GetString() : "3600", out var expVal)
                 ? expVal : 3600,
-            IsNewUser = root.TryGetProperty("isNewUser", out var nu) && nu.GetBoolean()
+            IsNewUser = root_node.TryGetProperty("isNewUser", out var nu) && nu.GetBoolean()
         };
     }
 }

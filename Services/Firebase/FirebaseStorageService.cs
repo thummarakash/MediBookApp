@@ -17,14 +17,14 @@ public class FirebaseStorageService
 
     public async Task<string> UploadFileAsync(
         Stream fileStream,
-        string storagePath,
+        string st_path,
         string mimeType,
         IProgress<double>? progress = null)
     {
-        var encodedPath = Uri.EscapeDataString(storagePath);
-        var url = $"{AppConfig.FirebaseStorageBaseUrl}/{encodedPath}?uploadType=media";
+        var enc_path = Uri.EscapeDataString(st_path);
+        var url = $"{AppConfig.FirebaseStorageBaseUrl}/{enc_path}?uploadType=media";
 
-        var token = await SessionService.Instance.GetValidTokenAsync();
+        var tok = await SessionService.Instance.GetValidTokenAsync();
 
         using var content = new StreamContent(fileStream);
         content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
@@ -34,86 +34,88 @@ public class FirebaseStorageService
             Content = content
         };
 
-        if (!string.IsNullOrEmpty(token))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        if (!string.IsNullOrEmpty(tok))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tok);
 
-        var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-        response.EnsureSuccessStatusCode();
+        var res = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        res.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await res.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(json).RootElement;
 
-        var downloadToken = doc.TryGetProperty("downloadTokens", out var dt) ? dt.GetString() : null;
-        return BuildDownloadUrl(storagePath, downloadToken);
+        var downTok = doc.TryGetProperty("downloadTokens", out var dt) ? dt.GetString() : null;
+        return BuildDownloadUrl(st_path, downTok);
     }
 
-    public async Task<string> UploadFileFromPathAsync(string localPath, string userId, string folder)
+    public async Task<string> UploadFileFromPathAsync(string loc_path, string userId, string folder)
     {
-        if (!File.Exists(localPath))
-            throw new FileNotFoundException("Local file not found.", localPath);
+        if (!File.Exists(loc_path))
+            throw new FileNotFoundException("Local file not found.", loc_path);
 
-        var mimeType = ImageCompressor.GetMimeType(localPath);
-        var fileName = Path.GetFileName(localPath);
-        var storagePath = ImageCompressor.GenerateStoragePath(userId, folder, fileName);
+        var mimeType = ImageCompressor.GetMimeType(loc_path);
+        var fileName = Path.GetFileName(loc_path);
+        var st_path = ImageCompressor.GenerateStoragePath(userId, folder, fileName);
 
         Stream stream;
         if (mimeType.StartsWith("image/"))
         {
-            var compressed = await ImageCompressor.CompressImageAsync(localPath);
-            stream = compressed ?? File.OpenRead(localPath);
+            var compressed = await ImageCompressor.CompressImageAsync(loc_path);
+            stream = compressed ?? File.OpenRead(loc_path);
         }
         else
         {
-            stream = File.OpenRead(localPath);
+            stream = File.OpenRead(loc_path);
         }
 
         using (stream)
         {
-            return await UploadFileAsync(stream, storagePath, mimeType);
+            return await UploadFileAsync(stream, st_path, mimeType);
         }
     }
 
-    public async Task DeleteFileAsync(string storagePath)
+    public async Task DeleteFileAsync(string st_path)
     {
-        var encodedPath = Uri.EscapeDataString(storagePath);
-        var url = $"{AppConfig.FirebaseStorageBaseUrl}/{encodedPath}";
+        var enc_path = Uri.EscapeDataString(st_path);
+        var url = $"{AppConfig.FirebaseStorageBaseUrl}/{enc_path}";
 
-        var token = await SessionService.Instance.GetValidTokenAsync();
+        var tok = await SessionService.Instance.GetValidTokenAsync();
         var request = new HttpRequestMessage(HttpMethod.Delete, url);
-        if (!string.IsNullOrEmpty(token))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        if (!string.IsNullOrEmpty(tok))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tok);
 
-        var response = await _http.SendAsync(request);
-        // Ignore 404 — file already deleted
-        if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
-            response.EnsureSuccessStatusCode();
+        var res = await _http.SendAsync(request);
+        
+        // Ignore 404 - file is already removed from storage
+        if (res.StatusCode != System.Net.HttpStatusCode.NotFound)
+            res.EnsureSuccessStatusCode();
     }
 
     public async Task<byte[]> DownloadFileAsync(string downloadUrl)
     {
-        var response = await _http.GetAsync(downloadUrl);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsByteArrayAsync();
+        var res = await _http.GetAsync(downloadUrl);
+        res.EnsureSuccessStatusCode();
+        return await res.Content.ReadAsByteArrayAsync();
     }
 
-    private static string BuildDownloadUrl(string storagePath, string? downloadToken)
+    private static string BuildDownloadUrl(string st_path, string? downloadToken)
     {
-        var encodedPath = Uri.EscapeDataString(storagePath);
-        var baseUrl = $"{AppConfig.FirebaseStorageBaseUrl}/{encodedPath}?alt=media";
+        var enc_path = Uri.EscapeDataString(st_path);
+        var baseUrl = $"{AppConfig.FirebaseStorageBaseUrl}/{enc_path}?alt=media";
         return downloadToken != null ? $"{baseUrl}&token={downloadToken}" : baseUrl;
     }
 
     public static string ExtractStoragePathFromUrl(string downloadUrl)
     {
-        // Extract path from: .../o/{encodedPath}?alt=media...
+        // Try extracting storage path from full download URL
         try
         {
-            var uri = new Uri(downloadUrl);
-            var segments = uri.AbsolutePath.Split("/o/");
-            return segments.Length > 1 ? Uri.UnescapeDataString(segments[1]) : string.Empty;
+            var u = new Uri(downloadUrl);
+            var parts = u.AbsolutePath.Split("/o/");
+            return parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : string.Empty;
         }
-        catch
+        catch (Exception parse_ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[StorageService] Url parse failed: {parse_ex.Message}");
             return string.Empty;
         }
     }

@@ -12,63 +12,129 @@ public class AppointmentRepository
 
     public async Task<string> CreateAsync(Appointment appointment)
     {
-        var fields = MapToFirestore(appointment);
-        var docId = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Appointments, fields);
-        appointment.FirestoreId = docId;
-        return docId;
+        try
+        {
+            var db_fields = MapToFirestore(appointment);
+            var inserted_doc_id = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Appointments, db_fields);
+            appointment.FirestoreId = inserted_doc_id;
+            return inserted_doc_id;
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] CreateAsync error: {fire_ex.Message}");
+            throw;
+        }
     }
 
     public async Task UpdateAsync(Appointment appointment)
     {
-        if (string.IsNullOrEmpty(appointment.FirestoreId)) return;
-        var fields = MapToFirestore(appointment);
-        await FirestoreService.Instance.UpdateDocumentAsync(
-            AppConfig.Collections.Appointments, appointment.FirestoreId, fields);
+        try
+        {
+            if (string.IsNullOrEmpty(appointment.FirestoreId)) return;
+            var db_fields = MapToFirestore(appointment);
+            await FirestoreService.Instance.UpdateDocumentAsync(
+                AppConfig.Collections.Appointments, appointment.FirestoreId, db_fields);
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] UpdateAsync error: {fire_ex.Message}");
+            throw;
+        }
     }
 
     public async Task UpdateStatusAsync(string appointmentId, string status)
     {
-        await FirestoreService.Instance.UpdateDocumentAsync(
-            AppConfig.Collections.Appointments, appointmentId,
-            new Dictionary<string, object> { { "status", status }, { "updatedAt", DateTime.UtcNow } });
+        try
+        {
+            // Updating only status and updatedAt fields directly in firestore
+            await FirestoreService.Instance.UpdateDocumentAsync(
+                AppConfig.Collections.Appointments, appointmentId,
+                new Dictionary<string, object> { { "status", status }, { "updatedAt", DateTime.UtcNow } });
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] UpdateStatusAsync error for {appointmentId}: {fire_ex.Message}");
+        }
     }
 
     public async Task DeleteAsync(string appointmentId)
-        => await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Appointments, appointmentId);
+    {
+        try
+        {
+            await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Appointments, appointmentId);
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] DeleteAsync error for {appointmentId}: {fire_ex.Message}");
+            throw;
+        }
+    }
 
     public async Task<Appointment?> GetByIdAsync(string appointmentId)
     {
-        var doc = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Appointments, appointmentId);
-        if (doc == null) return null;
-        var fields = doc.Value.TryGetProperty("fields", out var f) ? f : default;
-        return MapFromFirestore(appointmentId, fields);
+        try
+        {
+            var query_snapshot = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Appointments, appointmentId);
+            if (query_snapshot == null) return null;
+            var deserialized_fields = query_snapshot.Value.TryGetProperty("fields", out var f) ? f : default;
+            return MapFromFirestore(appointmentId, deserialized_fields);
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] GetByIdAsync query failed for {appointmentId}: {read_ex.Message}");
+            return null;
+        }
     }
 
     public async Task<List<Appointment>> GetByUserIdAsync(string userId)
     {
-        var docs = await FirestoreService.Instance.QueryAsync(
-            AppConfig.Collections.Appointments,
-            whereField: "userId",
-            whereValue: userId,
-            orderByField: "createdAt",
-            descending: true);
+        try
+        {
+            var doc_list = await FirestoreService.Instance.QueryAsync(
+                AppConfig.Collections.Appointments,
+                whereField: "userId",
+                whereValue: userId,
+                orderByField: "createdAt",
+                descending: true);
 
-        return docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+            return doc_list.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] GetByUserIdAsync query error for {userId}: {read_ex.Message}");
+            return new List<Appointment>();
+        }
     }
 
     public async Task<List<Appointment>> GetAllAsync()
     {
-        var docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Appointments, limit: 200);
-        return docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        try
+        {
+            var doc_list = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Appointments, limit: 200);
+            return doc_list.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] GetAllAsync query failed: {read_ex.Message}");
+            return new List<Appointment>();
+        }
     }
 
     public async Task<Appointment?> GetNextUpcomingAsync(string userId)
     {
-        var all = await GetByUserIdAsync(userId);
-        return all
-            .Where(a => a.Status == "Upcoming")
-            .OrderBy(a => a.FullDateTime)
-            .FirstOrDefault();
+        try
+        {
+            var appointments = await GetByUserIdAsync(userId);
+            return appointments
+                .Where(a => a.Status == "Upcoming")
+                .OrderBy(a => a.FullDateTime)
+                .FirstOrDefault();
+        }
+        catch (Exception query_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AppointmentRepo] GetNextUpcomingAsync error for {userId}: {query_ex.Message}");
+            return null;
+        }
     }
 
     private static Appointment MapFromFirestore(string id, System.Text.Json.JsonElement fields)

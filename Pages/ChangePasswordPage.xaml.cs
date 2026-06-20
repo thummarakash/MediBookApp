@@ -62,7 +62,7 @@ public partial class ChangePasswordPage : ContentPage
 
             await Shell.Current.GoToAsync("..");
         }
-        catch (Exception ex)
+        catch (Exception change_pw_ex)
         {
             await ConfirmationPopupPage.ShowAsync(Navigation, "Error", "Current password is incorrect.", "icon_warning.svg");
         }

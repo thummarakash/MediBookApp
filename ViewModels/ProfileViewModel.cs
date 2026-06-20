@@ -95,9 +95,9 @@ public partial class ProfileViewModel : ObservableObject
             }
             IsEditing = false;
         }
-        catch (Exception ex)
+        catch (Exception profile_ex)
         {
-            // Handle error or set loading false
+            System.Diagnostics.Debug.WriteLine($"[Profile] Failed to update user profile: {profile_ex.Message}");
         }
         finally
         {

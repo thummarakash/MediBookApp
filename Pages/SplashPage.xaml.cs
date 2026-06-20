@@ -15,38 +15,37 @@ public partial class SplashPage : ContentPage
         base.OnAppearing();
         await Task.Delay(2000);
 
-        bool hasSeenOnboarding = Preferences.Get("medibook_onboarding_seen", false);
-        if (!hasSeenOnboarding)
+        bool seen_onboard = Preferences.Get("medibook_onboarding_seen", false);
+        if (!seen_onboard)
         {
             await Shell.Current.GoToAsync("//onboarding");
             return;
         }
 
-        // Try to restore the session from SecureStorage (auto-login with token refresh if needed)
-        bool sessionValid = false;
+        bool has_session = false;
         try
         {
-            var token = await SessionService.Instance.GetValidTokenAsync();
-            sessionValid = !string.IsNullOrEmpty(token);
+            var auth_tok = await SessionService.Instance.GetValidTokenAsync();
+            has_session = !string.IsNullOrEmpty(auth_tok);
         }
-        catch
+        catch (Exception session_restore_ex)
         {
-            sessionValid = false;
-        }
-
-        if (!sessionValid)
-        {
-            // Fallback: legacy Preferences-based flag (before Firebase integration)
-            sessionValid = Preferences.Get("medibook_logged_in", false);
+            System.Diagnostics.Debug.WriteLine($"[SplashPage] Session restore failed: {session_restore_ex.Message}");
+            has_session = false;
         }
 
-        if (sessionValid)
+        if (!has_session)
         {
-            bool biometricsEnabled = BiometricService.Instance.IsBiometricsEnabled();
-            bool pinEnabled = BiometricService.Instance.IsPinEnabled()
+            has_session = Preferences.Get("medibook_logged_in", false);
+        }
+
+        if (has_session)
+        {
+            bool bio_on = BiometricService.Instance.IsBiometricsEnabled();
+            bool pin_on = BiometricService.Instance.IsPinEnabled()
                 && !string.IsNullOrEmpty(BiometricService.Instance.GetSecurityPin());
 
-            if (biometricsEnabled || pinEnabled)
+            if (bio_on || pin_on)
                 await Shell.Current.GoToAsync($"{nameof(PinPage)}?mode=Verify");
             else
                 await Shell.Current.GoToAsync("//home");

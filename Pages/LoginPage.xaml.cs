@@ -53,11 +53,11 @@ public partial class LoginPage : ContentPage
 
             await NavigateAfterLoginAsync(user.Role);
         }
-        catch (Exception ex)
+        catch (Exception login_ex)
         {
             await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
-            string friendlyMsg = ex.Message;
-            if (ex is System.Net.Http.HttpRequestException || ex.InnerException is System.Net.Http.HttpRequestException || ex is TaskCanceledException)
+            string friendlyMsg = login_ex.Message;
+            if (login_ex is System.Net.Http.HttpRequestException || login_ex.InnerException is System.Net.Http.HttpRequestException || login_ex is TaskCanceledException)
             {
                 friendlyMsg = "Network error. Please check your internet connection and try again.";
             }
@@ -96,8 +96,9 @@ public partial class LoginPage : ContentPage
             await DatabaseService.Instance.LoginAsync("patient@medibook.com", "password123");
             await Shell.Current.GoToAsync("//home");
         }
-        catch
+        catch (Exception fallbackErr)
         {
+            System.Diagnostics.Debug.WriteLine($"[LoginFallback] Patient quick login fallback: {fallbackErr.Message}");
             // If test account doesn't exist in Firebase, still navigate for UI testing
             await Shell.Current.GoToAsync("//home");
         }
@@ -110,8 +111,9 @@ public partial class LoginPage : ContentPage
             await DatabaseService.Instance.LoginAsync("admin@medibook.com", "password123");
             await Shell.Current.GoToAsync("//admindashboard");
         }
-        catch
+        catch (Exception fallbackErr)
         {
+            System.Diagnostics.Debug.WriteLine($"[LoginFallback] Admin quick login fallback: {fallbackErr.Message}");
             await Shell.Current.GoToAsync("//admindashboard");
         }
     }
@@ -130,9 +132,9 @@ public partial class LoginPage : ContentPage
         {
             // User cancelled — no error shown
         }
-        catch (Exception ex)
+        catch (Exception oauth_ex)
         {
-            string msg = ex.Message;
+            string msg = oauth_ex.Message;
             if (msg.Contains("EMAIL_EXISTS") || msg.Contains("account-exists-with-different-credential"))
             {
                 msg = "This email is already registered with a password. Please sign in using your email and password.";

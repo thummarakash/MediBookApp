@@ -76,9 +76,9 @@ public partial class ResetPasswordPage : ContentPage
                     await Shell.Current.GoToAsync("//home");
                 });
         }
-        catch (Exception ex)
+        catch (Exception db_login_ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Reset Failed", ex.Message, "icon_warning.svg", "OK");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Reset Failed", db_login_ex.Message, "icon_warning.svg", "OK");
         }
     }
 }

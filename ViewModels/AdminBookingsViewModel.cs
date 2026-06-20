@@ -22,6 +22,10 @@ public partial class AdminBookingsViewModel : ObservableObject
             Bookings = new ObservableCollection<Appointment>(
                 all.OrderByDescending(a => a.CreatedAt));
         }
+        catch (Exception fetch_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AdminBookingsVM] Failed to retrieve booking list: {fetch_ex.Message}");
+        }
         finally
         {
             IsLoading = false;

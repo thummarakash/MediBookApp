@@ -66,9 +66,9 @@ public partial class ClinicDetailPage : ContentPage
                 var options = new MapLaunchOptions { Name = _clinic.Name };
                 await Map.OpenAsync(_clinic.Latitude, _clinic.Longitude, options);
             }
-            catch (Exception ex)
+            catch (Exception map_ex)
             {
-                await DisplayAlert("Maps Error", ex.Message, "OK");
+                await DisplayAlert("Maps Error", map_ex.Message, "OK");
             }
         }
     }

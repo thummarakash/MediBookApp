@@ -135,9 +135,9 @@ public partial class ClinicsPage : ContentPage
 #endif
             }
         }
-        catch (Exception ex)
+        catch (Exception loc_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error retrieving location: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error retrieving location: {loc_ex.Message}");
         }
 
         // Location is disabled/off/denied
@@ -191,9 +191,9 @@ public partial class ClinicsPage : ContentPage
                 ClinicsMap.Pins.Add(pin);
             }
         }
-        catch (Exception ex)
+        catch (Exception pin_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {pin_ex.Message}");
         }
     }
 
@@ -238,9 +238,9 @@ public partial class ClinicsPage : ContentPage
                 new Location(clinic.Latitude, clinic.Longitude),
                 Distance.FromKilometers(1.2)));
         }
-        catch (Exception ex)
+        catch (Exception move_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error moving map camera: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error moving map camera: {move_ex.Message}");
         }
     }
 
@@ -317,9 +317,9 @@ public partial class ClinicsPage : ContentPage
                 ClinicsMap.Pins.Add(pin);
             }
         }
-        catch (Exception ex)
+        catch (Exception pin_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {pin_ex.Message}");
         }
     }
 

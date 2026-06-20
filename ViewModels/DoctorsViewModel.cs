@@ -8,22 +8,27 @@ namespace MediBook.ViewModels;
 
 public partial class DoctorsViewModel : ObservableObject
 {
-    private List<Doctor> _allDoctors = new();
+    private List<Doctor> _drList = new();
 
     [ObservableProperty] ObservableCollection<Doctor> doctors = new();
     [ObservableProperty] bool isLoading;
     [ObservableProperty] bool isEmpty;
     [ObservableProperty] string selectedCategory = "All";
-    [ObservableProperty] string searchText = string.Empty;
+    [ObservableProperty] string searchText = "";
 
     [RelayCommand]
-    async Task LoadAsync()
+    async Task RefreshList()
     {
         IsLoading = true;
         try
         {
-            _allDoctors = await DatabaseService.Instance.GetDoctorsAsync();
-            ApplyFilters();
+            var res = await DatabaseService.Instance.GetDoctorsAsync();
+            _drList = res ?? new List<Doctor>();
+            CompileDoctors();
+        }
+        catch (Exception cli_ex)
+        {
+            System.Diagnostics.Debug.WriteLine("ERR_DOC_LOAD: " + cli_ex.Message);
         }
         finally
         {
@@ -32,40 +37,54 @@ public partial class DoctorsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    void SelectCategory(string category)
+    void ChooseCategory(string cat)
     {
-        SelectedCategory = category;
-        ApplyFilters();
+        SelectedCategory = cat ?? "All";
+        CompileDoctors();
     }
 
     [RelayCommand]
-    void Search(string text)
+    void FilterDoctorsByText(string val)
     {
-        SearchText = text ?? string.Empty;
-        ApplyFilters();
+        SearchText = val?.Trim() ?? "";
+        CompileDoctors();
     }
 
-    private void ApplyFilters()
+    private void CompileDoctors()
     {
-        var filtered = _allDoctors.AsEnumerable();
-
-        if (!SelectedCategory.Equals("All", StringComparison.OrdinalIgnoreCase))
+        var temp = new List<Doctor>();
+        
+        for (int i = 0; i < _drList.Count; i++)
         {
-            filtered = filtered.Where(d => 
-                d.Specialty.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase) ||
-                d.Department.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase));
+            var item = _drList[i];
+            
+            bool catMatch = false;
+            if (SelectedCategory == "All")
+            {
+                catMatch = true;
+            }
+            else
+            {
+                catMatch = (item.Specialty != null && item.Specialty.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase)) ||
+                           (item.Department != null && item.Department.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!catMatch) continue;
+
+            if (!string.IsNullOrEmpty(SearchText))
+            {
+                var q = SearchText.ToLowerInvariant();
+                bool textMatch = (item.Name != null && item.Name.ToLower().Contains(q)) ||
+                                 (item.Department != null && item.Department.ToLower().Contains(q)) ||
+                                 (item.Specialty != null && item.Specialty.ToLower().Contains(q));
+                
+                if (!textMatch) continue;
+            }
+
+            temp.Add(item);
         }
 
-        var query = SearchText.Trim().ToLowerInvariant();
-        if (!string.IsNullOrWhiteSpace(query))
-        {
-            filtered = filtered.Where(d =>
-                d.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                d.Department.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                d.Specialty.Contains(query, StringComparison.OrdinalIgnoreCase));
-        }
-
-        Doctors = new ObservableCollection<Doctor>(filtered.ToList());
-        IsEmpty = Doctors.Count == 0;
+        Doctors = new ObservableCollection<Doctor>(temp);
+        IsEmpty = temp.Count == 0;
     }
 }

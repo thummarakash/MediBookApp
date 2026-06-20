@@ -12,46 +12,94 @@ public class ClinicRepository
 
     public async Task<List<Clinic>> GetAllAsync()
     {
-        var docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Clinics);
-        return docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        try
+        {
+            var collection_docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Clinics);
+            return collection_docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] GetAllAsync query failed: {read_ex.Message}");
+            return new List<Clinic>();
+        }
     }
 
     public async Task<Clinic?> GetByIdAsync(string clinicId)
     {
-        var doc = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Clinics, clinicId);
-        if (doc == null) return null;
-        var fields = doc.Value.TryGetProperty("fields", out var f) ? f : default;
-        return MapFromFirestore(clinicId, fields);
+        try
+        {
+            var doc_item = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Clinics, clinicId);
+            if (doc_item == null) return null;
+            var deserialized_fields = doc_item.Value.TryGetProperty("fields", out var f) ? f : default;
+            return MapFromFirestore(clinicId, deserialized_fields);
+        }
+        catch (Exception read_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] GetByIdAsync query failed for {clinicId}: {read_ex.Message}");
+            return null;
+        }
     }
 
     public async Task<string> CreateAsync(Clinic clinic)
     {
-        var fields = MapToFirestore(clinic);
-        var docId = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Clinics, fields);
-        clinic.FirestoreId = docId;
-        return docId;
+        try
+        {
+            var deserialized_fields = MapToFirestore(clinic);
+            var db_id = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Clinics, deserialized_fields);
+            clinic.FirestoreId = db_id;
+            return db_id;
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] CreateAsync error: {fire_ex.Message}");
+            throw;
+        }
     }
 
     public async Task UpdateAsync(Clinic clinic)
     {
-        if (string.IsNullOrEmpty(clinic.FirestoreId)) return;
-        var fields = MapToFirestore(clinic);
-        await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Clinics, clinic.FirestoreId, fields);
+        try
+        {
+            if (string.IsNullOrEmpty(clinic.FirestoreId)) return;
+            var deserialized_fields = MapToFirestore(clinic);
+            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Clinics, clinic.FirestoreId, deserialized_fields);
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] UpdateAsync error: {fire_ex.Message}");
+            throw;
+        }
     }
 
     public async Task DeleteAsync(string clinicId)
-        => await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Clinics, clinicId);
+    {
+        try
+        {
+            await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Clinics, clinicId);
+        }
+        catch (Exception fire_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] DeleteAsync error for {clinicId}: {fire_ex.Message}");
+            throw;
+        }
+    }
 
-    // Seed initial clinic data if Firestore collection is empty
     public async Task SeedIfEmptyAsync(List<Clinic> seedData)
     {
-        var existing = await GetAllAsync();
-        if (existing.Count > 0) return;
-
-        foreach (var clinic in seedData)
+        try
         {
-            var docId = await CreateAsync(clinic);
-            clinic.FirestoreId = docId;
+            var clinics_list = await GetAllAsync();
+            if (clinics_list.Count > 0) return;
+
+            foreach (var clinic in seedData)
+            {
+                var db_id = await CreateAsync(clinic);
+                clinic.FirestoreId = db_id;
+            }
+        }
+        catch (Exception seed_ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] SeedIfEmptyAsync error: {seed_ex.Message}");
         }
     }
 
@@ -71,16 +119,16 @@ public class ClinicRepository
         };
     }
 
-    private static Dictionary<string, object> MapToFirestore(Clinic c) => new()
+    private static Dictionary<string, object> MapToFirestore(Clinic cl) => new()
     {
-        { "name", c.Name },
-        { "address", c.Address },
-        { "latitude", c.Latitude },
-        { "longitude", c.Longitude },
-        { "phone", c.Phone ?? "" },
-        { "openingHoursMonFri", c.OpeningHoursMonFri ?? "Mon-Fri: 8:00 AM - 6:00 PM" },
-        { "openingHoursSatSun", c.OpeningHoursSatSun ?? "Sat: 9:00 AM - 1:00 PM" },
-        { "status", c.Status ?? "Open" },
+        { "name", cl.Name },
+        { "address", cl.Address },
+        { "latitude", cl.Latitude },
+        { "longitude", cl.Longitude },
+        { "phone", cl.Phone ?? "" },
+        { "openingHoursMonFri", cl.OpeningHoursMonFri ?? "Mon-Fri: 8:00 AM - 6:00 PM" },
+        { "openingHoursSatSun", cl.OpeningHoursSatSun ?? "Sat: 9:00 AM - 1:00 PM" },
+        { "status", cl.Status ?? "Open" },
         { "updatedAt", DateTime.UtcNow }
     };
 }

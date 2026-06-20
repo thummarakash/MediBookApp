@@ -12,71 +12,63 @@ public class DocumentService
 
     public event Action<double>? UploadProgressChanged;
 
-    // ── Camera / Gallery ──────────────────────────────────────────────────────
-
     public async Task<string?> CaptureDocumentPhotoAsync()
     {
         if (!MediaPicker.Default.IsCaptureSupported)
             return null;
 
-        var photo = await MediaPicker.Default.CapturePhotoAsync();
-        return photo == null ? null : await SaveLocallyAsync(photo);
+        var selected_img = await MediaPicker.Default.CapturePhotoAsync();
+        return selected_img == null ? null : await SaveLocallyAsync(selected_img);
     }
 
     public async Task<string?> PickDocumentPhotoAsync()
     {
-        var options = new MediaPickerOptions { Title = "Select Medical Document" };
-        var photo = await MediaPicker.Default.PickPhotoAsync(options);
-        return photo == null ? null : await SaveLocallyAsync(photo);
+        var picker_cfg = new MediaPickerOptions { Title = "Select Medical Document" };
+        var selected_img = await MediaPicker.Default.PickPhotoAsync(picker_cfg);
+        return selected_img == null ? null : await SaveLocallyAsync(selected_img);
     }
 
-    // ── Firebase Storage upload ────────────────────────────────────────────────
-
-    /// <summary>
-    /// Uploads a local file to Firebase Storage and returns the public download URL.
-    /// Returns null if the upload fails (non-critical — document is still saved locally).
-    /// </summary>
-    public async Task<string?> UploadToFirebaseAsync(string localPath, string documentType)
+    public async Task<string?> UploadToFirebaseAsync(string local_filepath, string category)
     {
         try
         {
-            if (!File.Exists(localPath)) return null;
+            if (!File.Exists(local_filepath)) return null;
             if (!ConnectivityHelper.IsConnected) return null;
 
-            var userId = await SessionService.Instance.GetUserIdAsync() ?? "anonymous";
-            var folder = documentType == "Prescription"
+            var user_uid = await SessionService.Instance.GetUserIdAsync() ?? "anonymous";
+            var target_dir = category == "Prescription"
                 ? AppConfig.StoragePaths.Prescriptions
                 : AppConfig.StoragePaths.MedicalDocuments;
 
-            var downloadUrl = await FirebaseStorageService.Instance
-                .UploadFileFromPathAsync(localPath, userId, folder);
+            // Upload the physical file to Firebase Storage
+            var downloadable_url = await FirebaseStorageService.Instance
+                .UploadFileFromPathAsync(local_filepath, user_uid, target_dir);
 
-            return downloadUrl;
+            return downloadable_url;
         }
-        catch (Exception ex)
+        catch (Exception upload_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Storage] Upload failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DocSvc] Upload to Firebase storage failed: {upload_ex.Message}");
             return null;
         }
     }
 
-    // ── Local storage ─────────────────────────────────────────────────────────
-
     private static async Task<string> SaveLocallyAsync(FileResult file)
     {
-        var ext = Path.GetExtension(file.FileName);
-        if (string.IsNullOrWhiteSpace(ext)) ext = ".jpg";
+        var extension = Path.GetExtension(file.FileName);
+        if (string.IsNullOrWhiteSpace(extension)) 
+            extension = ".jpg";
 
-        var folder = Path.Combine(FileSystem.AppDataDirectory, "MedicalDocuments");
-        Directory.CreateDirectory(folder);
+        var target_folder = Path.Combine(FileSystem.AppDataDirectory, "MedicalDocuments");
+        Directory.CreateDirectory(target_folder);
 
-        var localName = $"doc_{DateTime.Now:yyyyMMdd_HHmmss}{ext}";
-        var localPath = Path.Combine(folder, localName);
+        var unique_filename = $"doc_{DateTime.Now:yyyyMMdd_HHmmss}{extension}";
+        var local_filepath = Path.Combine(target_folder, unique_filename);
 
-        await using var src = await file.OpenReadAsync();
-        await using var dst = File.OpenWrite(localPath);
-        await src.CopyToAsync(dst);
+        await using var read_stream = await file.OpenReadAsync();
+        await using var write_stream = File.OpenWrite(local_filepath);
+        await read_stream.CopyToAsync(write_stream);
 
-        return localPath;
+        return local_filepath;
     }
 }

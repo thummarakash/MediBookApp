@@ -300,9 +300,9 @@ namespace MediBook.Pages
                         ResetPinState();
                         await DisplayAlert("Success", "PIN unlocked successfully.", "OK");
                     }
-                    catch (Exception ex)
+                    catch (Exception google_ex)
                     {
-                        await DisplayAlert("Verification Failed", ex.Message, "OK");
+                        await DisplayAlert("Verification Failed", google_ex.Message, "OK");
                     }
                 }
                 return;
@@ -320,9 +320,9 @@ namespace MediBook.Pages
                 ResetPinState();
                 await DisplayAlert("Success", "PIN unlocked successfully.", "OK");
             }
-            catch (Exception ex)
+            catch (Exception password_ex)
             {
-                await DisplayAlert("Verification Failed", "Incorrect password: " + ex.Message, "OK");
+                await DisplayAlert("Verification Failed", "Incorrect password: " + password_ex.Message, "OK");
             }
         }
 

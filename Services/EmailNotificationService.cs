@@ -8,10 +8,10 @@ public class EmailNotificationService
     public static EmailNotificationService Instance { get; } = new();
     private EmailNotificationService() { }
 
-    public async Task QueueAndSendAppointmentEmailAsync(UserAccount user, Appointment appointment, Doctor doctor)
+    public async Task QueueAndSendAppointmentEmailAsync(UserAccount user_acc, Appointment appt_info, Doctor doc_info)
     {
-        if (!user.NotificationsEnabled) return;
-        if (string.IsNullOrWhiteSpace(user.Email)) return;
+        if (!user_acc.NotificationsEnabled) return;
+        if (string.IsNullOrWhiteSpace(user_acc.Email)) return;
 
         // Fire and forget — email failure should never block appointment booking
         _ = Task.Run(async () =>
@@ -19,18 +19,18 @@ public class EmailNotificationService
             try
             {
                 await SmtpEmailService.Instance.SendAppointmentConfirmationAsync(
-                    toEmail: user.Email,
-                    patientName: user.FullName,
-                    doctorName: doctor.Name,
-                    clinicName: appointment.ClinicName,
-                    dateText: appointment.DateText,
-                    timeText: appointment.TimeText,
-                    reason: appointment.Reason,
-                    fee: appointment.TotalFee);
+                    toEmail: user_acc.Email,
+                    patientName: user_acc.FullName,
+                    doctorName: doc_info.Name,
+                    clinicName: appt_info.ClinicName,
+                    dateText: appt_info.DateText,
+                    timeText: appt_info.TimeText,
+                    reason: appt_info.Reason,
+                    fee: appt_info.TotalFee);
             }
-            catch (Exception ex)
+            catch (Exception email_ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Email] Confirmation send failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Email] Confirmation send failed: {email_ex.Message}");
             }
         });
     }
@@ -39,38 +39,38 @@ public class EmailNotificationService
     {
         try
         {
-            var user = await DatabaseService.Instance.GetCurrentUserAsync();
-            if (user == null || !user.NotificationsEnabled) return;
+            var user_acc = await DatabaseService.Instance.GetCurrentUserAsync();
+            if (user_acc == null || !user_acc.NotificationsEnabled) return;
 
-            var today = DateTime.Today.ToString("yyyy-MM-dd");
-            var appointments = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
-            var todayUpcoming = appointments
-                .Where(a => a.Status == "Upcoming" && a.DateText == today && a.ReminderEnabled)
+            var today_date_str = DateTime.Today.ToString("yyyy-MM-dd");
+            var appointment_list = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
+            var today_upcoming_list = appointment_list
+                .Where(a => a.Status == "Upcoming" && a.DateText == today_date_str && a.ReminderEnabled)
                 .ToList();
 
-            foreach (var appt in todayUpcoming)
+            foreach (var booking in today_upcoming_list)
             {
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         await SmtpEmailService.Instance.SendAppointmentReminderAsync(
-                            toEmail: user.Email,
-                            patientName: user.FullName,
-                            doctorName: appt.DoctorName,
-                            timeText: appt.TimeText,
-                            clinicName: appt.ClinicName);
+                            toEmail: user_acc.Email,
+                            patientName: user_acc.FullName,
+                            doctorName: booking.DoctorName,
+                            timeText: booking.TimeText,
+                            clinicName: booking.ClinicName);
                     }
-                    catch (Exception ex)
+                    catch (Exception reminder_ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[Email] Reminder send failed: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[Email] Reminder send failed: {reminder_ex.Message}");
                     }
                 });
             }
         }
-        catch (Exception ex)
+        catch (Exception process_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Email] ProcessDueReminders error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[Email] ProcessDueReminders error: {process_ex.Message}");
         }
     }
 }

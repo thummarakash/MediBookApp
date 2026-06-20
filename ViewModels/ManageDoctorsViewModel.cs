@@ -193,9 +193,9 @@ public partial class ManageDoctorsViewModel : ObservableObject
                 if (!string.IsNullOrEmpty(_editingDoctor.FirestoreId))
                     await DoctorRepository.Instance.UpdateAsync(_editingDoctor);
             }
-            catch (Exception ex)
+            catch (Exception fire_update_ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Firestore] Doctor update failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Firestore] Doctor update failed: {fire_update_ex.Message}");
             }
 
             _editingDoctor = null;
@@ -229,9 +229,9 @@ public partial class ManageDoctorsViewModel : ObservableObject
             {
                 await DoctorRepository.Instance.CreateAsync(doctor);
             }
-            catch (Exception ex)
+            catch (Exception fire_create_ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Firestore] Doctor create failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[Firestore] Doctor create failed: {fire_create_ex.Message}");
                 doctor.Id = DatabaseService.StaticDoctors.Count + 1;
                 DatabaseService.StaticDoctors.Add(doctor);
             }
@@ -259,9 +259,9 @@ public partial class ManageDoctorsViewModel : ObservableObject
             else
                 DatabaseService.StaticDoctors.Remove(doctor);
         }
-        catch (Exception ex)
+        catch (Exception fire_delete_ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Firestore] Doctor delete failed: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[Firestore] Doctor delete failed: {fire_delete_ex.Message}");
             DatabaseService.StaticDoctors.Remove(doctor);
         }
 

@@ -15,9 +15,9 @@ public partial class App : Application
             {
                 await Services.DatabaseService.Instance.SeedDefaultAdminAsync();
             }
-            catch (Exception ex)
+            catch (Exception startup_seed_ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[MediBook] Startup seed failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[MediBook] Startup seed failed: {startup_seed_ex.Message}");
             }
         });
     }
