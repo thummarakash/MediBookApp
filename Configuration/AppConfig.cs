@@ -4,7 +4,7 @@ public static class AppConfig
 {
     // Firebase Project
     public const string FirebaseProjectId = "medibook-d7710";
-    public const string FirebaseWebApiKey = "AIzaSyBaMNysELXmRnvHYYA-fODhd0_qh6uIZr4";
+    public const string FirebaseWebApiKey = "AIzaSyCIaKdsmqmETZMMrTLQVra2aPcTO9raLEQ";
     public const string FirebaseStorageBucket = "medibook-d7710.firebasestorage.app";
 
     // Firebase REST API base URLs
@@ -13,8 +13,8 @@ public static class AppConfig
     public const string FirestoreBaseUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents";
     public const string FirebaseStorageBaseUrl = $"https://firebasestorage.googleapis.com/v0/b/{FirebaseStorageBucket}/o";
 
-    // Google OAuth
-    public const string GoogleWebClientId = "735083808889-noubknkvaj40e8npvk59e9om4250502p.apps.googleusercontent.com";
+    // Google OAuth — must be the Web client (type 3), NOT the Android client (type 1)
+    public const string GoogleWebClientId = "735083808889-9vifv2kv1ubdoprvhugl5ug2jr1jt1ut.apps.googleusercontent.com";
 
     // Firestore collection names
     public static class Collections

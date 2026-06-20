@@ -20,8 +20,19 @@ public partial class SecuritySettingsPage : ContentPage
         PinDivider.IsVisible = pinEnabled;
     }
 
-    private void OnBiometricToggled(object sender, ToggledEventArgs e)
+    private async void OnBiometricToggled(object sender, ToggledEventArgs e)
     {
+        if (e.Value)
+        {
+            bool authenticated = await BiometricService.Instance.AuthenticateAsync("Confirm fingerprint/face to enable biometric sign-in");
+            if (!authenticated)
+            {
+                BiometricSwitch.Toggled -= OnBiometricToggled;
+                BiometricSwitch.IsToggled = false;
+                BiometricSwitch.Toggled += OnBiometricToggled;
+                return;
+            }
+        }
         BiometricService.Instance.SetBiometricsEnabled(e.Value);
     }
 
@@ -48,7 +59,15 @@ public partial class SecuritySettingsPage : ContentPage
 
     private async void OnChangePinClicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync($"{nameof(PinPage)}?mode=Setup");
+        string currentPin = BiometricService.Instance.GetSecurityPin();
+        if (!string.IsNullOrEmpty(currentPin))
+        {
+            await Shell.Current.GoToAsync($"{nameof(PinPage)}?mode=VerifyOldPin");
+        }
+        else
+        {
+            await Shell.Current.GoToAsync($"{nameof(PinPage)}?mode=Setup");
+        }
     }
 
     private async void OnChangePasswordClicked(object sender, EventArgs e)

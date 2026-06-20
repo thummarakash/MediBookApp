@@ -1,67 +1,203 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Diagnostics;
 using MediBook.Configuration;
+
+#if ANDROID
+using Android.App;
+using Android.Content;
+using Android.Gms.Auth.Api.SignIn;
+using Android.Gms.Common.Api;
+using Android.Util;
+#endif
 
 namespace MediBook.Services.Auth;
 
 /// <summary>
-/// Implements Google Sign-In via MAUI WebAuthenticator → OAuth 2.0 → Firebase identity.
-/// The user is redirected to Google's consent screen in a Chrome Custom Tab,
-/// then the ID token is exchanged with Firebase Auth REST API.
+/// Implements native Google Sign-In on Android, obtaining the ID token
+/// and exchanging it with the Firebase Auth REST API.
 /// </summary>
 public class GoogleSignInService
 {
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(AppConfig.HttpTimeoutSeconds) };
+    private const string LogTag = "MediBookAuth";
 
     public static GoogleSignInService Instance { get; } = new();
     private GoogleSignInService() { }
 
+    private void Log(string message)
+    {
+        Debug.WriteLine($"[{LogTag}] {message}");
+#if ANDROID
+        Android.Util.Log.Info(LogTag, message);
+#endif
+    }
+
     public async Task<GoogleSignInResult> SignInAsync()
     {
-        // Build the Google OAuth URL
-        var nonce = Guid.NewGuid().ToString("N");
-        var redirectUri = "com.akash.medibook://oauth2redirect";
+        Log("SignInAsync called.");
+#if ANDROID
+        var tcs = new TaskCompletionSource<GoogleSignInResult>();
 
-        var authUrl = new Uri(
-            $"https://accounts.google.com/o/oauth2/auth"
-            + $"?client_id={Uri.EscapeDataString(AppConfig.GoogleWebClientId)}"
-            + $"&redirect_uri={Uri.EscapeDataString(redirectUri)}"
-            + $"&response_type=code"
-            + $"&scope={Uri.EscapeDataString("openid email profile")}"
-            + $"&nonce={nonce}"
-            + $"&prompt=select_account"
-        );
+        Log($"Configured Client ID: {AppConfig.GoogleWebClientId}");
 
-        var callbackUri = new Uri(redirectUri);
+        // Build Google Sign-In options with the Web Client ID
+        // This requests an ID token that can be verified by Firebase
+        var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+            .RequestIdToken(AppConfig.GoogleWebClientId)
+            .RequestEmail()
+            .RequestProfile()
+            .Build();
 
-        WebAuthenticatorResult webResult;
+        var activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+        if (activity == null)
+        {
+            Log("Error: Android Activity is null!");
+            throw new Exception("Android Activity is not available.");
+        }
+
+        Log("Creating GoogleSignIn client...");
+        var client = GoogleSignIn.GetClient(activity, gso);
+
+        // Sign out first to ensure the account selection prompt appears
         try
         {
-            webResult = await WebAuthenticator.Default.AuthenticateAsync(authUrl, callbackUri);
-        }
-        catch (TaskCanceledException)
-        {
-            throw new OperationCanceledException("Google Sign-In was cancelled.");
+            Log("Signing out of previous session...");
+            await client.SignOutAsync();
+            Log("Sign out complete.");
         }
         catch (Exception ex)
         {
-            throw new Exception($"Google Sign-In failed: {ex.Message}");
+            Log($"Sign out warning: {ex.Message}");
         }
 
-        // Exchange authorization code for ID token via Google token endpoint
-        webResult.Properties.TryGetValue("code", out var authCode);
-        if (string.IsNullOrEmpty(authCode))
+        const int RequestCode = 9001;
+
+        Action<int, Result, Intent?>? handler = null;
+        handler = async (reqCode, resultCode, intentData) =>
         {
-            // Some flows return id_token directly
-            webResult.Properties.TryGetValue("id_token", out var directIdToken);
-            if (!string.IsNullOrEmpty(directIdToken))
-                return await SignInWithGoogleIdTokenAsync(directIdToken);
+            Log($"ActivityResult handler triggered. Request: {reqCode}, Result: {resultCode}");
+            if (reqCode == RequestCode)
+            {
+                // Unsubscribe from the event
+                MainActivity.ActivityResult -= handler;
+                Log("Unsubscribed from MainActivity.ActivityResult.");
 
-            throw new Exception("Google did not return an authorization code. Please try again.");
+                if (resultCode == Result.Canceled)
+                {
+                    Log("User cancelled Google Sign-In (Result.Canceled).");
+                    if (intentData != null)
+                    {
+                        try
+                        {
+                            var task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
+                            if (!task.IsSuccessful && task.Exception != null)
+                            {
+                                var taskEx = task.Exception;
+                                Log($"Exception details during cancellation: {taskEx.GetType().Name}: {taskEx.Message}");
+                                if (taskEx is Android.Gms.Common.Apis.ApiException apiEx)
+                                {
+                                    Log($"API Exception Status Code: {apiEx.StatusCode} (Common: 12500=Sign in failed, 12501=Sign in cancelled, 10=Developer error/SHA-1 mismatch)");
+                                    tcs.TrySetException(new Exception($"Google Sign-In canceled with Status Code: {apiEx.StatusCode}."));
+                                    return;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log($"Failed to parse cancellation intent data: {ex.Message}");
+                        }
+                    }
+                    tcs.TrySetCanceled();
+                    return;
+                }
+
+                try
+                {
+                    if (intentData == null)
+                    {
+                        Log("Error: intentData is null!");
+                        tcs.TrySetException(new Exception("No data received from Google Sign-In."));
+                        return;
+                    }
+
+                    Log("Parsing account from intent data...");
+                    var task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
+                    Log($"Task returned. IsComplete: {task.IsComplete}, IsSuccessful: {task.IsSuccessful}");
+
+                    if (!task.IsSuccessful)
+                    {
+                        var taskEx = task.Exception;
+                        var errorMsg = taskEx != null ? $"{taskEx.GetType().Name}: {taskEx.Message}" : "Unknown task error";
+                        Log($"Google Sign-In Task failed: {errorMsg}");
+                        
+                        if (taskEx is Android.Gms.Common.Apis.ApiException apiEx)
+                        {
+                            Log($"API Exception Status Code: {apiEx.StatusCode}");
+                        }
+                        
+                        tcs.TrySetException(new Exception($"Google Sign-In task failed: {errorMsg}"));
+                        return;
+                    }
+
+                    var account = task.Result as GoogleSignInAccount;
+                    if (account == null)
+                    {
+                        Log("Error: GoogleSignInAccount is null!");
+                        tcs.TrySetException(new Exception("Google account data is null."));
+                        return;
+                    }
+
+                    Log($"Google Account details retrieved: Email={account.Email}, DisplayName={account.DisplayName}");
+
+                    var idToken = account.IdToken;
+                    if (string.IsNullOrEmpty(idToken))
+                    {
+                        Log("Error: Google ID Token is null or empty!");
+                        tcs.TrySetException(new Exception("Failed to retrieve Google ID Token. (Likely SHA-1 fingerprint mismatch in Firebase console)"));
+                        return;
+                    }
+
+                    Log($"Google ID Token retrieved successfully. Length: {idToken.Length}");
+
+                    Log("Exchanging Google ID Token with Firebase...");
+                    var result = await SignInWithGoogleIdTokenAsync(idToken);
+                    Log("Firebase exchange successful!");
+                    tcs.TrySetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    Log($"Exception inside activity result handler: {ex.Message}");
+                    tcs.TrySetException(new Exception($"Google Sign-In failed: {ex.Message}"));
+                }
+            }
+            else
+            {
+                Log($"Ignoring ActivityResult with RequestCode: {reqCode}");
+            }
+        };
+
+        MainActivity.ActivityResult += handler;
+        Log("Subscribed to MainActivity.ActivityResult.");
+
+        try
+        {
+            Log("Launching Google Sign-In activity...");
+            activity.StartActivityForResult(client.SignInIntent, RequestCode);
+            Log("Activity launched successfully.");
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to launch Google Sign-In: {ex.Message}");
+            MainActivity.ActivityResult -= handler;
+            throw new Exception($"Failed to launch Google Sign-In screen: {ex.Message}");
         }
 
-        var tokenResponse = await ExchangeCodeForTokenAsync(authCode, redirectUri);
-        return await SignInWithGoogleIdTokenAsync(tokenResponse.IdToken);
+        return await tcs.Task;
+#else
+        Log("Error: Platform is not Android!");
+        throw new NotImplementedException("Google Sign-In is only implemented for Android in this project.");
+#endif
     }
 
     private async Task<GoogleSignInResult> SignInWithGoogleIdTokenAsync(string googleIdToken)
@@ -75,8 +211,12 @@ public class GoogleSignInService
         };
 
         var url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:signInWithIdp?key={AppConfig.FirebaseWebApiKey}";
+        Log($"Firebase Request URL: {url}");
+
         var response = await _http.PostAsJsonAsync(url, payload);
         var json = await response.Content.ReadAsStringAsync();
+        Log($"Firebase Response status: {response.StatusCode}");
+
         var doc = JsonDocument.Parse(json);
 
         if (!response.IsSuccessStatusCode)
@@ -85,6 +225,7 @@ public class GoogleSignInService
                 .TryGetProperty("error", out var err)
                 ? err.GetProperty("message").GetString() ?? "Sign-in failed"
                 : "Google Sign-In failed";
+            Log($"Firebase exchange error: {errorMsg}");
             throw new Exception(errorMsg);
         }
 
@@ -102,29 +243,6 @@ public class GoogleSignInService
                 ? expVal : 3600,
             IsNewUser = root.TryGetProperty("isNewUser", out var nu) && nu.GetBoolean()
         };
-    }
-
-    private async Task<(string IdToken, string AccessToken)> ExchangeCodeForTokenAsync(string code, string redirectUri)
-    {
-        // NOTE: For a production app the client_secret exchange MUST happen server-side.
-        // This is a simplified flow for demo purposes.
-        // In production: create a Cloud Function that performs the code exchange securely.
-        var formData = new Dictionary<string, string>
-        {
-            { "code", code },
-            { "client_id", AppConfig.GoogleWebClientId },
-            { "redirect_uri", redirectUri },
-            { "grant_type", "authorization_code" }
-        };
-
-        var response = await _http.PostAsync("https://oauth2.googleapis.com/token",
-            new FormUrlEncodedContent(formData));
-        var json = await response.Content.ReadAsStringAsync();
-        var doc = JsonDocument.Parse(json).RootElement;
-
-        var idToken = doc.TryGetProperty("id_token", out var it) ? it.GetString() ?? "" : "";
-        var accessToken = doc.TryGetProperty("access_token", out var at) ? at.GetString() ?? "" : "";
-        return (idToken, accessToken);
     }
 }
 

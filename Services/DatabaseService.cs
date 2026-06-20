@@ -1,3 +1,4 @@
+using MediBook.Configuration;
 using MediBook.Extensions;
 using MediBook.Models;
 using MediBook.Repositories;
@@ -62,6 +63,8 @@ public class DatabaseService
         // Determine role (admin by email convention)
         var role = email.Contains("admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "Patient";
 
+        var fcmToken = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
+
         var user = new UserAccount
         {
             FirestoreId = authResult.UserId,
@@ -72,14 +75,16 @@ public class DatabaseService
             DateOfBirth = dateOfBirth,
             Role = role,
             AuthProvider = "Local",
+            FCMToken = fcmToken,
             CreatedAt = DateTime.Now
         };
+
+        // Save session first so subsequent Firestore writes are authenticated
+        await SessionService.Instance.SaveSessionAsync(authResult, role);
 
         // Save profile to Firestore
         await UserRepository.Instance.CreateAsync(user);
 
-        // Save session
-        await SessionService.Instance.SaveSessionAsync(authResult, role);
         _currentUser = user;
         Preferences.Default.Set("medibook_onboarding_seen", true);
 
@@ -92,6 +97,7 @@ public class DatabaseService
 
         // Load or create user profile from Firestore
         var user = await UserRepository.Instance.GetByIdAsync(authResult.UserId);
+        var fcmToken = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
         if (user == null)
         {
             // First login after account existed before Firestore profile was created
@@ -103,9 +109,15 @@ public class DatabaseService
                 FullName = authResult.DisplayName.IfEmpty(email.Split('@')[0]),
                 Email = email,
                 Role = role,
+                FCMToken = fcmToken,
                 AuthProvider = "Local"
             };
             await UserRepository.Instance.CreateAsync(user);
+        }
+        else
+        {
+            user.FCMToken = fcmToken;
+            await UserRepository.Instance.UpdateAsync(user);
         }
 
         await SessionService.Instance.SaveSessionAsync(authResult, user.Role);
@@ -114,10 +126,11 @@ public class DatabaseService
         return user;
     }
 
-    public async Task<UserAccount> SaveGoogleUserAsync(string fullName, string email, string googleSubject)
+    public async Task<UserAccount> SaveGoogleUserAsync(string fullName, string email, string googleSubject, string photoUrl = "")
     {
         var userId = googleSubject;
         var user = await UserRepository.Instance.GetByIdAsync(userId);
+        var fcmToken = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
         if (user == null)
         {
             user = new UserAccount
@@ -126,10 +139,30 @@ public class DatabaseService
                 Id = 1,
                 FullName = fullName,
                 Email = email,
+                AvatarUrl = photoUrl,
                 Role = "Patient",
+                FCMToken = fcmToken,
                 AuthProvider = "Google"
             };
             await UserRepository.Instance.CreateAsync(user);
+        }
+        else
+        {
+            bool needsUpdate = false;
+            if (!string.IsNullOrEmpty(photoUrl) && string.IsNullOrEmpty(user.AvatarUrl))
+            {
+                user.AvatarUrl = photoUrl;
+                needsUpdate = true;
+            }
+            if (user.FCMToken != fcmToken)
+            {
+                user.FCMToken = fcmToken;
+                needsUpdate = true;
+            }
+            if (needsUpdate)
+            {
+                await UserRepository.Instance.UpdateAsync(user);
+            }
         }
 
         _currentUser = user;
@@ -167,8 +200,39 @@ public class DatabaseService
 
     public void Logout()
     {
+        // Clear FCM token in Firestore in background
+        try
+        {
+            var userId = SessionService.Instance.GetUserIdAsync().GetAwaiter().GetResult();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await UserRepository.Instance.UpdateFcmTokenAsync(userId, "");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MediBook] Clear FCM token failed: {ex.Message}");
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MediBook] Logout failed to fetch userId: {ex.Message}");
+        }
+
         _currentUser = null;
         SessionService.Instance.SignOut();
+
+        // Clear Preferences related to login, PIN and biometrics
+        Preferences.Default.Set(LoggedInKey, false);
+        Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
+        Preferences.Default.Set(AppConfig.PrefKeys.BiometricEnabled, false);
+        Preferences.Default.Set(AppConfig.PrefKeys.PinEnabled, false);
+        Preferences.Default.Remove(AppConfig.PrefKeys.PinValue);
     }
 
     public async Task UpdateUserAsync(UserAccount user)
@@ -382,6 +446,76 @@ public class DatabaseService
 
     public async Task MarkEmailReminderSentAsync(EmailReminder reminder)
         => await Task.CompletedTask;
+
+    public async Task SeedDefaultAdminAsync()
+    {
+        try
+        {
+            // 1. Try to sign in the admin
+            var authResult = await FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(
+                "akashthummarau@gmail.com",
+                "Admin@!23"
+            );
+            
+            // If sign-in succeeds, verify if profile exists in Firestore
+            var existingProfile = await UserRepository.Instance.GetByIdAsync(authResult.UserId);
+            if (existingProfile == null)
+            {
+                var adminUser = new UserAccount
+                {
+                    FirestoreId = authResult.UserId,
+                    Id = 1,
+                    FullName = "System Admin",
+                    Email = "akashthummarau@gmail.com",
+                    Phone = "+91 9999999999",
+                    DateOfBirth = "01/01/1990",
+                    Role = "Admin",
+                    AuthProvider = "Local",
+                    CreatedAt = DateTime.Now
+                };
+                await UserRepository.Instance.CreateAsync(adminUser);
+            }
+        }
+        catch (Exception loginEx)
+        {
+            var msg = loginEx.Message;
+            if (msg.Contains("EMAIL_NOT_FOUND") || msg.Contains("INVALID_LOGIN_CREDENTIALS") || msg.Contains("INVALID_EMAIL"))
+            {
+                try
+                {
+                    // 2. User doesn't exist, register them
+                    var authResult = await FirebaseAuthService.Instance.SignUpWithEmailPasswordAsync(
+                        "akashthummarau@gmail.com",
+                        "Admin@!23",
+                        "System Admin"
+                    );
+
+                    // 3. Create the profile in Firestore
+                    var adminUser = new UserAccount
+                    {
+                        FirestoreId = authResult.UserId,
+                        Id = 1,
+                        FullName = "System Admin",
+                        Email = "akashthummarau@gmail.com",
+                        Phone = "+91 9999999999",
+                        DateOfBirth = "01/01/1990",
+                        Role = "Admin",
+                        AuthProvider = "Local",
+                        CreatedAt = DateTime.Now
+                    };
+                    await UserRepository.Instance.CreateAsync(adminUser);
+                }
+                catch (Exception signUpEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MediBookAuth] Admin auto-signup failed: {signUpEx.Message}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[MediBookAuth] Admin auto-login check failed: {loginEx.Message}");
+            }
+        }
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

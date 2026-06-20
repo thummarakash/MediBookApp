@@ -47,24 +47,26 @@
                     <!-- DOB -->
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
-                            <Image Source="icon_calendar.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
-                            <Entry x:Name="DobEntry" Grid.Column="1" Placeholder="Date of birth e.g. 12/05/1999" Style="{StaticResource InputStyle}" />
+                            <Image Source="icon_calendar.svg" Grid.Column="0" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
+                            <DatePicker x:Name="DobDatePicker" Grid.Column="1" Format="dd/MM/yyyy" TextColor="{StaticResource PrimaryNavy}" BackgroundColor="Transparent" MinimumDate="01/01/1900" VerticalOptions="Center" HorizontalOptions="Fill" />
                         </Grid>
                     </Border>
 
                     <!-- Password -->
                     <Border Style="{StaticResource InputBorderStyle}">
-                        <Grid ColumnDefinitions="Auto,*">
-                            <Image Source="icon_lock.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Image Source="icon_lock.svg" Grid.Column="0" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
                             <Entry x:Name="PasswordEntry" Grid.Column="1" Placeholder="Password" IsPassword="True" Style="{StaticResource InputStyle}" />
+                            <ImageButton x:Name="TogglePasswordButton" Source="icon_eye_close.svg" Grid.Column="2" HeightRequest="20" WidthRequest="20" Padding="0" BackgroundColor="Transparent" Clicked="OnTogglePasswordClicked" VerticalOptions="Center" />
                         </Grid>
                     </Border>
 
                     <!-- Confirm Password -->
                     <Border Style="{StaticResource InputBorderStyle}">
-                        <Grid ColumnDefinitions="Auto,*">
-                            <Image Source="{StaticResource IconLock}" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Image Source="{StaticResource IconLock}" Grid.Column="0" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
                             <Entry x:Name="ConfirmPasswordEntry" Grid.Column="1" Placeholder="Confirm password" IsPassword="True" Style="{StaticResource InputStyle}" />
+                            <ImageButton x:Name="ToggleConfirmPasswordButton" Source="icon_eye_close.svg" Grid.Column="2" HeightRequest="20" WidthRequest="20" Padding="0" BackgroundColor="Transparent" Clicked="OnToggleConfirmPasswordClicked" VerticalOptions="Center" />
                         </Grid>
                     </Border>
 

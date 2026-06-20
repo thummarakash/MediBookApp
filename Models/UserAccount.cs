@@ -18,6 +18,7 @@ public class UserAccount
     public string AvatarColor { get; set; } = "#155EEF";
     public string Role { get; set; } = "Patient";
     public string FCMToken { get; set; } = string.Empty;
+    public string AvatarUrl { get; set; } = string.Empty;
     public bool NotificationsEnabled { get; set; } = true;
     public bool LocationPermissionGranted { get; set; } = false;
     public bool BiometricEnabled { get; set; } = false;

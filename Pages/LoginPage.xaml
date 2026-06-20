@@ -31,10 +31,11 @@
 
                     <!-- Password Input -->
                     <Border Style="{StaticResource InputBorderStyle}">
-                        <Grid ColumnDefinitions="Auto,*">
-                            <Image Source="icon_lock.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Image Source="icon_lock.svg" Grid.Column="0" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
                             <Entry x:Name="PasswordEntry" Grid.Column="1" Placeholder="Password" IsPassword="True" Style="{StaticResource InputStyle}"
                                    SemanticProperties.Description="Password input" AutomationId="PasswordEntry" />
+                            <ImageButton x:Name="TogglePasswordButton" Source="icon_eye_close.svg" Grid.Column="2" HeightRequest="20" WidthRequest="20" Padding="0" BackgroundColor="Transparent" Clicked="OnTogglePasswordClicked" VerticalOptions="Center" />
                         </Grid>
                     </Border>
 

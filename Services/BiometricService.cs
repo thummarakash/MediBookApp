@@ -46,7 +46,7 @@ public class BiometricService
         => DeviceInfo.Platform == DevicePlatform.Android
         || DeviceInfo.Platform == DevicePlatform.iOS;
 
-    public async Task<bool> AuthenticateAsync(string reason)
+    public async Task<bool> AuthenticateAsync(string reason, bool allowPinFallback = true)
     {
         try
         {
@@ -54,13 +54,16 @@ public class BiometricService
             if (!available)
             {
                 // Fall back to PIN if biometrics not available
-                if (IsPinEnabled())
+                if (allowPinFallback && IsPinEnabled())
                     return await AuthenticateWithPinFallbackAsync();
 
-                await Shell.Current.DisplayAlert(
-                    "Not Available",
-                    "Biometric authentication is not available on this device.",
-                    "OK");
+                if (allowPinFallback)
+                {
+                    await Shell.Current.DisplayAlert(
+                        "Not Available",
+                        "Biometric authentication is not available on this device.",
+                        "OK");
+                }
                 return false;
             }
 
@@ -81,7 +84,7 @@ public class BiometricService
             if (result.Status == FingerprintAuthenticationResultStatus.FallbackRequested
                 || result.Status == FingerprintAuthenticationResultStatus.Canceled)
             {
-                if (IsPinEnabled())
+                if (allowPinFallback && IsPinEnabled())
                     return await AuthenticateWithPinFallbackAsync();
             }
 
@@ -90,15 +93,19 @@ public class BiometricService
         catch
         {
             // If Plugin.Fingerprint fails, fall back to PIN or simple prompt
-            if (IsPinEnabled())
+            if (allowPinFallback && IsPinEnabled())
                 return await AuthenticateWithPinFallbackAsync();
 
-            bool success = await Shell.Current.DisplayAlert(
-                "Biometric Authentication",
-                reason,
-                "Authenticate",
-                "Cancel");
-            return success;
+            if (allowPinFallback)
+            {
+                bool success = await Shell.Current.DisplayAlert(
+                    "Biometric Authentication",
+                    reason,
+                    "Authenticate",
+                    "Cancel");
+                return success;
+            }
+            return false;
         }
     }
 

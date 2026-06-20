@@ -63,18 +63,7 @@
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <!-- WebAuthenticator callback for OAuth flows -->
-        <activity
-            android:name="Microsoft.Maui.Authentication.WebAuthenticatorCallbackActivity"
-            android:exported="true"
-            android:launchMode="singleTop">
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.akash.medibook" android:host="oauth2redirect" />
-            </intent-filter>
-        </activity>
+
 
     </application>
 </manifest>

@@ -8,7 +8,8 @@ namespace MediBook;
 [Activity(NoHistory = true, Exported = true, LaunchMode = LaunchMode.SingleTop)]
 [IntentFilter(new[] { Intent.ActionView },
     Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
-    DataScheme = "com.akash.medibook")]
+    DataScheme = "com.akash.medibook",
+    DataHost = "oauth2redirect")]
 public class WebAuthenticationCallbackActivity : WebAuthenticatorCallbackActivity
 {
 }

@@ -34,15 +34,38 @@ public partial class ChangePasswordPage : ContentPage
             return;
         }
 
-        // Simulate password change
-        await ConfirmationPopupPage.ShowAsync(Navigation, "Password Updated", "Your password has been changed successfully!");
-        
-        // Reset form
-        CurrentPasswordEntry.Text = string.Empty;
-        NewPasswordEntry.Text = string.Empty;
-        ConfirmPasswordEntry.Text = string.Empty;
+        // 1. Verify current password by signing in
+        try
+        {
+            var email = await Services.Auth.SessionService.Instance.GetUserEmailAsync();
+            if (string.IsNullOrEmpty(email))
+            {
+                await ConfirmationPopupPage.ShowAsync(Navigation, "Error", "No active session found. Please log in again.", "icon_warning.svg");
+                return;
+            }
 
-        await Shell.Current.GoToAsync("..");
+            // Attempt to authenticate
+            var authResult = await Services.Firebase.FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(email, currentPassword);
+            
+            // 2. Change password
+            await Services.Firebase.FirebaseAuthService.Instance.ChangePasswordAsync(authResult.IdToken, newPassword);
+            
+            // 3. Save new session tokens
+            await Services.Auth.SessionService.Instance.SaveSessionAsync(authResult, await Services.Auth.SessionService.Instance.GetUserRoleAsync() ?? "Patient");
+
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Password Updated", "Your password has been changed successfully!");
+
+            // Reset form
+            CurrentPasswordEntry.Text = string.Empty;
+            NewPasswordEntry.Text = string.Empty;
+            ConfirmPasswordEntry.Text = string.Empty;
+
+            await Shell.Current.GoToAsync("..");
+        }
+        catch (Exception ex)
+        {
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Error", "Current password is incorrect.", "icon_warning.svg");
+        }
     }
 
     private async void OnBackClicked(object sender, EventArgs e)

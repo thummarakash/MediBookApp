@@ -16,7 +16,10 @@
                     <!-- Circular Avatar -->
                     <Border HeightRequest="64" WidthRequest="64" StrokeThickness="2" Stroke="White" BackgroundColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" Margin="0,4">
                         <Border.StrokeShape><RoundRectangle CornerRadius="32" /></Border.StrokeShape>
-                        <Label Text="{Binding UserInitials}" TextColor="White" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" />
+                        <Grid>
+                            <Label Text="{Binding UserInitials}" TextColor="White" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" IsVisible="{Binding ShowInitials}" />
+                            <Image Source="{Binding AvatarUrl}" Aspect="AspectFill" HeightRequest="64" WidthRequest="64" IsVisible="{Binding HasAvatarUrl}" />
+                        </Grid>
                     </Border>
 
                     <Label Text="{Binding UserName}" FontSize="16" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center" />
@@ -31,28 +34,43 @@
                     <!-- Personal Info Card -->
                     <Border Style="{StaticResource CardStyle}">
                         <VerticalStackLayout Spacing="10">
-                            <Label Text="Personal Information" FontSize="14.5" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Personal Information" FontSize="14.5" FontAttributes="Bold" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" />
+                                <Button Grid.Column="1" Text="Edit" Style="{StaticResource OutlineButtonStyle}" HeightRequest="32" Padding="10,0" FontSize="11" Command="{Binding StartEditCommand}" IsVisible="{Binding IsNotEditing}" />
+                            </Grid>
                             <BoxView Style="{StaticResource DividerStyle}" />
 
+                            <!-- Full Name (Only visible when editing) -->
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding IsEditing}">
+                                <Image Source="icon_user.svg" Style="{StaticResource ListIconStyle}" />
+                                <Entry Grid.Column="1" Text="{Binding UserName}" Placeholder="Full Name" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" HeightRequest="40" />
+                            </Grid>
+
+                            <!-- Email -->
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                                 <Image Source="{StaticResource IconEmail}" Style="{StaticResource ListIconStyle}" />
                                 <Label Grid.Column="1" Text="{Binding Email}" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" />
                             </Grid>
 
+                            <!-- Phone -->
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                                 <Image Source="{StaticResource IconPhone}" Style="{StaticResource ListIconStyle}" />
-                                <Label Grid.Column="1" Text="{Binding Phone}" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding Phone}" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" IsVisible="{Binding IsNotEditing}" />
+                                <Entry Grid.Column="1" Text="{Binding Phone}" Placeholder="Phone Number" Keyboard="Telephone" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" HeightRequest="40" IsVisible="{Binding IsEditing}" />
                             </Grid>
 
+                            <!-- Date of Birth -->
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                                 <Image Source="{StaticResource IconCalendar}" Style="{StaticResource ListIconStyle}" />
-                                <Label Grid.Column="1" Text="{Binding DateOfBirth}" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding DateOfBirth}" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" IsVisible="{Binding IsNotEditing}" />
+                                <DatePicker Grid.Column="1" Date="{Binding DateOfBirthDate}" Format="dd/MM/yyyy" TextColor="{StaticResource PrimaryNavy}" BackgroundColor="Transparent" FontSize="13" VerticalOptions="Center" HeightRequest="40" IsVisible="{Binding IsEditing}" />
                             </Grid>
 
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                                <Image Source="{StaticResource IconBloodTest}" Style="{StaticResource ListIconStyle}" />
-                                <Label Grid.Column="1" Text="Blood Type: O+" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" />
-                            </Grid>
+                            <!-- Save / Cancel Buttons -->
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="End" IsVisible="{Binding IsEditing}">
+                                <Button Text="Cancel" Style="{StaticResource OutlineButtonStyle}" HeightRequest="38" Padding="16,0" Command="{Binding CancelEditCommand}" />
+                                <Button Text="Save" Style="{StaticResource PrimaryButtonStyle}" HeightRequest="38" Padding="16,0" Command="{Binding SaveChangesCommand}" />
+                            </HorizontalStackLayout>
                         </VerticalStackLayout>
                     </Border>
 

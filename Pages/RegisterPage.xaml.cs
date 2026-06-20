@@ -28,7 +28,7 @@ public partial class RegisterPage : ContentPage
         var password = PasswordEntry.Text ?? string.Empty;
         var confirmPassword = ConfirmPasswordEntry.Text ?? string.Empty;
         var phone = ValidationHelper.SanitizeInput(PhoneEntry.Text);
-        var dob = ValidationHelper.SanitizeInput(DobEntry.Text);
+        var dob = DobDatePicker.Date?.ToString("dd/MM/yyyy") ?? "";
 
         var validationError = ValidationHelper.ValidateRegistration(fullName, email, password, confirmPassword);
         if (validationError != null)
@@ -94,5 +94,17 @@ public partial class RegisterPage : ContentPage
         if (btn == null) return;
         btn.IsEnabled = !isLoading;
         btn.Text = isLoading ? "Creating Account..." : "Create Account";
+    }
+
+    private void OnTogglePasswordClicked(object sender, EventArgs e)
+    {
+        PasswordEntry.IsPassword = !PasswordEntry.IsPassword;
+        TogglePasswordButton.Source = PasswordEntry.IsPassword ? "icon_eye_close.svg" : "icon_eye.svg";
+    }
+
+    private void OnToggleConfirmPasswordClicked(object sender, EventArgs e)
+    {
+        ConfirmPasswordEntry.IsPassword = !ConfirmPasswordEntry.IsPassword;
+        ToggleConfirmPasswordButton.Source = ConfirmPasswordEntry.IsPassword ? "icon_eye_close.svg" : "icon_eye.svg";
     }
 }

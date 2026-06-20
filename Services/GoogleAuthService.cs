@@ -24,10 +24,12 @@ public class GoogleAuthService
             ExpiresAt = DateTime.UtcNow.AddSeconds(result.ExpiresIn)
         };
 
-        var user = await DatabaseService.Instance.SaveGoogleUserAsync(
-            result.DisplayName, result.Email, result.UserId);
+        // Save session first so Firestore operations in SaveGoogleUserAsync are authenticated
+        await SessionService.Instance.SaveSessionAsync(authResult, "Patient");
 
-        await SessionService.Instance.SaveSessionAsync(authResult, user.Role);
+        var user = await DatabaseService.Instance.SaveGoogleUserAsync(
+            result.DisplayName, result.Email, result.UserId, result.PhotoUrl);
+
         return user;
     }
 }

@@ -1,5 +1,6 @@
 using MediBook.Helpers;
 using MediBook.Services;
+using MediBook.Services.Auth;
 
 namespace MediBook.Pages;
 
@@ -22,7 +23,8 @@ public partial class LoginPage : ContentPage
         if (formContent != null)
             await AnimationHelper.PageEntranceAsync(formContent, 350);
 
-        if (biometricsEnabled)
+        bool isAuthenticated = SessionService.Instance.IsAuthenticated;
+        if (biometricsEnabled && isAuthenticated)
         {
             await Task.Delay(400);
             await PerformBiometricLoginAsync();
@@ -144,6 +146,7 @@ public partial class LoginPage : ContentPage
 
     private async Task NavigateAfterLoginAsync(string role)
     {
+        PinPage.ResetLockout();
         if (role == "Admin")
             await Shell.Current.GoToAsync("//admindashboard");
         else
@@ -159,5 +162,11 @@ public partial class LoginPage : ContentPage
             await AnimationHelper.FadeOutAsync(btn, 100);
         else
             await AnimationHelper.FadeInAsync(btn, 150);
+    }
+
+    private void OnTogglePasswordClicked(object sender, EventArgs e)
+    {
+        PasswordEntry.IsPassword = !PasswordEntry.IsPassword;
+        TogglePasswordButton.Source = PasswordEntry.IsPassword ? "icon_eye_close.svg" : "icon_eye.svg";
     }
 }
