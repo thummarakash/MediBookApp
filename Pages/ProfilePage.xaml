@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:MediBook.ViewModels"
              xmlns:controls="clr-namespace:MediBook.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="MediBook.Pages.ProfilePage"
              x:DataType="vm:ProfileViewModel">
     <Grid RowDefinitions="*,Auto">
@@ -34,7 +35,7 @@
                             <Border.StrokeShape><RoundRectangle CornerRadius="11" /></Border.StrokeShape>
                             <Image Source="icon_edit.svg" HeightRequest="10" WidthRequest="10" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
                                 <Image.Behaviors>
-                                    <IconTintColorBehavior TintColor="{StaticResource PrimaryBlue}" />
+                                    <toolkit:IconTintColorBehavior TintColor="{StaticResource PrimaryBlue}" />
                                 </Image.Behaviors>
                             </Image>
                         </Border>

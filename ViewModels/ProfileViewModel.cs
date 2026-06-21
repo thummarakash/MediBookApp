@@ -47,11 +47,15 @@ public partial class ProfileViewModel : ObservableObject
                 DateOfBirth = string.IsNullOrWhiteSpace(user.DateOfBirth) ? "" : user.DateOfBirth;
                 DateOfBirthDate = ParseDate(DateOfBirth);
                 AvatarUrl = user.AvatarUrl;
-                HasAvatarUrl = !string.IsNullOrEmpty(AvatarUrl);
+                HasAvatarUrl = !string.IsNullOrEmpty(AvatarUrl) && (AvatarUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || AvatarUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase));
 
                 // Show setup alert if phone or date of birth is missing
                 ShowProfileSetupAlert = string.IsNullOrWhiteSpace(Phone) || string.IsNullOrWhiteSpace(user.DateOfBirth);
             }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ProfileVM] LoadAsync failed: {ex.Message}");
         }
         finally
         {

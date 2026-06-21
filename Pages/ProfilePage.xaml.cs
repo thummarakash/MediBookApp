@@ -17,12 +17,19 @@ public partial class ProfilePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        var user = await DatabaseService.Instance.GetCurrentUserAsync();
-        if (user != null)
+        try
         {
-            CustomTabBarControl.IsAdmin = user.Role == "Admin";
+            var user = await DatabaseService.Instance.GetCurrentUserAsync();
+            if (user != null)
+            {
+                CustomTabBarControl.IsAdmin = user.Role == "Admin";
+            }
+            await _vm.LoadCommand.ExecuteAsync(null);
         }
-        await _vm.LoadCommand.ExecuteAsync(null);
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ProfilePage] OnAppearing failed: {ex.Message}");
+        }
     }
 
     private async void OnNotificationsClicked(object sender, EventArgs e)

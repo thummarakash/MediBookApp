@@ -26,9 +26,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
-    <AndroidFastDeploymentType>AssembleAndDex</AndroidFastDeploymentType>
+    <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
   </PropertyGroup>
 
   <ItemGroup>
@@ -59,7 +57,7 @@
 
     <!-- SQLite Offline Cache -->
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
     <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="120.6.0.1" />
   </ItemGroup>
 
