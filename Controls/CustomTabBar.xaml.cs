@@ -23,7 +23,6 @@ public partial class CustomTabBar : ContentView
         set => SetValue(IsAdminProperty, value);
     }
 
-    // Color Bindings
     public Color HomeColor => ActiveTab == "Home" ? Color.FromArgb("#155EEF") : Color.FromArgb("#8A9EAD");
     public Color AppointmentsColor => ActiveTab == "Appointments" ? Color.FromArgb("#155EEF") : Color.FromArgb("#8A9EAD");
     public Color ClinicsColor => ActiveTab == "Clinics" ? Color.FromArgb("#155EEF") : Color.FromArgb("#8A9EAD");
@@ -31,7 +30,6 @@ public partial class CustomTabBar : ContentView
     public Color DocumentsColor => ActiveTab == "Documents" ? Color.FromArgb("#155EEF") : Color.FromArgb("#8A9EAD");
     public Color ProfileColor => ActiveTab == "Profile" ? Color.FromArgb("#155EEF") : Color.FromArgb("#8A9EAD");
 
-    // Icon Bindings
     public string HomeIcon => ActiveTab == "Home" ? "tab_home_selected.svg" : "tab_home_unselected.svg";
     public string AppointmentsIcon => ActiveTab == "Appointments" ? "tab_appointments_selected.svg" : "tab_appointments_unselected.svg";
     public string ClinicsIcon => ActiveTab == "Clinics" ? "tab_clinics_selected.svg" : "tab_clinics_unselected.svg";
@@ -47,30 +45,27 @@ public partial class CustomTabBar : ContentView
 
     private static void OnActiveTabChanged(BindableObject bindable, object oldValue, object newValue)
     {
-        if (bindable is CustomTabBar customTabBar)
-        {
-            customTabBar.OnPropertyChanged(nameof(HomeColor));
-            customTabBar.OnPropertyChanged(nameof(AppointmentsColor));
-            customTabBar.OnPropertyChanged(nameof(ClinicsColor));
-            customTabBar.OnPropertyChanged(nameof(DoctorsColor));
-            customTabBar.OnPropertyChanged(nameof(DocumentsColor));
-            customTabBar.OnPropertyChanged(nameof(ProfileColor));
+        if (bindable is not CustomTabBar bar) return;
 
-            customTabBar.OnPropertyChanged(nameof(HomeIcon));
-            customTabBar.OnPropertyChanged(nameof(AppointmentsIcon));
-            customTabBar.OnPropertyChanged(nameof(ClinicsIcon));
-            customTabBar.OnPropertyChanged(nameof(DoctorsIcon));
-            customTabBar.OnPropertyChanged(nameof(DocumentsIcon));
-            customTabBar.OnPropertyChanged(nameof(ProfileIcon));
-        }
+        bar.OnPropertyChanged(nameof(HomeColor));
+        bar.OnPropertyChanged(nameof(AppointmentsColor));
+        bar.OnPropertyChanged(nameof(ClinicsColor));
+        bar.OnPropertyChanged(nameof(DoctorsColor));
+        bar.OnPropertyChanged(nameof(DocumentsColor));
+        bar.OnPropertyChanged(nameof(ProfileColor));
+
+        bar.OnPropertyChanged(nameof(HomeIcon));
+        bar.OnPropertyChanged(nameof(AppointmentsIcon));
+        bar.OnPropertyChanged(nameof(ClinicsIcon));
+        bar.OnPropertyChanged(nameof(DoctorsIcon));
+        bar.OnPropertyChanged(nameof(DocumentsIcon));
+        bar.OnPropertyChanged(nameof(ProfileIcon));
     }
 
     private static void OnIsAdminChanged(BindableObject bindable, object oldValue, object newValue)
     {
-        if (bindable is CustomTabBar customTabBar)
-        {
-            customTabBar.UpdateGridVisibilities();
-        }
+        if (bindable is CustomTabBar bar)
+            bar.UpdateGridVisibilities();
     }
 
     private void UpdateGridVisibilities()
@@ -82,7 +77,6 @@ public partial class CustomTabBar : ContentView
         }
     }
 
-    // Patient Navigation Taps
     private async void OnHomeTapped(object sender, EventArgs e)
     {
         if (ActiveTab != "Home")
@@ -119,7 +113,6 @@ public partial class CustomTabBar : ContentView
             await Shell.Current.GoToAsync("//profile");
     }
 
-    // Admin Navigation Taps
     private async void OnAdminDashboardTapped(object sender, EventArgs e)
     {
         if (ActiveTab != "Home")

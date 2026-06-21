@@ -18,7 +18,6 @@ public partial class LoginPage : ContentPage
         bool biometricsEnabled = BiometricService.Instance.IsBiometricsEnabled();
         BiometricBtn.IsVisible = biometricsEnabled;
 
-        // Entrance animation for the form
         var formContent = this.FindByName<ScrollView>("FormScrollView");
         if (formContent != null)
             await AnimationHelper.PageEntranceAsync(formContent, 350);
@@ -53,14 +52,12 @@ public partial class LoginPage : ContentPage
 
             await NavigateAfterLoginAsync(user.Role);
         }
-        catch (Exception login_ex)
+        catch (Exception ex)
         {
             await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
-            string friendlyMsg = login_ex.Message;
-            if (login_ex is System.Net.Http.HttpRequestException || login_ex.InnerException is System.Net.Http.HttpRequestException || login_ex is TaskCanceledException)
-            {
+            string friendlyMsg = ex.Message;
+            if (ex is System.Net.Http.HttpRequestException || ex.InnerException is System.Net.Http.HttpRequestException || ex is TaskCanceledException)
                 friendlyMsg = "Network error. Please check your internet connection and try again.";
-            }
             await ConfirmationPopupPage.ShowAsync(Navigation, "Login Failed", friendlyMsg, "icon_warning.svg");
         }
         finally
@@ -80,7 +77,6 @@ public partial class LoginPage : ContentPage
         var user = await DatabaseService.Instance.GetCurrentUserAsync();
         if (user == null)
         {
-            // No stored session — redirect to email login
             await ConfirmationPopupPage.ShowAsync(Navigation, "Session Expired", "Please sign in with your email to continue.", "icon_warning.svg");
             return;
         }
@@ -90,16 +86,14 @@ public partial class LoginPage : ContentPage
 
     private async void OnPatientQuickLoginClicked(object sender, EventArgs e)
     {
-        // Quick test login — remove in production
         try
         {
             await DatabaseService.Instance.LoginAsync("patient@medibook.com", "password123");
             await Shell.Current.GoToAsync("//home");
         }
-        catch (Exception fallbackErr)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LoginFallback] Patient quick login fallback: {fallbackErr.Message}");
-            // If test account doesn't exist in Firebase, still navigate for UI testing
+            System.Diagnostics.Debug.WriteLine($"[LoginPage] Patient quick login fallback: {ex.Message}");
             await Shell.Current.GoToAsync("//home");
         }
     }
@@ -111,9 +105,9 @@ public partial class LoginPage : ContentPage
             await DatabaseService.Instance.LoginAsync("admin@medibook.com", "password123");
             await Shell.Current.GoToAsync("//admindashboard");
         }
-        catch (Exception fallbackErr)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LoginFallback] Admin quick login fallback: {fallbackErr.Message}");
+            System.Diagnostics.Debug.WriteLine($"[LoginPage] Admin quick login fallback: {ex.Message}");
             await Shell.Current.GoToAsync("//admindashboard");
         }
     }
@@ -130,15 +124,12 @@ public partial class LoginPage : ContentPage
         }
         catch (OperationCanceledException)
         {
-            // User cancelled — no error shown
         }
-        catch (Exception oauth_ex)
+        catch (Exception ex)
         {
-            string msg = oauth_ex.Message;
+            string msg = ex.Message;
             if (msg.Contains("EMAIL_EXISTS") || msg.Contains("account-exists-with-different-credential"))
-            {
                 msg = "This email is already registered with a password. Please sign in using your email and password.";
-            }
             await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In", msg, "icon_warning.svg");
         }
     }

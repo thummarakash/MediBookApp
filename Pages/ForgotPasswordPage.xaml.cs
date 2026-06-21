@@ -36,7 +36,6 @@ public partial class ForgotPasswordPage : ContentPage
 
         try
         {
-            // Firebase sends a real password reset email
             await FirebaseAuthService.Instance.SendPasswordResetEmailAsync(email);
 
             await ConfirmationPopupPage.ShowAsync(
@@ -47,10 +46,10 @@ public partial class ForgotPasswordPage : ContentPage
                 "OK",
                 async () => await Shell.Current.GoToAsync(".."));
         }
-        catch (Exception reset_ex)
+        catch (Exception ex)
         {
             await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Error", reset_ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Error", ex.Message, "icon_warning.svg");
         }
         finally
         {

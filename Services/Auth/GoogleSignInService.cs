@@ -33,48 +33,46 @@ public class GoogleSignInService
     {
         Log("SignInAsync called.");
 #if ANDROID
-        var signin_tcs = new TaskCompletionSource<GoogleSignInResult>();
+        var signInTcs = new TaskCompletionSource<GoogleSignInResult>();
 
         Log($"Configured Client ID: {AppConfig.GoogleWebClientId}");
 
-        // Build standard google signin options
-        var cfg_opts = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+        var signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
             .RequestIdToken(AppConfig.GoogleWebClientId)
             .RequestEmail()
             .RequestProfile()
             .Build();
 
-        var curr_activity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
-        if (curr_activity == null)
+        var currentActivity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+        if (currentActivity == null)
         {
             Log("Error: Android Activity is null!");
             throw new Exception("Android Activity is not available.");
         }
 
         Log("Creating GoogleSignIn client...");
-        var signin_client = GoogleSignIn.GetClient(curr_activity, cfg_opts);
+        var signInClient = GoogleSignIn.GetClient(currentActivity, signInOptions);
 
         try
         {
             Log("Signing out of previous session...");
-            await signin_client.SignOutAsync();
+            await signInClient.SignOutAsync();
             Log("Sign out complete.");
         }
-        catch (Exception signOutErr)
+        catch (Exception ex)
         {
-            // Minor warning, usually fine to ignore
-            Log($"Could not sign out prior google session (non-fatal): {signOutErr.Message}");
+            Log($"Could not sign out prior google session (non-fatal): {ex.Message}");
         }
 
-        const int SigninRequestCode = 9001;
+        const int SignInRequestCode = 9001;
 
-        Action<int, Result, Intent?>? on_act_res = null;
-        on_act_res = async (reqCode, resultCode, intentData) =>
+        Action<int, Result, Intent?>? onActivityResult = null;
+        onActivityResult = async (reqCode, resultCode, intentData) =>
         {
             Log($"ActivityResult handler triggered. Request: {reqCode}, Result: {resultCode}");
-            if (reqCode == SigninRequestCode)
+            if (reqCode == SignInRequestCode)
             {
-                MainActivity.ActivityResult -= on_act_res;
+                MainActivity.ActivityResult -= onActivityResult;
                 Log("Unsubscribed from MainActivity.ActivityResult.");
 
                 if (resultCode == Result.Canceled)
@@ -84,12 +82,12 @@ public class GoogleSignInService
                     {
                         try
                         {
-                            var cancel_task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
-                            if (!cancel_task.IsSuccessful && cancel_task.Exception != null)
+                            var cancelTask = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
+                            if (!cancelTask.IsSuccessful && cancelTask.Exception != null)
                             {
-                                var cancel_ex = cancel_task.Exception;
-                                Log($"Exception details during cancellation: {cancel_ex.GetType().Name}: {cancel_ex.Message}");
-                                if (cancel_ex is Android.Gms.Common.Apis.ApiException apiEx)
+                                var cancelEx = cancelTask.Exception;
+                                Log($"Exception details during cancellation: {cancelEx.GetType().Name}: {cancelEx.Message}");
+                                if (cancelEx is Android.Gms.Common.Apis.ApiException apiEx)
                                 {
                                     Log($"API Exception Status Code: {apiEx.StatusCode}");
                                     string friendlyError = apiEx.StatusCode switch
@@ -99,17 +97,17 @@ public class GoogleSignInService
                                         12501 => "Sign-in cancelled by user.",
                                         _ => $"Sign-in failed with error code: {apiEx.StatusCode}."
                                     };
-                                    signin_tcs.TrySetException(new Exception(friendlyError));
+                                    signInTcs.TrySetException(new Exception(friendlyError));
                                     return;
                                 }
                             }
                         }
-                        catch (Exception parseErr)
+                        catch (Exception parseEx)
                         {
-                            Log($"Failed to parse cancellation intent data: {parseErr.Message}");
+                            Log($"Failed to parse cancellation intent data: {parseEx.Message}");
                         }
                     }
-                    signin_tcs.TrySetCanceled();
+                    signInTcs.TrySetCanceled();
                     return;
                 }
 
@@ -118,58 +116,58 @@ public class GoogleSignInService
                     if (intentData == null)
                     {
                         Log("Error: intentData is null!");
-                        signin_tcs.TrySetException(new Exception("No data received from Google Sign-In."));
+                        signInTcs.TrySetException(new Exception("No data received from Google Sign-In."));
                         return;
                     }
 
                     Log("Parsing account from intent data...");
-                    var signin_task = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
-                    Log($"Task returned. IsComplete: {signin_task.IsComplete}, IsSuccessful: {signin_task.IsSuccessful}");
+                    var signInTask = GoogleSignIn.GetSignedInAccountFromIntent(intentData);
+                    Log($"Task returned. IsComplete: {signInTask.IsComplete}, IsSuccessful: {signInTask.IsSuccessful}");
 
-                    if (!signin_task.IsSuccessful)
+                    if (!signInTask.IsSuccessful)
                     {
-                        var taskEx = signin_task.Exception;
+                        var taskEx = signInTask.Exception;
                         var errorMsg = taskEx != null ? $"{taskEx.GetType().Name}: {taskEx.Message}" : "Unknown task error";
                         Log($"Google Sign-In Task failed: {errorMsg}");
-                        
-                        if (taskEx is Android.Gms.Common.Apis.ApiException apiEx)
+
+                        if (taskEx is Android.Gms.Common.Apis.ApiException failedApiEx)
                         {
-                            Log($"API Exception Status Code: {apiEx.StatusCode}");
+                            Log($"API Exception Status Code: {failedApiEx.StatusCode}");
                         }
-                        
-                        signin_tcs.TrySetException(new Exception($"Google Sign-In task failed: {errorMsg}"));
+
+                        signInTcs.TrySetException(new Exception($"Google Sign-In task failed: {errorMsg}"));
                         return;
                     }
 
-                    var google_usr = signin_task.Result as GoogleSignInAccount;
-                    if (google_usr == null)
+                    var googleAccount = signInTask.Result as GoogleSignInAccount;
+                    if (googleAccount == null)
                     {
                         Log("Error: GoogleSignInAccount is null!");
-                        signin_tcs.TrySetException(new Exception("Google account data is null."));
+                        signInTcs.TrySetException(new Exception("Google account data is null."));
                         return;
                     }
 
-                    Log($"Google Account details retrieved: Email={google_usr.Email}, DisplayName={google_usr.DisplayName}");
+                    Log($"Google Account details retrieved: Email={googleAccount.Email}, DisplayName={googleAccount.DisplayName}");
 
-                    var raw_token = google_usr.IdToken;
-                    if (string.IsNullOrEmpty(raw_token))
+                    var idToken = googleAccount.IdToken;
+                    if (string.IsNullOrEmpty(idToken))
                     {
                         Log("Error: Google ID Token is null or empty!");
-                        signin_tcs.TrySetException(new Exception("Failed to retrieve Google ID Token. (Likely SHA-1 fingerprint mismatch in Firebase console)"));
+                        signInTcs.TrySetException(new Exception("Failed to retrieve Google ID Token. (Likely SHA-1 fingerprint mismatch in Firebase console)"));
                         return;
                     }
 
-                    Log($"Google ID Token retrieved successfully. Length: {raw_token.Length}");
+                    Log($"Google ID Token retrieved successfully. Length: {idToken.Length}");
                     Log("Exchanging Google ID Token with Firebase...");
-                    
-                    var fb_creds = await SignInWithGoogleIdTokenAsync(raw_token);
+
+                    var firebaseCredentials = await SignInWithGoogleIdTokenAsync(idToken);
                     Log("Firebase exchange successful!");
-                    signin_tcs.TrySetResult(fb_creds);
+                    signInTcs.TrySetResult(firebaseCredentials);
                 }
-                catch (Exception handlerErr)
+                catch (Exception handlerEx)
                 {
-                    Log($"Exception inside activity result handler: {handlerErr.Message}");
-                    signin_tcs.TrySetException(new Exception($"Google Sign-In handler failed: {handlerErr.Message}"));
+                    Log($"Exception inside activity result handler: {handlerEx.Message}");
+                    signInTcs.TrySetException(new Exception($"Google Sign-In handler failed: {handlerEx.Message}"));
                 }
             }
             else
@@ -178,23 +176,23 @@ public class GoogleSignInService
             }
         };
 
-        MainActivity.ActivityResult += on_act_res;
+        MainActivity.ActivityResult += onActivityResult;
         Log("Subscribed to MainActivity.ActivityResult.");
 
         try
         {
             Log("Launching Google Sign-In activity...");
-            curr_activity.StartActivityForResult(signin_client.SignInIntent, SigninRequestCode);
+            currentActivity.StartActivityForResult(signInClient.SignInIntent, SignInRequestCode);
             Log("Activity launched successfully.");
         }
-        catch (Exception launchErr)
+        catch (Exception launchEx)
         {
-            Log($"Failed to launch Google Sign-In: {launchErr.Message}");
-            MainActivity.ActivityResult -= on_act_res;
-            throw new Exception($"Failed to launch Google Sign-In screen: {launchErr.Message}");
+            Log($"Failed to launch Google Sign-In: {launchEx.Message}");
+            MainActivity.ActivityResult -= onActivityResult;
+            throw new Exception($"Failed to launch Google Sign-In screen: {launchEx.Message}");
         }
 
-        return await signin_tcs.Task;
+        return await signInTcs.Task;
 #else
         Log("Error: Platform is not Android!");
         throw new NotImplementedException("Google Sign-In is only implemented for Android in this project.");
@@ -211,18 +209,18 @@ public class GoogleSignInService
             returnSecureToken = true
         };
 
-        var target_url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:signInWithIdp?key={AppConfig.FirebaseWebApiKey}";
-        Log($"Firebase Request URL: {target_url}");
+        var targetUrl = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:signInWithIdp?key={AppConfig.FirebaseWebApiKey}";
+        Log($"Firebase Request URL: {targetUrl}");
 
-        var http_resp = await _http.PostAsJsonAsync(target_url, payload);
-        var raw_json_str = await http_resp.Content.ReadAsStringAsync();
-        Log($"Firebase Response status: {http_resp.StatusCode}");
+        var httpResponse = await _http.PostAsJsonAsync(targetUrl, payload);
+        var rawJson = await httpResponse.Content.ReadAsStringAsync();
+        Log($"Firebase Response status: {httpResponse.StatusCode}");
 
-        var json_doc = JsonDocument.Parse(raw_json_str);
+        var jsonDocument = JsonDocument.Parse(rawJson);
 
-        if (!http_resp.IsSuccessStatusCode)
+        if (!httpResponse.IsSuccessStatusCode)
         {
-            var errorMsg = json_doc.RootElement
+            var errorMsg = jsonDocument.RootElement
                 .TryGetProperty("error", out var err)
                 ? err.GetProperty("message").GetString() ?? "Sign-in failed"
                 : "Google Sign-In failed";
@@ -230,19 +228,19 @@ public class GoogleSignInService
             throw new Exception(errorMsg);
         }
 
-        var root_node = json_doc.RootElement;
+        var root = jsonDocument.RootElement;
         return new GoogleSignInResult
         {
-            IdToken = root_node.TryGetProperty("idToken", out var tok) ? tok.GetString() ?? "" : "",
-            RefreshToken = root_node.TryGetProperty("refreshToken", out var rt) ? rt.GetString() ?? "" : "",
-            UserId = root_node.TryGetProperty("localId", out var uid) ? uid.GetString() ?? "" : "",
-            Email = root_node.TryGetProperty("email", out var em) ? em.GetString() ?? "" : "",
-            DisplayName = root_node.TryGetProperty("displayName", out var dn) ? dn.GetString() ?? "" : "",
-            PhotoUrl = root_node.TryGetProperty("photoUrl", out var ph) ? ph.GetString() ?? "" : "",
+            IdToken = root.TryGetProperty("idToken", out var tok) ? tok.GetString() ?? "" : "",
+            RefreshToken = root.TryGetProperty("refreshToken", out var rt) ? rt.GetString() ?? "" : "",
+            UserId = root.TryGetProperty("localId", out var uid) ? uid.GetString() ?? "" : "",
+            Email = root.TryGetProperty("email", out var em) ? em.GetString() ?? "" : "",
+            DisplayName = root.TryGetProperty("displayName", out var dn) ? dn.GetString() ?? "" : "",
+            PhotoUrl = root.TryGetProperty("photoUrl", out var ph) ? ph.GetString() ?? "" : "",
             ExpiresIn = int.TryParse(
-                root_node.TryGetProperty("expiresIn", out var exp) ? exp.GetString() : "3600", out var expVal)
+                root.TryGetProperty("expiresIn", out var exp) ? exp.GetString() : "3600", out var expVal)
                 ? expVal : 3600,
-            IsNewUser = root_node.TryGetProperty("isNewUser", out var nu) && nu.GetBoolean()
+            IsNewUser = root.TryGetProperty("isNewUser", out var nu) && nu.GetBoolean()
         };
     }
 }

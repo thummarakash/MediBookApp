@@ -5,11 +5,6 @@ using MimeKit;
 
 namespace MediBook.Services.Email;
 
-/// <summary>
-/// Sends HTML emails via Gmail SMTP using MailKit.
-/// NOTE: For production, move this to a secure backend (Firebase Cloud Function / Azure Function).
-///       Storing SMTP credentials in the app exposes them to APK extraction.
-/// </summary>
 public class SmtpEmailService
 {
     public static SmtpEmailService Instance { get; } = new();
@@ -19,25 +14,24 @@ public class SmtpEmailService
     {
         try
         {
-            var mime_msg = new MimeMessage();
-            mime_msg.From.Add(new MailboxAddress(AppConfig.Smtp.SenderName, AppConfig.Smtp.SenderAddress));
-            mime_msg.To.Add(new MailboxAddress(toName, toAddress));
-            mime_msg.Subject = subject;
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(AppConfig.Smtp.SenderName, AppConfig.Smtp.SenderAddress));
+            message.To.Add(new MailboxAddress(toName, toAddress));
+            message.Subject = subject;
 
-            var body_builder = new BodyBuilder { HtmlBody = htmlBody };
-            mime_msg.Body = body_builder.ToMessageBody();
+            var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
+            message.Body = bodyBuilder.ToMessageBody();
 
-            using var smtp_client = new SmtpClient();
-            await smtp_client.ConnectAsync(AppConfig.Smtp.Host, AppConfig.Smtp.Port, SecureSocketOptions.StartTls);
-            await smtp_client.AuthenticateAsync(AppConfig.Smtp.SenderAddress, AppConfig.Smtp.AppPassword);
-            await smtp_client.SendAsync(mime_msg);
-            await smtp_client.DisconnectAsync(true);
+            using var smtpClient = new SmtpClient();
+            await smtpClient.ConnectAsync(AppConfig.Smtp.Host, AppConfig.Smtp.Port, SecureSocketOptions.StartTls);
+            await smtpClient.AuthenticateAsync(AppConfig.Smtp.SenderAddress, AppConfig.Smtp.AppPassword);
+            await smtpClient.SendAsync(message);
+            await smtpClient.DisconnectAsync(true);
             return true;
         }
-        catch (Exception smtp_ex)
+        catch (Exception ex)
         {
-            // Standard console logging for SMTP delivery errors
-            System.Diagnostics.Debug.WriteLine($"[SMTP] Send failed: {smtp_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[SmtpEmailService] Send failed: {ex.Message}");
             return false;
         }
     }

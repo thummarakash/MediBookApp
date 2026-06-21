@@ -17,7 +17,7 @@ public class DocumentGroup : List<MedicalDocument>
 
 public partial class DocumentsViewModel : ObservableObject
 {
-    private List<MedicalDocument> _all = new();
+    private List<MedicalDocument> _allDocuments = new();
 
     [ObservableProperty] ObservableCollection<DocumentGroup> documents = new();
     [ObservableProperty] string selectedCategory = "All";
@@ -31,12 +31,12 @@ public partial class DocumentsViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            _all = await DatabaseService.Instance.GetDocumentsForCurrentUserAsync();
+            _allDocuments = await DatabaseService.Instance.GetDocumentsForCurrentUserAsync();
             ApplyFilters();
         }
-        catch (Exception doc_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DocumentsVM] Failed to load documents: {doc_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DocsVM] load error: {ex.Message}");
         }
         finally
         {
@@ -98,18 +98,19 @@ public partial class DocumentsViewModel : ObservableObject
 
     private void ApplyFilters()
     {
-        var docs = _all.AsEnumerable();
+        var docs = _allDocuments.AsEnumerable();
 
         if (!SelectedCategory.Equals("All", StringComparison.OrdinalIgnoreCase))
             docs = docs.Where(d => d.DocumentType.Equals(SelectedCategory, StringComparison.OrdinalIgnoreCase));
 
-        var query = SearchText.Trim().ToLowerInvariant();
-        if (!string.IsNullOrWhiteSpace(query))
-            docs = docs.Where(d => d.FileName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                                   d.Notes.Contains(query, StringComparison.OrdinalIgnoreCase));
+        string q = SearchText.Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(q))
+            docs = docs.Where(d => d.FileName.Contains(q, StringComparison.OrdinalIgnoreCase)
+                                || d.Notes.Contains(q, StringComparison.OrdinalIgnoreCase));
 
         var result = docs.ToList();
 
+        // group by upload month so the list is easier to browse over time
         var grouped = result
             .OrderByDescending(d => d.UploadedAt)
             .GroupBy(d => d.UploadedAt.ToString("MMMM yyyy"))

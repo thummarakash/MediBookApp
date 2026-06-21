@@ -10,11 +10,8 @@ namespace MediBook.Services;
 
 public class DatabaseService
 {
-    private const string logged_in_key = "medibook_logged_in";
-
     public static DatabaseService Instance { get; } = new();
 
-    // Default static clinics fallback for offline usage
     public static readonly List<Clinic> DefaultClinics = new()
     {
         new() { Id = 1, Name = "Melbourne Central Medical", Address = "123 Collins St, Melbourne VIC 3000", Latitude = -37.8142, Longitude = 144.9631 },
@@ -48,174 +45,169 @@ public class DatabaseService
     public static List<Doctor> StaticDoctors => DefaultDoctors;
     public static List<ClinicDoctor> StaticClinicDoctors => DefaultClinicDoctors;
 
-    private UserAccount? _currUser;
+    private UserAccount? _currentUser;
     private DatabaseService() { }
 
     public async Task<UserAccount> RegisterUserAsync(string fullName, string email, string phone, string dateOfBirth, string password)
     {
-        // SignUp new patient via FirebaseAuth
-        var auth_res = await FirebaseAuthService.Instance.SignUpWithEmailPasswordAsync(email, password, fullName);
-        var usr_role = email.Contains("admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "Patient";
-        var fcm_tok = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
+        var authResult = await FirebaseAuthService.Instance.SignUpWithEmailPasswordAsync(email, password, fullName);
+        var userRole = email.Contains("admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "Patient";
+        var fcmToken = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
 
-        var usr = new UserAccount
+        var user = new UserAccount
         {
-            FirestoreId = auth_res.UserId,
+            FirestoreId = authResult.UserId,
             Id = 1,
             FullName = fullName,
             Email = email,
             Phone = phone,
             DateOfBirth = dateOfBirth,
-            Role = usr_role,
+            Role = userRole,
             AuthProvider = "Local",
-            FCMToken = fcm_tok,
+            FCMToken = fcmToken,
             CreatedAt = DateTime.Now
         };
 
-        // Save session data first to prevent auth issue in firestore rule
-        await SessionService.Instance.SaveSessionAsync(auth_res, usr_role);
-        await UserRepository.Instance.CreateAsync(usr);
+        await SessionService.Instance.SaveSessionAsync(authResult, userRole);
+        await UserRepository.Instance.CreateAsync(user);
 
-        _currUser = usr;
-        Preferences.Default.Set("medibook_onboarding_seen", true);
-        return usr;
+        _currentUser = user;
+        Preferences.Default.Set(AppConfig.PrefKeys.OnboardingSeen, true);
+        return user;
     }
 
     public async Task<UserAccount?> LoginAsync(string email, string password)
     {
-        var auth_res = await FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(email, password);
-        var usr = await UserRepository.Instance.GetByIdAsync(auth_res.UserId);
-        var fcm_tok = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
-        
-        if (usr == null)
+        var authResult = await FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(email, password);
+        var user = await UserRepository.Instance.GetByIdAsync(authResult.UserId);
+        var fcmToken = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
+
+        if (user == null)
         {
-            var usr_role = email.Contains("admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "Patient";
-            usr = new UserAccount
+            var userRole = email.Contains("admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "Patient";
+            user = new UserAccount
             {
-                FirestoreId = auth_res.UserId,
+                FirestoreId = authResult.UserId,
                 Id = 1,
-                FullName = auth_res.DisplayName.IfEmpty(email.Split('@')[0]),
+                FullName = authResult.DisplayName.IfEmpty(email.Split('@')[0]),
                 Email = email,
-                Role = usr_role,
-                FCMToken = fcm_tok,
+                Role = userRole,
+                FCMToken = fcmToken,
                 AuthProvider = "Local"
             };
-            await UserRepository.Instance.CreateAsync(usr);
+            await UserRepository.Instance.CreateAsync(user);
         }
         else
         {
-            usr.FCMToken = fcm_tok;
-            await UserRepository.Instance.UpdateAsync(usr);
+            user.FCMToken = fcmToken;
+            await UserRepository.Instance.UpdateAsync(user);
         }
 
-        await SessionService.Instance.SaveSessionAsync(auth_res, usr.Role);
-        _currUser = usr;
-        Preferences.Default.Set("medibook_onboarding_seen", true);
-        return usr;
+        await SessionService.Instance.SaveSessionAsync(authResult, user.Role);
+        _currentUser = user;
+        Preferences.Default.Set(AppConfig.PrefKeys.OnboardingSeen, true);
+        return user;
     }
 
     public async Task<UserAccount> SaveGoogleUserAsync(string fullName, string email, string googleSubject, string photoUrl = "")
     {
-        var u_id = googleSubject;
-        var usr = await UserRepository.Instance.GetByIdAsync(u_id);
-        var fcm_tok = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
-        
-        if (usr == null)
+        var userId = googleSubject;
+        var user = await UserRepository.Instance.GetByIdAsync(userId);
+        var fcmToken = Preferences.Default.Get(AppConfig.PrefKeys.FcmToken, string.Empty);
+
+        if (user == null)
         {
-            usr = new UserAccount
+            user = new UserAccount
             {
-                FirestoreId = u_id,
+                FirestoreId = userId,
                 Id = 1,
                 FullName = fullName,
                 Email = email,
                 AvatarUrl = photoUrl,
                 Role = "Patient",
-                FCMToken = fcm_tok,
+                FCMToken = fcmToken,
                 AuthProvider = "Google"
             };
-            await UserRepository.Instance.CreateAsync(usr);
+            await UserRepository.Instance.CreateAsync(user);
         }
         else
         {
-            bool need_upd = false;
-            if (!string.IsNullOrEmpty(photoUrl) && string.IsNullOrEmpty(usr.AvatarUrl))
+            bool needsUpdate = false;
+            if (!string.IsNullOrEmpty(photoUrl) && string.IsNullOrEmpty(user.AvatarUrl))
             {
-                usr.AvatarUrl = photoUrl;
-                need_upd = true;
+                user.AvatarUrl = photoUrl;
+                needsUpdate = true;
             }
-            if (usr.FCMToken != fcm_tok)
+            if (user.FCMToken != fcmToken)
             {
-                usr.FCMToken = fcm_tok;
-                need_upd = true;
+                user.FCMToken = fcmToken;
+                needsUpdate = true;
             }
-            if (need_upd)
-            {
-                await UserRepository.Instance.UpdateAsync(usr);
-            }
+            if (needsUpdate)
+                await UserRepository.Instance.UpdateAsync(user);
         }
 
-        _currUser = usr;
-        Preferences.Default.Set(logged_in_key, true);
-        Preferences.Default.Set("medibook_onboarding_seen", true);
-        return usr;
+        _currentUser = user;
+        Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, true);
+        Preferences.Default.Set(AppConfig.PrefKeys.OnboardingSeen, true);
+        return user;
     }
 
     public async Task<UserAccount?> GetCurrentUserAsync()
     {
-        if (_currUser != null) return _currUser;
+        if (_currentUser != null) return _currentUser;
 
-        var uid = await SessionService.Instance.GetUserIdAsync();
-        if (string.IsNullOrEmpty(uid))
+        var userId = await SessionService.Instance.GetUserIdAsync();
+        if (string.IsNullOrEmpty(userId))
         {
-            if (!Preferences.Default.Get(logged_in_key, false)) return null;
-            return CreateLegacyUser();
+            if (!Preferences.Default.Get(AppConfig.PrefKeys.LoggedIn, false)) return null;
+            return CreateOfflinePlaceholderUser();
         }
 
         try
         {
-            _currUser = await UserRepository.Instance.GetByIdAsync(uid);
+            _currentUser = await UserRepository.Instance.GetByIdAsync(userId);
         }
-        catch (Exception db_err)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] GetCurrentUserAsync query error: {db_err.Message}");
-            _currUser = CreateLegacyUser();
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetCurrentUserAsync failed: {ex.Message}");
+            _currentUser = CreateOfflinePlaceholderUser();
         }
 
-        return _currUser;
+        return _currentUser;
     }
 
     public bool IsLoggedIn => SessionService.Instance.IsAuthenticated
-        || Preferences.Default.Get(logged_in_key, false);
+        || Preferences.Default.Get(AppConfig.PrefKeys.LoggedIn, false);
 
     public void Logout()
     {
         try
         {
-            var uid = SessionService.Instance.GetUserIdAsync().GetAwaiter().GetResult();
-            if (!string.IsNullOrEmpty(uid))
+            var userId = SessionService.Instance.GetUserIdAsync().GetAwaiter().GetResult();
+            if (!string.IsNullOrEmpty(userId))
             {
                 Task.Run(async () =>
                 {
                     try
                     {
-                        await UserRepository.Instance.UpdateFcmTokenAsync(uid, "");
+                        await UserRepository.Instance.UpdateFcmTokenAsync(userId, "");
                     }
-                    catch (Exception err)
+                    catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[dbSvc] Couldn't clear FCM push token: {err.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[DatabaseService] Logout: FCM token clear failed: {ex.Message}");
                     }
                 });
             }
         }
-        catch (Exception err)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Logout failed to fetch uid: {err.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] Logout: Failed to retrieve user ID: {ex.Message}");
         }
 
-        _currUser = null;
+        _currentUser = null;
         SessionService.Instance.SignOut();
 
-        Preferences.Default.Set(logged_in_key, false);
         Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
         Preferences.Default.Set(AppConfig.PrefKeys.BiometricEnabled, false);
         Preferences.Default.Set(AppConfig.PrefKeys.PinEnabled, false);
@@ -224,37 +216,36 @@ public class DatabaseService
 
     public async Task UpdateUserAsync(UserAccount user)
     {
-        _currUser = user;
+        _currentUser = user;
         if (!string.IsNullOrEmpty(user.FirestoreId))
             await UserRepository.Instance.UpdateAsync(user);
     }
 
     public async Task<List<Clinic>> GetClinicsAsync()
     {
-        // Return local clinics if offline
         if (!Helpers.ConnectivityHelper.IsConnected)
         {
-            var cached_list = await LocalCacheService.Instance.GetCachedClinicsAsync();
-            return cached_list.Count > 0 ? cached_list : DefaultClinics;
+            var cached = await LocalCacheService.Instance.GetCachedClinicsAsync();
+            return cached.Count > 0 ? cached : DefaultClinics;
         }
 
         try
         {
-            var items = await ClinicRepository.Instance.GetAllAsync();
-            if (items.Count == 0)
+            var clinics = await ClinicRepository.Instance.GetAllAsync();
+            if (clinics.Count == 0)
             {
                 await ClinicRepository.Instance.SeedIfEmptyAsync(DefaultClinics);
-                items = await ClinicRepository.Instance.GetAllAsync();
+                clinics = await ClinicRepository.Instance.GetAllAsync();
             }
-            var res = items.Count > 0 ? items : DefaultClinics;
-            _ = LocalCacheService.Instance.CacheClinicsAsync(res);
-            return res;
+            var result = clinics.Count > 0 ? clinics : DefaultClinics;
+            _ = LocalCacheService.Instance.CacheClinicsAsync(result);
+            return result;
         }
-        catch (Exception conn_err)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Fetching clinics from cache because of error: {conn_err.Message}");
-            var cached_list = await LocalCacheService.Instance.GetCachedClinicsAsync();
-            return cached_list.Count > 0 ? cached_list : DefaultClinics;
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetClinicsAsync failed, loading cache: {ex.Message}");
+            var cached = await LocalCacheService.Instance.GetCachedClinicsAsync();
+            return cached.Count > 0 ? cached : DefaultClinics;
         }
     }
 
@@ -262,49 +253,49 @@ public class DatabaseService
     {
         if (!Helpers.ConnectivityHelper.IsConnected)
         {
-            var cached_list = await LocalCacheService.Instance.GetCachedDoctorsAsync();
-            return cached_list.Count > 0 ? cached_list : EnrichDoctorsWithClinic(DefaultDoctors);
+            var cached = await LocalCacheService.Instance.GetCachedDoctorsAsync();
+            return cached.Count > 0 ? cached : EnrichDoctorsWithClinic(DefaultDoctors);
         }
 
         try
         {
-            var items = await DoctorRepository.Instance.GetAllAsync();
-            if (items.Count == 0)
+            var doctors = await DoctorRepository.Instance.GetAllAsync();
+            if (doctors.Count == 0)
             {
                 await DoctorRepository.Instance.SeedIfEmptyAsync(DefaultDoctors);
-                items = await DoctorRepository.Instance.GetAllAsync();
+                doctors = await DoctorRepository.Instance.GetAllAsync();
             }
-            var res = items.Count > 0 ? items : EnrichDoctorsWithClinic(DefaultDoctors);
-            _ = LocalCacheService.Instance.CacheDoctorsAsync(res);
-            return res;
+            var result = doctors.Count > 0 ? doctors : EnrichDoctorsWithClinic(DefaultDoctors);
+            _ = LocalCacheService.Instance.CacheDoctorsAsync(result);
+            return result;
         }
-        catch (Exception conn_err)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Fetching doctors from cache because of error: {conn_err.Message}");
-            var cached_list = await LocalCacheService.Instance.GetCachedDoctorsAsync();
-            return cached_list.Count > 0 ? cached_list : EnrichDoctorsWithClinic(DefaultDoctors);
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetDoctorsAsync failed, loading cache: {ex.Message}");
+            var cached = await LocalCacheService.Instance.GetCachedDoctorsAsync();
+            return cached.Count > 0 ? cached : EnrichDoctorsWithClinic(DefaultDoctors);
         }
     }
 
     public async Task<Doctor?> GetDoctorAsync(int id)
     {
-        var all_docs = await GetDoctorsAsync();
-        var doc = all_docs.FirstOrDefault(d => d.Id == id);
-        if (doc == null && id <= DefaultDoctors.Count)
-            doc = DefaultDoctors.FirstOrDefault(d => d.Id == id);
-        return doc;
+        var allDoctors = await GetDoctorsAsync();
+        var doctor = allDoctors.FirstOrDefault(d => d.Id == id);
+        if (doctor == null && id <= DefaultDoctors.Count)
+            doctor = DefaultDoctors.FirstOrDefault(d => d.Id == id);
+        return doctor;
     }
 
     public async Task<Doctor?> GetDoctorByFirestoreIdAsync(string firestoreId)
     {
-        try 
-        { 
-            return await DoctorRepository.Instance.GetByIdAsync(firestoreId); 
+        try
+        {
+            return await DoctorRepository.Instance.GetByIdAsync(firestoreId);
         }
-        catch (Exception doc_err)
-        { 
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Doctor not found in Firestore: {doc_err.Message}");
-            return null; 
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetDoctorByFirestoreIdAsync failed: {ex.Message}");
+            return null;
         }
     }
 
@@ -312,16 +303,16 @@ public class DatabaseService
     {
         try
         {
-            var uid = await SessionService.Instance.GetUserIdAsync();
-            appointment.UserFirestoreId = uid ?? string.Empty;
-            var db_id = await AppointmentRepository.Instance.CreateAsync(appointment);
-            appointment.FirestoreId = db_id;
-            appointment.Id = Math.Abs(db_id.GetHashCode() % 100000);
+            var userId = await SessionService.Instance.GetUserIdAsync();
+            appointment.UserFirestoreId = userId ?? string.Empty;
+            var newDocId = await AppointmentRepository.Instance.CreateAsync(appointment);
+            appointment.FirestoreId = newDocId;
+            appointment.Id = Math.Abs(newDocId.GetHashCode() % 100000);
             return appointment.Id;
         }
-        catch (Exception save_err)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Error saving appointment, generating offline UUID: {save_err.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] SaveAppointmentAsync failed, generating offline ID: {ex.Message}");
             appointment.Id = Math.Abs(Guid.NewGuid().GetHashCode() % 100000);
             return appointment.Id;
         }
@@ -329,48 +320,48 @@ public class DatabaseService
 
     public async Task<Appointment?> GetAppointmentAsync(int id)
     {
-        var all_appts = await GetAppointmentsForCurrentUserAsync();
-        return all_appts.FirstOrDefault(a => a.Id == id);
+        var appointments = await GetAppointmentsForCurrentUserAsync();
+        return appointments.FirstOrDefault(a => a.Id == id);
     }
 
     public async Task<Appointment?> GetAppointmentByFirestoreIdAsync(string firestoreId)
     {
-        try 
-        { 
-            return await AppointmentRepository.Instance.GetByIdAsync(firestoreId); 
+        try
+        {
+            return await AppointmentRepository.Instance.GetByIdAsync(firestoreId);
         }
-        catch (Exception appt_err)
-        { 
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Appointment not found in Firestore: {appt_err.Message}");
-            return null; 
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetAppointmentByFirestoreIdAsync failed: {ex.Message}");
+            return null;
         }
     }
 
     public async Task<List<Appointment>> GetAppointmentsForCurrentUserAsync()
     {
-        var uid = await SessionService.Instance.GetUserIdAsync();
-        if (string.IsNullOrEmpty(uid)) return new List<Appointment>();
+        var userId = await SessionService.Instance.GetUserIdAsync();
+        if (string.IsNullOrEmpty(userId)) return new List<Appointment>();
 
         if (!Helpers.ConnectivityHelper.IsConnected)
         {
-            var cached_items = await LocalCacheService.Instance.GetCachedAppointmentsAsync(uid);
-            for (int i = 0; i < cached_items.Count; i++) cached_items[i].Id = i + 1;
-            return cached_items;
+            var cached = await LocalCacheService.Instance.GetCachedAppointmentsAsync(userId);
+            for (int i = 0; i < cached.Count; i++) cached[i].Id = i + 1;
+            return cached;
         }
 
         try
         {
-            var db_items = await AppointmentRepository.Instance.GetByUserIdAsync(uid);
-            for (int i = 0; i < db_items.Count; i++) db_items[i].Id = i + 1;
-            _ = LocalCacheService.Instance.CacheAppointmentsAsync(uid, db_items);
-            return db_items;
+            var appointments = await AppointmentRepository.Instance.GetByUserIdAsync(userId);
+            for (int i = 0; i < appointments.Count; i++) appointments[i].Id = i + 1;
+            _ = LocalCacheService.Instance.CacheAppointmentsAsync(userId, appointments);
+            return appointments;
         }
-        catch (Exception fetch_err)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Error fetching user appointments, loading cache: {fetch_err.Message}");
-            var cached_items = await LocalCacheService.Instance.GetCachedAppointmentsAsync(uid);
-            for (int i = 0; i < cached_items.Count; i++) cached_items[i].Id = i + 1;
-            return cached_items;
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetAppointmentsForCurrentUserAsync failed, loading cache: {ex.Message}");
+            var cached = await LocalCacheService.Instance.GetCachedAppointmentsAsync(userId);
+            for (int i = 0; i < cached.Count; i++) cached[i].Id = i + 1;
+            return cached;
         }
     }
 
@@ -378,27 +369,27 @@ public class DatabaseService
     {
         try
         {
-            var uid = await SessionService.Instance.GetUserIdAsync();
-            if (string.IsNullOrEmpty(uid)) return null;
-            return await AppointmentRepository.Instance.GetNextUpcomingAsync(uid);
+            var userId = await SessionService.Instance.GetUserIdAsync();
+            if (string.IsNullOrEmpty(userId)) return null;
+            return await AppointmentRepository.Instance.GetNextUpcomingAsync(userId);
         }
-        catch (Exception next_err)
-        { 
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Next appointment load error: {next_err.Message}");
-            return null; 
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetNextAppointmentAsync failed: {ex.Message}");
+            return null;
         }
     }
 
     public async Task<List<Appointment>> GetAllAppointmentsAsync()
     {
-        try 
-        { 
-            return await AppointmentRepository.Instance.GetAllAsync(); 
+        try
+        {
+            return await AppointmentRepository.Instance.GetAllAsync();
         }
-        catch (Exception all_err)
-        { 
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Fetch all appointments failed: {all_err.Message}");
-            return new List<Appointment>(); 
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetAllAppointmentsAsync failed: {ex.Message}");
+            return new List<Appointment>();
         }
     }
 
@@ -406,14 +397,14 @@ public class DatabaseService
     {
         try
         {
-            var uid = await SessionService.Instance.GetUserIdAsync();
-            document.UserFirestoreId = uid ?? string.Empty;
+            var userId = await SessionService.Instance.GetUserIdAsync();
+            document.UserFirestoreId = userId ?? string.Empty;
             await DocumentRepository.Instance.CreateAsync(document);
             document.Id = Math.Abs(document.FirestoreId.GetHashCode() % 100000);
         }
-        catch (Exception doc_save_err)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] SaveDocumentAsync query failed: {doc_save_err.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] SaveDocumentAsync failed: {ex.Message}");
             document.Id = Math.Abs(Guid.NewGuid().GetHashCode() % 100000);
         }
     }
@@ -422,35 +413,35 @@ public class DatabaseService
     {
         try
         {
-            var uid = await SessionService.Instance.GetUserIdAsync();
-            if (string.IsNullOrEmpty(uid)) return new List<MedicalDocument>();
-            return await DocumentRepository.Instance.GetByUserIdAsync(uid);
+            var userId = await SessionService.Instance.GetUserIdAsync();
+            if (string.IsNullOrEmpty(userId)) return new List<MedicalDocument>();
+            return await DocumentRepository.Instance.GetByUserIdAsync(userId);
         }
-        catch (Exception doc_fetch_err)
-        { 
-            System.Diagnostics.Debug.WriteLine($"[dbSvc] Load documents query failed: {doc_fetch_err.Message}");
-            return new List<MedicalDocument>(); 
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetDocumentsForCurrentUserAsync failed: {ex.Message}");
+            return new List<MedicalDocument>();
         }
     }
 
     public async Task DeleteDocumentAsync(int documentId)
     {
-        var all_docs = await GetDocumentsForCurrentUserAsync();
-        var target_doc = all_docs.FirstOrDefault(d => d.Id == documentId);
-        if (target_doc != null && !string.IsNullOrEmpty(target_doc.FirestoreId))
+        var documents = await GetDocumentsForCurrentUserAsync();
+        var document = documents.FirstOrDefault(d => d.Id == documentId);
+        if (document != null && !string.IsNullOrEmpty(document.FirestoreId))
         {
-            if (!string.IsNullOrEmpty(target_doc.StoragePath))
+            if (!string.IsNullOrEmpty(document.StoragePath))
             {
-                try 
-                { 
-                    await Firebase.FirebaseStorageService.Instance.DeleteFileAsync(target_doc.StoragePath); 
+                try
+                {
+                    await Firebase.FirebaseStorageService.Instance.DeleteFileAsync(document.StoragePath);
                 }
-                catch (Exception del_err)
-                { 
-                    System.Diagnostics.Debug.WriteLine($"[dbSvc] DeleteDocumentAsync non-critical storage delete failure: {del_err.Message}");
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[DatabaseService] DeleteDocumentAsync: Storage delete failed (non-critical): {ex.Message}");
                 }
             }
-            await DocumentRepository.Instance.DeleteAsync(target_doc.FirestoreId);
+            await DocumentRepository.Instance.DeleteAsync(document.FirestoreId);
         }
     }
 
@@ -467,17 +458,17 @@ public class DatabaseService
     {
         try
         {
-            var auth_res = await FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(
+            var authResult = await FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(
                 "akashthummarau@gmail.com",
                 "Admin@!23"
             );
-            
-            var admin_profile = await UserRepository.Instance.GetByIdAsync(auth_res.UserId);
-            if (admin_profile == null)
+
+            var adminProfile = await UserRepository.Instance.GetByIdAsync(authResult.UserId);
+            if (adminProfile == null)
             {
-                var new_admin = new UserAccount
+                var admin = new UserAccount
                 {
-                    FirestoreId = auth_res.UserId,
+                    FirestoreId = authResult.UserId,
                     Id = 1,
                     FullName = "System Admin",
                     Email = "akashthummarau@gmail.com",
@@ -487,25 +478,29 @@ public class DatabaseService
                     AuthProvider = "Local",
                     CreatedAt = DateTime.Now
                 };
-                await UserRepository.Instance.CreateAsync(new_admin);
+                await UserRepository.Instance.CreateAsync(admin);
             }
         }
-        catch (Exception auth_err)
+        catch (Exception authEx)
         {
-            var msg = auth_err.Message;
-            if (msg.Contains("EMAIL_NOT_FOUND") || msg.Contains("INVALID_LOGIN_CREDENTIALS") || msg.Contains("INVALID_EMAIL"))
+            var msg = authEx.Message;
+            if (msg.Contains("EMAIL_NOT_FOUND") || 
+                msg.Contains("INVALID_LOGIN_CREDENTIALS") || 
+                msg.Contains("INVALID_EMAIL") ||
+                msg.Contains("No account found") ||
+                msg.Contains("Incorrect email or password"))
             {
                 try
                 {
-                    var auth_res = await FirebaseAuthService.Instance.SignUpWithEmailPasswordAsync(
+                    var authResult = await FirebaseAuthService.Instance.SignUpWithEmailPasswordAsync(
                         "akashthummarau@gmail.com",
                         "Admin@!23",
                         "System Admin"
                     );
 
-                    var new_admin = new UserAccount
+                    var admin = new UserAccount
                     {
-                        FirestoreId = auth_res.UserId,
+                        FirestoreId = authResult.UserId,
                         Id = 1,
                         FullName = "System Admin",
                         Email = "akashthummarau@gmail.com",
@@ -515,37 +510,37 @@ public class DatabaseService
                         AuthProvider = "Local",
                         CreatedAt = DateTime.Now
                     };
-                    await UserRepository.Instance.CreateAsync(new_admin);
+                    await UserRepository.Instance.CreateAsync(admin);
                 }
-                catch (Exception signup_err)
+                catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[dbSvc] Admin auto-signup failed: {signup_err.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[DatabaseService] Admin account creation failed: {ex.Message}");
                 }
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"[dbSvc] Admin auto-login check failed: {auth_err.Message}");
+                System.Diagnostics.Debug.WriteLine($"[DatabaseService] Admin account verification failed: {authEx.Message}");
             }
         }
     }
 
     private static List<Doctor> EnrichDoctorsWithClinic(List<Doctor> doctors)
     {
-        foreach (var d in doctors)
+        foreach (var doctor in doctors)
         {
-            var m = DefaultClinicDoctors.FirstOrDefault(cd => cd.DoctorId == d.Id);
-            if (m != null)
+            var clinicDoctorLink = DefaultClinicDoctors.FirstOrDefault(cd => cd.DoctorId == doctor.Id);
+            if (clinicDoctorLink != null)
             {
-                var c = DefaultClinics.FirstOrDefault(clin => clin.Id == m.ClinicId);
-                if (c != null) d.ClinicName = c.Name;
+                var clinic = DefaultClinics.FirstOrDefault(c => c.Id == clinicDoctorLink.ClinicId);
+                if (clinic != null) doctor.ClinicName = clinic.Name;
             }
         }
         return doctors;
     }
 
-    private static UserAccount CreateLegacyUser() => new()
+    private static UserAccount CreateOfflinePlaceholderUser() => new()
     {
-        Id = 1, 
+        Id = 1,
         FirestoreId = string.Empty,
         FullName = "MediBook User",
         Email = "user@medibook.com",

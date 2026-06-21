@@ -19,23 +19,23 @@ public partial class AdminDashboardViewModel : ObservableObject
         {
             var doctorsTask = DatabaseService.Instance.GetDoctorsAsync();
             var appointmentsTask = DatabaseService.Instance.GetAllAppointmentsAsync();
-
             await Task.WhenAll(doctorsTask, appointmentsTask);
 
             DoctorCount = doctorsTask.Result.Count;
             BookingCount = appointmentsTask.Result.Count;
 
-            // Patient count is estimated from unique user IDs in appointments
-            var uniqueUsers = appointmentsTask.Result
+            // derive patient count from unique user IDs across all bookings
+            // (we don't have a separate users collection to query at the moment)
+            int uniqueUsers = appointmentsTask.Result
                 .Where(a => !string.IsNullOrEmpty(a.UserFirestoreId))
                 .Select(a => a.UserFirestoreId)
                 .Distinct()
                 .Count();
             PatientCount = Math.Max(uniqueUsers, BookingCount > 0 ? 1 : 0);
         }
-        catch (Exception dash_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AdminDashVM] Failed to compile admin dashboard stats: {dash_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AdminDashboard] LoadAsync threw: {ex.Message}");
         }
         finally
         {

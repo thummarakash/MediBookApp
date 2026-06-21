@@ -28,7 +28,7 @@ public partial class AppointmentsPage : ContentPage
         if (user != null)
             CustomTabBarControl.IsAdmin = user.Role == "Admin";
 
-        await _vm.SyncApptsCommand.ExecuteAsync(null);
+        await _vm.LoadAppointmentsCommand.ExecuteAsync(null);
     }
 
     private void OnTabTapped(object sender, EventArgs e)
@@ -37,7 +37,7 @@ public partial class AppointmentsPage : ContentPage
             && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap
             && tap.CommandParameter is string tab)
         {
-            _vm.GoToTabCommand.Execute(tab);
+            _vm.SelectTabCommand.Execute(tab);
             UpdateTabUI(tab);
         }
     }
@@ -62,7 +62,7 @@ public partial class AppointmentsPage : ContentPage
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
-        _vm.MatchTextCommand.Execute(e.NewTextValue);
+        _vm.SearchAppointmentsCommand.Execute(e.NewTextValue);
     }
 
     private async void OnBookClicked(object sender, EventArgs e)

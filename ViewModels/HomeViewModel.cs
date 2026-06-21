@@ -23,30 +23,28 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty] bool isEmpty;
 
     [RelayCommand]
-    async Task SyncDashboardData()
+    async Task LoadDashboardData()
     {
         IsLoading = true;
-        
         try
         {
-            var u = await DatabaseService.Instance.GetCurrentUserAsync();
-            if (u != null)
+            var user = await DatabaseService.Instance.GetCurrentUserAsync();
+            if (user != null)
             {
-                var h = DateTime.Now.Hour;
-                string greet = h < 12 ? "Good Morning" : (h < 17 ? "Good Afternoon" : "Good Evening");
-                
-                Greeting = $"{greet}, {u.FullName.Split(' ')[0]}";
-                UserInitials = u.Initials;
+                int hr = DateTime.Now.Hour;
+                // afternoon ends at 5pm — "Good Evening" after that
+                string timeGreeting = hr < 12 ? "Good Morning" : hr < 17 ? "Good Afternoon" : "Good Evening";
+                Greeting = $"{timeGreeting}, {user.FullName.Split(' ')[0]}";
+                UserInitials = user.Initials;
             }
 
-            var next = await DatabaseService.Instance.GetNextAppointmentAsync();
-            
-            if (next != null)
+            var nextAppointment = await DatabaseService.Instance.GetNextAppointmentAsync();
+            if (nextAppointment != null)
             {
                 HasNextAppointment = true;
-                NextDoctorName = next.DoctorName;
-                NextDoctorDetail = $"{next.Department} • {next.DisplayDateTime}";
-                NextStatus = $"• {next.Status}";
+                NextDoctorName = nextAppointment.DoctorName;
+                NextDoctorDetail = $"{nextAppointment.Department} • {nextAppointment.DisplayDateTime}";
+                NextStatus = $"• {nextAppointment.Status}";
             }
             else
             {
@@ -56,24 +54,23 @@ public partial class HomeViewModel : ObservableObject
                 NextStatus = "—";
             }
 
-            var list = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
-            var filtered = new List<Appointment>();
-            for (int i = 0; i < list.Count; i++)
+            var appointments = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
+            var upcomingList = new List<Appointment>();
+            for (int i = 0; i < appointments.Count; i++)
             {
-                if (list[i].Status == "Upcoming")
-                {
-                    filtered.Add(list[i]);
-                }
+                if (appointments[i].Status == "Upcoming")
+                    upcomingList.Add(appointments[i]);
             }
-            
-            UpcomingAppointments = new ObservableCollection<Appointment>(filtered);
-            IsEmpty = filtered.Count == 0;
 
+            UpcomingAppointments = new ObservableCollection<Appointment>(upcomingList);
+            IsEmpty = upcomingList.Count == 0;
+
+            // home page loads on every login so this is the natural place to fire reminder emails
             await EmailNotificationService.Instance.ProcessDueReminderEmailsAsync();
         }
-        catch (Exception load_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[HOME_LOAD_ERR] Failed: {load_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[HomeVM] dashboard load error: {ex.Message}");
         }
         finally
         {

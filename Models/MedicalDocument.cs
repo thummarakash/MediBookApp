@@ -12,7 +12,7 @@ public class MedicalDocument
     public string FileName { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;
 
-    // Firebase Storage URL and path for uploaded files
+    // populated after a successful upload to Firebase Storage
     public string? StorageUrl { get; set; }
     public string? StoragePath { get; set; }
 
@@ -37,6 +37,5 @@ public class MedicalDocument
         _ => "icon_document.png"
     };
 
-    // True when the file has been successfully uploaded to Firebase Storage
     public bool IsUploaded => !string.IsNullOrEmpty(StorageUrl);
 }

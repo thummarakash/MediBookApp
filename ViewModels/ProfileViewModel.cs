@@ -72,9 +72,7 @@ public partial class ProfileViewModel : ObservableObject
     public async Task SaveChangesAsync()
     {
         if (string.IsNullOrWhiteSpace(UserName))
-        {
             return;
-        }
 
         IsLoading = true;
         try
@@ -87,17 +85,14 @@ public partial class ProfileViewModel : ObservableObject
                 DateOfBirth = DateOfBirthDate.ToString("dd/MM/yyyy");
                 user.DateOfBirth = DateOfBirth;
 
-                // Save to Firestore
                 await UserRepository.Instance.UpdateAsync(user);
-                
-                // Refresh initials
                 UserInitials = user.Initials;
             }
             IsEditing = false;
         }
-        catch (Exception profile_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Profile] Failed to update user profile: {profile_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ProfileVM] SaveChangesAsync failed: {ex.Message}");
         }
         finally
         {
@@ -105,6 +100,7 @@ public partial class ProfileViewModel : ObservableObject
         }
     }
 
+    // tries the app's expected format first, falls back to TryParse for any ISO or locale variant
     private DateTime ParseDate(string dateStr)
     {
         if (DateTime.TryParseExact(dateStr, "dd/MM/yyyy", null, DateTimeStyles.None, out var dt))

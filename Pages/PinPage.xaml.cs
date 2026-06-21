@@ -300,9 +300,9 @@ namespace MediBook.Pages
                         ResetPinState();
                         await DisplayAlert("Success", "PIN unlocked successfully.", "OK");
                     }
-                    catch (Exception google_ex)
+                    catch (Exception ex)
                     {
-                        await DisplayAlert("Verification Failed", google_ex.Message, "OK");
+                        await DisplayAlert("Verification Failed", ex.Message, "OK");
                     }
                 }
                 return;
@@ -313,16 +313,15 @@ namespace MediBook.Pages
 
             try
             {
-                // Authenticate to verify the password
                 await MediBook.Services.Firebase.FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(user.Email, password);
                 ResetLockout();
                 ApplyModeSettings();
                 ResetPinState();
                 await DisplayAlert("Success", "PIN unlocked successfully.", "OK");
             }
-            catch (Exception password_ex)
+            catch (Exception ex)
             {
-                await DisplayAlert("Verification Failed", "Incorrect password: " + password_ex.Message, "OK");
+                await DisplayAlert("Verification Failed", "Incorrect password: " + ex.Message, "OK");
             }
         }
 

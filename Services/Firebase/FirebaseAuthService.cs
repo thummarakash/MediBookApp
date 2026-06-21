@@ -17,19 +17,16 @@ public class FirebaseAuthService
         var body = new { email, password, returnSecureToken = true };
         var url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:signUp?key={AppConfig.FirebaseWebApiKey}";
 
-        var res = await _http.PostAsJsonAsync(url, body);
-        var json = await res.Content.ReadAsStringAsync();
-        var d = JsonDocument.Parse(json);
+        var response = await _http.PostAsJsonAsync(url, body);
+        var json = await response.Content.ReadAsStringAsync();
+        var jsonDocument = JsonDocument.Parse(json);
 
-        if (!res.IsSuccessStatusCode)
-            throw new Exception(ExtractErrorMessage(d));
+        if (!response.IsSuccessStatusCode)
+            throw new Exception(ExtractErrorMessage(jsonDocument));
 
-        var elem = d.RootElement;
-        var auth_res = ParseAuthResult(elem);
-
-        // Link display name to newly registered account
-        await UpdateProfileAsync(auth_res.IdToken, displayName);
-        return auth_res;
+        var authResult = ParseAuthResult(jsonDocument.RootElement);
+        await UpdateProfileAsync(authResult.IdToken, displayName);
+        return authResult;
     }
 
     public async Task<AuthResult> SignInWithEmailPasswordAsync(string email, string password)
@@ -37,14 +34,14 @@ public class FirebaseAuthService
         var body = new { email, password, returnSecureToken = true };
         var url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:signInWithPassword?key={AppConfig.FirebaseWebApiKey}";
 
-        var res = await _http.PostAsJsonAsync(url, body);
-        var json = await res.Content.ReadAsStringAsync();
-        var d = JsonDocument.Parse(json);
+        var response = await _http.PostAsJsonAsync(url, body);
+        var json = await response.Content.ReadAsStringAsync();
+        var jsonDocument = JsonDocument.Parse(json);
 
-        if (!res.IsSuccessStatusCode)
-            throw new Exception(ExtractErrorMessage(d));
+        if (!response.IsSuccessStatusCode)
+            throw new Exception(ExtractErrorMessage(jsonDocument));
 
-        return ParseAuthResult(d.RootElement);
+        return ParseAuthResult(jsonDocument.RootElement);
     }
 
     public async Task<AuthResult> RefreshTokenAsync(string refreshToken)
@@ -56,20 +53,20 @@ public class FirebaseAuthService
         };
         var url = $"{AppConfig.FirebaseTokenRefreshUrl}?key={AppConfig.FirebaseWebApiKey}";
 
-        var res = await _http.PostAsync(url, new FormUrlEncodedContent(body));
-        var json = await res.Content.ReadAsStringAsync();
-        var d = JsonDocument.Parse(json);
+        var response = await _http.PostAsync(url, new FormUrlEncodedContent(body));
+        var json = await response.Content.ReadAsStringAsync();
+        var jsonDocument = JsonDocument.Parse(json);
 
-        if (!res.IsSuccessStatusCode)
-            throw new Exception(ExtractErrorMessage(d));
+        if (!response.IsSuccessStatusCode)
+            throw new Exception(ExtractErrorMessage(jsonDocument));
 
-        var elem = d.RootElement;
+        var root = jsonDocument.RootElement;
         return new AuthResult
         {
-            IdToken = elem.GetProperty("id_token").GetString() ?? "",
-            RefreshToken = elem.GetProperty("refresh_token").GetString() ?? "",
-            UserId = elem.GetProperty("user_id").GetString() ?? "",
-            ExpiresIn = int.Parse(elem.GetProperty("expires_in").GetString() ?? "3600")
+            IdToken = root.GetProperty("id_token").GetString() ?? "",
+            RefreshToken = root.GetProperty("refresh_token").GetString() ?? "",
+            UserId = root.GetProperty("user_id").GetString() ?? "",
+            ExpiresIn = int.Parse(root.GetProperty("expires_in").GetString() ?? "3600")
         };
     }
 
@@ -78,12 +75,11 @@ public class FirebaseAuthService
         var body = new { requestType = "PASSWORD_RESET", email };
         var url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:sendOobCode?key={AppConfig.FirebaseWebApiKey}";
 
-        var res = await _http.PostAsJsonAsync(url, body);
-        if (!res.IsSuccessStatusCode)
+        var response = await _http.PostAsJsonAsync(url, body);
+        if (!response.IsSuccessStatusCode)
         {
-            var json = await res.Content.ReadAsStringAsync();
-            var d = JsonDocument.Parse(json);
-            throw new Exception(ExtractErrorMessage(d));
+            var json = await response.Content.ReadAsStringAsync();
+            throw new Exception(ExtractErrorMessage(JsonDocument.Parse(json)));
         }
     }
 
@@ -92,12 +88,11 @@ public class FirebaseAuthService
         var body = new { idToken, password = newPassword, returnSecureToken = true };
         var url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:update?key={AppConfig.FirebaseWebApiKey}";
 
-        var res = await _http.PostAsJsonAsync(url, body);
-        if (!res.IsSuccessStatusCode)
+        var response = await _http.PostAsJsonAsync(url, body);
+        if (!response.IsSuccessStatusCode)
         {
-            var json = await res.Content.ReadAsStringAsync();
-            var d = JsonDocument.Parse(json);
-            throw new Exception(ExtractErrorMessage(d));
+            var json = await response.Content.ReadAsStringAsync();
+            throw new Exception(ExtractErrorMessage(JsonDocument.Parse(json)));
         }
     }
 
@@ -105,10 +100,10 @@ public class FirebaseAuthService
     {
         var body = new { idToken };
         var url = $"{AppConfig.FirebaseAuthBaseUrl}/accounts:delete?key={AppConfig.FirebaseWebApiKey}";
-        var res = await _http.PostAsJsonAsync(url, body);
-        if (!res.IsSuccessStatusCode)
+        var response = await _http.PostAsJsonAsync(url, body);
+        if (!response.IsSuccessStatusCode)
         {
-            var json = await res.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync();
             throw new Exception(ExtractErrorMessage(JsonDocument.Parse(json)));
         }
     }
@@ -120,29 +115,29 @@ public class FirebaseAuthService
         await _http.PostAsJsonAsync(url, body);
     }
 
-    private static AuthResult ParseAuthResult(JsonElement elem)
+    private static AuthResult ParseAuthResult(JsonElement element)
     {
-        int expSec = 3600;
-        if (elem.TryGetProperty("expiresIn", out var expProp))
-            int.TryParse(expProp.GetString(), out expSec);
+        int expiresIn = 3600;
+        if (element.TryGetProperty("expiresIn", out var expiryProp))
+            int.TryParse(expiryProp.GetString(), out expiresIn);
 
         return new AuthResult
         {
-            IdToken = elem.TryGetProperty("idToken", out var tok) ? tok.GetString() ?? "" : "",
-            RefreshToken = elem.TryGetProperty("refreshToken", out var ref_) ? ref_.GetString() ?? "" : "",
-            UserId = elem.TryGetProperty("localId", out var uid) ? uid.GetString() ?? "" : "",
-            Email = elem.TryGetProperty("email", out var em) ? em.GetString() ?? "" : "",
-            DisplayName = elem.TryGetProperty("displayName", out var dn) ? dn.GetString() ?? "" : "",
-            ExpiresIn = expSec,
-            ExpiresAt = DateTime.UtcNow.AddSeconds(expSec)
+            IdToken = element.TryGetProperty("idToken", out var token) ? token.GetString() ?? "" : "",
+            RefreshToken = element.TryGetProperty("refreshToken", out var refresh) ? refresh.GetString() ?? "" : "",
+            UserId = element.TryGetProperty("localId", out var uid) ? uid.GetString() ?? "" : "",
+            Email = element.TryGetProperty("email", out var email) ? email.GetString() ?? "" : "",
+            DisplayName = element.TryGetProperty("displayName", out var name) ? name.GetString() ?? "" : "",
+            ExpiresIn = expiresIn,
+            ExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn)
         };
     }
 
-    private static string ExtractErrorMessage(JsonDocument d)
+    private static string ExtractErrorMessage(JsonDocument jsonDocument)
     {
         try
         {
-            var code = d.RootElement
+            var code = jsonDocument.RootElement
                 .GetProperty("error")
                 .GetProperty("message")
                 .GetString() ?? "Unknown error";
@@ -159,9 +154,9 @@ public class FirebaseAuthService
                 _ => "Authentication failed. Please try again."
             };
         }
-        catch (Exception parse_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AuthService] Error parsing Firebase response message: {parse_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FirebaseAuthService] Failed to parse error response: {ex.Message}");
             return "An unexpected error occurred.";
         }
     }

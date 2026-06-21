@@ -1,3 +1,5 @@
+using MediBook.Configuration;
+
 namespace MediBook.Pages;
 
 public class OnboardingSlide
@@ -32,18 +34,16 @@ public partial class OnboardingPage : ContentPage
     private void OnPositionChanged(object sender, PositionChangedEventArgs e)
     {
         int currentPosition = e.CurrentPosition;
-        
-        // Show/Hide buttons based on page index
+
         SkipBtn.IsVisible = currentPosition < _slides.Count - 1;
         PrevBtn.IsVisible = currentPosition > 0;
-        
-        // Change text of NextBtn on the last page
+
         NextBtn.Text = currentPosition == _slides.Count - 1 ? "Get Started" : "Next";
     }
 
     private async void OnSkipClicked(object sender, EventArgs e)
     {
-        Preferences.Set("medibook_onboarding_seen", true);
+        Preferences.Set(AppConfig.PrefKeys.OnboardingSeen, true);
         await Shell.Current.GoToAsync("//login");
     }
 
@@ -51,9 +51,7 @@ public partial class OnboardingPage : ContentPage
     {
         int currentPosition = SlidesCarousel.Position;
         if (currentPosition > 0)
-        {
             SlidesCarousel.Position = currentPosition - 1;
-        }
     }
 
     private async void OnNextClicked(object sender, EventArgs e)
@@ -65,7 +63,7 @@ public partial class OnboardingPage : ContentPage
         }
         else
         {
-            Preferences.Set("medibook_onboarding_seen", true);
+            Preferences.Set(AppConfig.PrefKeys.OnboardingSeen, true);
             await Shell.Current.GoToAsync("//login");
         }
     }

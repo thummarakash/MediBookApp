@@ -9,35 +9,35 @@ public class DocumentRepository
     public static DocumentRepository Instance { get; } = new();
     private DocumentRepository() { }
 
-    public async Task<string> CreateAsync(MedicalDocument doc_obj)
+    public async Task<string> CreateAsync(MedicalDocument document)
     {
         try
         {
-            var deserialized_fields = MapToFirestore(doc_obj);
-            var inserted_doc_id = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.MedicalDocuments, deserialized_fields);
-            doc_obj.FirestoreId = inserted_doc_id;
-            return inserted_doc_id;
+            var firestoreFields = MapToFirestore(document);
+            var newDocId = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.MedicalDocuments, firestoreFields);
+            document.FirestoreId = newDocId;
+            return newDocId;
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] CreateAsync error: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepository] CreateAsync failed: {ex.Message}");
             throw;
         }
     }
 
-    public async Task UpdateAsync(MedicalDocument doc_obj)
+    public async Task UpdateAsync(MedicalDocument document)
     {
         try
         {
-            if (string.IsNullOrEmpty(doc_obj.FirestoreId)) return;
+            if (string.IsNullOrEmpty(document.FirestoreId)) return;
             await FirestoreService.Instance.UpdateDocumentAsync(
                 AppConfig.Collections.MedicalDocuments,
-                doc_obj.FirestoreId,
-                MapToFirestore(doc_obj));
+                document.FirestoreId,
+                MapToFirestore(document));
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] UpdateAsync error for {doc_obj.FirestoreId}: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepository] UpdateAsync failed for {document.FirestoreId}: {ex.Message}");
             throw;
         }
     }
@@ -48,9 +48,9 @@ public class DocumentRepository
         {
             await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.MedicalDocuments, documentId);
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] DeleteAsync failed for {documentId}: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepository] DeleteAsync failed for {documentId}: {ex.Message}");
             throw;
         }
     }
@@ -59,18 +59,18 @@ public class DocumentRepository
     {
         try
         {
-            var collection_docs = await FirestoreService.Instance.QueryAsync(
+            var documents = await FirestoreService.Instance.QueryAsync(
                 AppConfig.Collections.MedicalDocuments,
                 whereField: "userId",
                 whereValue: userId,
                 orderByField: "uploadedAt",
                 descending: true);
 
-            return collection_docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+            return documents.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DocumentRepo] GetByUserIdAsync query failed for user {userId}: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DocumentRepository] GetByUserIdAsync failed for {userId}: {ex.Message}");
             return new List<MedicalDocument>();
         }
     }
@@ -93,18 +93,18 @@ public class DocumentRepository
         };
     }
 
-    private static Dictionary<string, object> MapToFirestore(MedicalDocument d) => new()
+    private static Dictionary<string, object> MapToFirestore(MedicalDocument document) => new()
     {
-        { "userId", d.UserFirestoreId },
-        { "documentType", d.DocumentType },
-        { "fileName", d.FileName },
-        { "filePath", d.FilePath },
-        { "storageUrl", d.StorageUrl ?? "" },
-        { "storagePath", d.StoragePath ?? "" },
-        { "notes", d.Notes },
-        { "uploadedAt", d.UploadedAt },
-        { "fileSizeBytes", d.FileSizeBytes },
-        { "mimeType", d.MimeType ?? "" },
+        { "userId", document.UserFirestoreId },
+        { "documentType", document.DocumentType },
+        { "fileName", document.FileName },
+        { "filePath", document.FilePath },
+        { "storageUrl", document.StorageUrl ?? "" },
+        { "storagePath", document.StoragePath ?? "" },
+        { "notes", document.Notes },
+        { "uploadedAt", document.UploadedAt },
+        { "fileSizeBytes", document.FileSizeBytes },
+        { "mimeType", document.MimeType ?? "" },
         { "updatedAt", DateTime.UtcNow }
     };
 }

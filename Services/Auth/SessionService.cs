@@ -9,29 +9,28 @@ public class SessionService
     public static SessionService Instance { get; } = new();
     private SessionService() { }
 
-    private string? _tok;
-    private DateTime _tokExp = DateTime.MinValue;
+    private string? _cachedToken;
+    private DateTime _tokenExpiry = DateTime.MinValue;
 
     public bool IsAuthenticated => SecureStorageHelper.IsLoggedIn();
 
     public async Task<string?> GetValidTokenAsync()
     {
-        if (!string.IsNullOrEmpty(_tok) && DateTime.UtcNow < _tokExp.AddMinutes(-AppConfig.TokenRefreshBufferMinutes))
-            return _tok;
+        if (!string.IsNullOrEmpty(_cachedToken) && DateTime.UtcNow < _tokenExpiry.AddMinutes(-AppConfig.TokenRefreshBufferMinutes))
+            return _cachedToken;
 
-        var st_tok = await SecureStorageHelper.GetIdTokenAsync();
-        if (string.IsNullOrEmpty(st_tok)) return null;
+        var storedToken = await SecureStorageHelper.GetIdTokenAsync();
+        if (string.IsNullOrEmpty(storedToken)) return null;
 
-        bool exp_flag = await SecureStorageHelper.IsTokenExpiredAsync();
-        if (!exp_flag)
+        bool isExpired = await SecureStorageHelper.IsTokenExpiredAsync();
+        if (!isExpired)
         {
-            _tok = st_tok;
+            _cachedToken = storedToken;
             var expiry = await SecureStorageHelper.GetTokenExpiryAsync();
-            _tokExp = expiry ?? DateTime.UtcNow.AddHours(1);
-            return _tok;
+            _tokenExpiry = expiry ?? DateTime.UtcNow.AddHours(1);
+            return _cachedToken;
         }
 
-        // Silent refresh since token is invalid
         return await TryRefreshTokenAsync();
     }
 
@@ -39,40 +38,40 @@ public class SessionService
     {
         try
         {
-            var refresh = await SecureStorageHelper.GetRefreshTokenAsync();
-            if (string.IsNullOrEmpty(refresh)) return null;
+            var refreshToken = await SecureStorageHelper.GetRefreshTokenAsync();
+            if (string.IsNullOrEmpty(refreshToken)) return null;
 
-            var res = await FirebaseAuthService.Instance.RefreshTokenAsync(refresh);
+            var authResult = await FirebaseAuthService.Instance.RefreshTokenAsync(refreshToken);
 
-            var newExpiry = DateTime.UtcNow.AddSeconds(res.ExpiresIn);
-            await SecureStorageHelper.UpdateTokenAsync(res.IdToken, newExpiry);
-            await SecureStorage.Default.SetAsync(AppConfig.SecureKeys.RefreshToken, res.RefreshToken);
+            var newExpiry = DateTime.UtcNow.AddSeconds(authResult.ExpiresIn);
+            await SecureStorageHelper.UpdateTokenAsync(authResult.IdToken, newExpiry);
+            await SecureStorage.Default.SetAsync(AppConfig.SecureKeys.RefreshToken, authResult.RefreshToken);
 
-            _tok = res.IdToken;
-            _tokExp = newExpiry;
-            return _tok;
+            _cachedToken = authResult.IdToken;
+            _tokenExpiry = newExpiry;
+            return _cachedToken;
         }
-        catch (Exception refresh_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SessionService] Silent token refresh failed, signing out: {refresh_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[SessionService] Silent token refresh failed: {ex.Message}");
             SignOut();
             return null;
         }
     }
 
-    public async Task SaveSessionAsync(AuthResult res, string role)
+    public async Task SaveSessionAsync(AuthResult authResult, string role)
     {
-        var expiry = res.ExpiresAt;
+        var expiry = authResult.ExpiresAt;
         await SecureStorageHelper.SaveSessionAsync(
-            res.IdToken,
-            res.RefreshToken,
-            res.UserId,
-            res.Email,
+            authResult.IdToken,
+            authResult.RefreshToken,
+            authResult.UserId,
+            authResult.Email,
             role,
             expiry);
 
-        _tok = res.IdToken;
-        _tokExp = expiry;
+        _cachedToken = authResult.IdToken;
+        _tokenExpiry = expiry;
     }
 
     public async Task<string?> GetUserIdAsync()
@@ -86,8 +85,8 @@ public class SessionService
 
     public void SignOut()
     {
-        _tok = null;
-        _tokExp = DateTime.MinValue;
+        _cachedToken = null;
+        _tokenExpiry = DateTime.MinValue;
         SecureStorageHelper.ClearSession();
     }
 }

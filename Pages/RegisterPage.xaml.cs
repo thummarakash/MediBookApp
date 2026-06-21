@@ -49,20 +49,17 @@ public partial class RegisterPage : ContentPage
         {
             var user = await DatabaseService.Instance.RegisterUserAsync(fullName, email, phone, dob, password);
 
-            // Send welcome email in the background
             _ = Task.Run(() => SmtpEmailService.Instance.SendWelcomeEmailAsync(email, fullName));
 
             await AnimationHelper.SuccessPulseAsync(btn as VisualElement ?? this);
             await Shell.Current.GoToAsync("//home");
         }
-        catch (Exception reg_ex)
+        catch (Exception ex)
         {
             await AnimationHelper.ErrorShakeAsync(EmailEntry.Parent as VisualElement ?? this);
-            string friendlyMsg = reg_ex.Message;
-            if (reg_ex is System.Net.Http.HttpRequestException || reg_ex.InnerException is System.Net.Http.HttpRequestException || reg_ex is TaskCanceledException)
-            {
+            string friendlyMsg = ex.Message;
+            if (ex is System.Net.Http.HttpRequestException || ex.InnerException is System.Net.Http.HttpRequestException || ex is TaskCanceledException)
                 friendlyMsg = "Network error. Please check your internet connection and try again.";
-            }
             await ConfirmationPopupPage.ShowAsync(Navigation, "Registration Failed", friendlyMsg, "icon_warning.svg");
         }
         finally
@@ -83,11 +80,10 @@ public partial class RegisterPage : ContentPage
         }
         catch (OperationCanceledException)
         {
-            // User cancelled
         }
-        catch (Exception oauth_ex)
+        catch (Exception ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-Up", oauth_ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-Up", ex.Message, "icon_warning.svg");
         }
     }
 

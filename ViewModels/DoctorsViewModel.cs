@@ -8,7 +8,7 @@ namespace MediBook.ViewModels;
 
 public partial class DoctorsViewModel : ObservableObject
 {
-    private List<Doctor> _drList = new();
+    private List<Doctor> _allDoctors = new();
 
     [ObservableProperty] ObservableCollection<Doctor> doctors = new();
     [ObservableProperty] bool isLoading;
@@ -17,18 +17,18 @@ public partial class DoctorsViewModel : ObservableObject
     [ObservableProperty] string searchText = "";
 
     [RelayCommand]
-    async Task RefreshList()
+    async Task LoadDoctorsAsync()
     {
         IsLoading = true;
         try
         {
-            var res = await DatabaseService.Instance.GetDoctorsAsync();
-            _drList = res ?? new List<Doctor>();
-            CompileDoctors();
+            var result = await DatabaseService.Instance.GetDoctorsAsync();
+            _allDoctors = result ?? new List<Doctor>();
+            ApplyFilters();
         }
-        catch (Exception cli_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine("ERR_DOC_LOAD: " + cli_ex.Message);
+            System.Diagnostics.Debug.WriteLine($"[DoctorsVM] load error - {ex.Message}");
         }
         finally
         {
@@ -37,54 +37,48 @@ public partial class DoctorsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    void ChooseCategory(string cat)
+    void SelectSpecialtyCategory(string category)
     {
-        SelectedCategory = cat ?? "All";
-        CompileDoctors();
+        SelectedCategory = category ?? "All";
+        ApplyFilters();
     }
 
     [RelayCommand]
-    void FilterDoctorsByText(string val)
+    void SearchDoctors(string text)
     {
-        SearchText = val?.Trim() ?? "";
-        CompileDoctors();
+        SearchText = text?.Trim() ?? "";
+        ApplyFilters();
     }
 
-    private void CompileDoctors()
+    private void ApplyFilters()
     {
-        var temp = new List<Doctor>();
-        
-        for (int i = 0; i < _drList.Count; i++)
-        {
-            var item = _drList[i];
-            
-            bool catMatch = false;
-            if (SelectedCategory == "All")
-            {
-                catMatch = true;
-            }
-            else
-            {
-                catMatch = (item.Specialty != null && item.Specialty.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase)) ||
-                           (item.Department != null && item.Department.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase));
-            }
+        var filtered = new List<Doctor>();
 
-            if (!catMatch) continue;
+        for (int i = 0; i < _allDoctors.Count; i++)
+        {
+            var doc = _allDoctors[i];
+
+            // match against both Specialty and Department — some doctors are listed under one or the other
+            bool categoryMatch = SelectedCategory == "All"
+                || (doc.Specialty != null && doc.Specialty.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase))
+                || (doc.Department != null && doc.Department.Contains(SelectedCategory, StringComparison.OrdinalIgnoreCase));
+
+            if (!categoryMatch) continue;
 
             if (!string.IsNullOrEmpty(SearchText))
             {
                 var q = SearchText.ToLowerInvariant();
-                bool textMatch = (item.Name != null && item.Name.ToLower().Contains(q)) ||
-                                 (item.Department != null && item.Department.ToLower().Contains(q)) ||
-                                 (item.Specialty != null && item.Specialty.ToLower().Contains(q));
-                
+                bool textMatch = (doc.Name != null && doc.Name.ToLower().Contains(q))
+                              || (doc.Department != null && doc.Department.ToLower().Contains(q))
+                              || (doc.Specialty != null && doc.Specialty.ToLower().Contains(q));
+
                 if (!textMatch) continue;
             }
 
-            temp.Add(item);
+            filtered.Add(doc);
         }
 
-        Doctors = new ObservableCollection<Doctor>(temp);
-        IsEmpty = temp.Count == 0;
+        Doctors = new ObservableCollection<Doctor>(filtered);
+        IsEmpty = filtered.Count == 0;
     }
 }

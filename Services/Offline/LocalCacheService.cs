@@ -18,7 +18,6 @@ public class LocalCacheService
         if (_db != null) return _db;
         try
         {
-            // Initializing local sqlite db context
             _db = new SQLiteAsyncConnection(DbPath,
                 SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.SharedCache);
 
@@ -27,22 +26,21 @@ public class LocalCacheService
             await _db.CreateTableAsync<CachedAppointment>();
             return _db;
         }
-        catch (Exception conn_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocalCache] Failed to build or open sqlite DB: {conn_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CacheSvc] SQLite open failed: {ex.Message}");
             throw;
         }
     }
 
-    public async Task CacheClinicsAsync(List<Clinic> clin_list)
+    public async Task CacheClinicsAsync(List<Clinic> clinics)
     {
         try
         {
-            var sqlite_conn = await GetConnectionAsync();
-            await sqlite_conn.DeleteAllAsync<CachedClinic>();
-            
-            // Map model list to cached db structure
-            var entities_to_insert = clin_list.Select(c => new CachedClinic
+            var connection = await GetConnectionAsync();
+            await connection.DeleteAllAsync<CachedClinic>();
+
+            var cacheEntries = clinics.Select(c => new CachedClinic
             {
                 FirestoreId = c.FirestoreId,
                 Name = c.Name,
@@ -52,12 +50,12 @@ public class LocalCacheService
                 Phone = c.Phone ?? string.Empty,
                 CachedAt = DateTime.UtcNow
             }).ToList();
-            
-            await sqlite_conn.InsertAllAsync(entities_to_insert);
+
+            await connection.InsertAllAsync(cacheEntries);
         }
-        catch (Exception cache_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocalCache] CacheClinicsAsync failed: {cache_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CacheSvc] CacheClinicsAsync failed: {ex.Message}");
         }
     }
 
@@ -65,10 +63,10 @@ public class LocalCacheService
     {
         try
         {
-            var sqlite_conn = await GetConnectionAsync();
-            var cached_rows = await sqlite_conn.Table<CachedClinic>().ToListAsync();
-            
-            return cached_rows.Select(c => new Clinic
+            var connection = await GetConnectionAsync();
+            var cachedRows = await connection.Table<CachedClinic>().ToListAsync();
+
+            return cachedRows.Select(c => new Clinic
             {
                 FirestoreId = c.FirestoreId,
                 Name = c.Name,
@@ -78,21 +76,21 @@ public class LocalCacheService
                 Phone = c.Phone
             }).ToList();
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocalCache] GetCachedClinicsAsync query failed: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CacheSvc] GetCachedClinicsAsync failed: {ex.Message}");
             return new List<Clinic>();
         }
     }
 
-    public async Task CacheDoctorsAsync(List<Doctor> doc_list)
+    public async Task CacheDoctorsAsync(List<Doctor> doctors)
     {
         try
         {
-            var sqlite_conn = await GetConnectionAsync();
-            await sqlite_conn.DeleteAllAsync<CachedDoctor>();
-            
-            var entities_to_insert = doc_list.Select(d => new CachedDoctor
+            var connection = await GetConnectionAsync();
+            await connection.DeleteAllAsync<CachedDoctor>();
+
+            var cacheEntries = doctors.Select(d => new CachedDoctor
             {
                 FirestoreId = d.FirestoreId,
                 Name = d.Name,
@@ -106,12 +104,12 @@ public class LocalCacheService
                 AccentColor = d.AccentColor,
                 CachedAt = DateTime.UtcNow
             }).ToList();
-            
-            await sqlite_conn.InsertAllAsync(entities_to_insert);
+
+            await connection.InsertAllAsync(cacheEntries);
         }
-        catch (Exception cache_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocalCache] CacheDoctorsAsync failed: {cache_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CacheSvc] CacheDoctorsAsync failed: {ex.Message}");
         }
     }
 
@@ -119,10 +117,10 @@ public class LocalCacheService
     {
         try
         {
-            var sqlite_conn = await GetConnectionAsync();
-            var cached_rows = await sqlite_conn.Table<CachedDoctor>().ToListAsync();
-            
-            return cached_rows.Select(d => new Doctor
+            var connection = await GetConnectionAsync();
+            var cachedRows = await connection.Table<CachedDoctor>().ToListAsync();
+
+            return cachedRows.Select(d => new Doctor
             {
                 FirestoreId = d.FirestoreId,
                 Name = d.Name,
@@ -136,24 +134,24 @@ public class LocalCacheService
                 AccentColor = d.AccentColor
             }).ToList();
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocalCache] GetCachedDoctorsAsync query failed: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CacheSvc] GetCachedDoctorsAsync failed: {ex.Message}");
             return new List<Doctor>();
         }
     }
 
-    public async Task CacheAppointmentsAsync(string user_uid, List<Appointment> appointment_list)
+    public async Task CacheAppointmentsAsync(string userId, List<Appointment> appointments)
     {
         try
         {
-            var sqlite_conn = await GetConnectionAsync();
-            await sqlite_conn.ExecuteAsync("DELETE FROM CachedAppointment WHERE UserId = ?", user_uid);
-            
-            var entities_to_insert = appointment_list.Select(a => new CachedAppointment
+            var connection = await GetConnectionAsync();
+            await connection.ExecuteAsync("DELETE FROM CachedAppointment WHERE UserId = ?", userId);
+
+            var cacheEntries = appointments.Select(a => new CachedAppointment
             {
                 FirestoreId = a.FirestoreId,
-                UserId = user_uid,
+                UserId = userId,
                 DoctorName = a.DoctorName,
                 Department = a.Department,
                 ClinicName = a.ClinicName,
@@ -164,28 +162,28 @@ public class LocalCacheService
                 Reason = a.Reason,
                 CachedAt = DateTime.UtcNow
             }).ToList();
-            
-            await sqlite_conn.InsertAllAsync(entities_to_insert);
+
+            await connection.InsertAllAsync(cacheEntries);
         }
-        catch (Exception cache_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocalCache] CacheAppointmentsAsync failed for user {user_uid}: {cache_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CacheSvc] CacheAppointmentsAsync failed for user {userId}: {ex.Message}");
         }
     }
 
-    public async Task<List<Appointment>> GetCachedAppointmentsAsync(string user_uid)
+    public async Task<List<Appointment>> GetCachedAppointmentsAsync(string userId)
     {
         try
         {
-            var sqlite_conn = await GetConnectionAsync();
-            var cached_rows = await sqlite_conn.Table<CachedAppointment>()
-                .Where(a => a.UserId == user_uid)
+            var connection = await GetConnectionAsync();
+            var cachedRows = await connection.Table<CachedAppointment>()
+                .Where(a => a.UserId == userId)
                 .ToListAsync();
 
-            return cached_rows.Select(a => new Appointment
+            return cachedRows.Select(a => new Appointment
             {
                 FirestoreId = a.FirestoreId,
-                UserFirestoreId = user_uid,
+                UserFirestoreId = userId,
                 DoctorName = a.DoctorName,
                 Department = a.Department,
                 ClinicName = a.ClinicName,
@@ -196,9 +194,9 @@ public class LocalCacheService
                 Reason = a.Reason
             }).ToList();
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[LocalCache] GetCachedAppointmentsAsync failed for user {user_uid}: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[CacheSvc] GetCachedAppointmentsAsync failed for user {userId}: {ex.Message}");
             return new List<Appointment>();
         }
     }

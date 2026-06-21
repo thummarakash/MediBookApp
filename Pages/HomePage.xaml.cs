@@ -17,7 +17,7 @@ public partial class HomePage : ContentPage
     {
         base.OnAppearing();
         await AnimationHelper.PageEntranceAsync(this);
-        await _vm.SyncDashboardDataCommand.ExecuteAsync(null);
+        await _vm.LoadDashboardDataCommand.ExecuteAsync(null);
     }
 
     private async void OnBookTapped(object sender, EventArgs e)

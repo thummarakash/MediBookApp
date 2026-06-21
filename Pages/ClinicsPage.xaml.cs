@@ -26,10 +26,8 @@ public partial class ClinicsPage : ContentPage
         
         ApplyFilterAndSearch();
 
-        // Check immediately on appearing
         await CheckAndCenterUserLocationAsync(requestIfNeeded: false);
 
-        // Start periodic check timer (polls every 3 seconds to auto-hide map if user turns off GPS)
         _locationCheckTimer = Dispatcher.CreateTimer();
         _locationCheckTimer.Interval = TimeSpan.FromSeconds(3);
         _locationCheckTimer.Tick += async (s, e) =>
@@ -77,13 +75,11 @@ public partial class ClinicsPage : ContentPage
 
             if (status == PermissionStatus.Granted && isGpsEnabled)
             {
-                // If location wasn't available before, fetch location and center/sort
                 if (!_isLocationAvailable)
                 {
                     var location = await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5)));
                     if (location != null)
                     {
-                        // Calculate driving distance (straight line * 1.3 scaling factor) to clinics
                         foreach (var clinic in _clinics)
                         {
                             var clinicLoc = new Location(clinic.Latitude, clinic.Longitude);
@@ -91,13 +87,10 @@ public partial class ClinicsPage : ContentPage
                             clinic.DistanceToUser = straightLineDist * 1.3;
                         }
 
-                        // Sort clinics Closest first (najik to door)
                         _clinics = _clinics.OrderBy(c => c.DistanceToUser ?? double.MaxValue).ToList();
 
-                        // Re-setup map pins based on sorted order
                         SetupMapPins();
 
-                        // Force Collections to refresh their display
                         ClinicsCollection.ItemsSource = null;
                         ClinicsCollection.ItemsSource = _clinics;
 
@@ -110,7 +103,6 @@ public partial class ClinicsPage : ContentPage
                         }
                         else if (_selectedClinic != null)
                         {
-                            // Refresh display values on card
                             _selectedClinic = _clinics.FirstOrDefault(c => c.Id == _selectedClinic.Id) ?? _selectedClinic;
                             MapClinicName.Text = _selectedClinic.Name;
                             MapClinicDistance.Text = _selectedClinic.DistanceText;
@@ -123,7 +115,6 @@ public partial class ClinicsPage : ContentPage
                 return;
             }
 
-            // If user clicked Enable Location but global GPS is off, open settings directly
             if (requestIfNeeded && !isGpsEnabled)
             {
 #if ANDROID
@@ -135,12 +126,11 @@ public partial class ClinicsPage : ContentPage
 #endif
             }
         }
-        catch (Exception loc_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error retrieving location: {loc_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicsPage] Location retrieval failed: {ex.Message}");
         }
 
-        // Location is disabled/off/denied
         _isLocationAvailable = false;
         UpdateContentVisibility();
     }
@@ -191,9 +181,9 @@ public partial class ClinicsPage : ContentPage
                 ClinicsMap.Pins.Add(pin);
             }
         }
-        catch (Exception pin_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {pin_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicsPage] Map pin setup failed: {ex.Message}");
         }
     }
 
@@ -238,9 +228,9 @@ public partial class ClinicsPage : ContentPage
                 new Location(clinic.Latitude, clinic.Longitude),
                 Distance.FromKilometers(1.2)));
         }
-        catch (Exception move_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error moving map camera: {move_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicsPage] Map camera move failed: {ex.Message}");
         }
     }
 
@@ -317,9 +307,9 @@ public partial class ClinicsPage : ContentPage
                 ClinicsMap.Pins.Add(pin);
             }
         }
-        catch (Exception pin_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error setting up map pins: {pin_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicsPage] Map pin setup failed: {ex.Message}");
         }
     }
 

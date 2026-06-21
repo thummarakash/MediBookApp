@@ -4,32 +4,32 @@ namespace MediBook.Helpers;
 
 public static class ImageCompressor
 {
-    public static async Task<Stream?> CompressImageAsync(string img_filepath)
+    public static async Task<Stream?> CompressImageAsync(string imageFilePath)
     {
-        if (!File.Exists(img_filepath))
+        if (!File.Exists(imageFilePath))
             return null;
 
-        var img_info = new FileInfo(img_filepath);
-        long kb_size = img_info.Length / 1024;
+        var fileInfo = new FileInfo(imageFilePath);
+        long fileSizeKb = fileInfo.Length / 1024;
 
-        if (kb_size <= AppConfig.MaxImageSizeKb)
-            return File.OpenRead(img_filepath);
+        if (fileSizeKb <= AppConfig.MaxImageSizeKb)
+            return File.OpenRead(imageFilePath);
 
-        var byte_data = await File.ReadAllBytesAsync(img_filepath);
-        return await CompressBytesAsync(byte_data);
+        var imageBytes = await File.ReadAllBytesAsync(imageFilePath);
+        return await CompressBytesAsync(imageBytes);
     }
 
     public static async Task<Stream?> CompressImageStreamAsync(Stream inputStream)
     {
-        using var memory_buffer = new MemoryStream();
-        await inputStream.CopyToAsync(memory_buffer);
-        var byte_data = memory_buffer.ToArray();
+        using var memoryBuffer = new MemoryStream();
+        await inputStream.CopyToAsync(memoryBuffer);
+        var imageBytes = memoryBuffer.ToArray();
 
-        long kb_size = byte_data.Length / 1024;
-        if (kb_size <= AppConfig.MaxImageSizeKb)
-            return new MemoryStream(byte_data);
+        long fileSizeKb = imageBytes.Length / 1024;
+        if (fileSizeKb <= AppConfig.MaxImageSizeKb)
+            return new MemoryStream(imageBytes);
 
-        return await CompressBytesAsync(byte_data);
+        return await CompressBytesAsync(imageBytes);
     }
 
     private static async Task<Stream> CompressBytesAsync(byte[] imageBytes)
@@ -42,10 +42,10 @@ public static class ImageCompressor
         return new MemoryStream(imageBytes);
     }
 
-    public static string GetMimeType(string img_filepath)
+    public static string GetMimeType(string imageFilePath)
     {
-        var file_extension = Path.GetExtension(img_filepath).ToLowerInvariant();
-        return file_extension switch
+        var extension = Path.GetExtension(imageFilePath).ToLowerInvariant();
+        return extension switch
         {
             ".jpg" or ".jpeg" => "image/jpeg",
             ".png" => "image/png",
@@ -61,10 +61,10 @@ public static class ImageCompressor
     public static string GenerateStoragePath(string userId, string folder, string fileName)
     {
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var file_extension = Path.GetExtension(fileName);
-        var cleaned_filename = Path.GetFileNameWithoutExtension(fileName)
+        var extension = Path.GetExtension(fileName);
+        var cleanedName = Path.GetFileNameWithoutExtension(fileName)
             .Replace(" ", "_")
             .Replace("/", "_");
-        return $"{folder}/{userId}/{timestamp}_{cleaned_filename}{file_extension}";
+        return $"{folder}/{userId}/{timestamp}_{cleanedName}{extension}";
     }
 }

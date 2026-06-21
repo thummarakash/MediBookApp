@@ -10,112 +10,112 @@ public class UserRepository
     public static UserRepository Instance { get; } = new();
     private UserRepository() { }
 
-    public async Task<UserAccount?> GetByIdAsync(string user_id)
+    public async Task<UserAccount?> GetByIdAsync(string userId)
     {
         try
         {
-            var doc_snap = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Users, user_id);
-            if (doc_snap == null) return null;
+            var snapshot = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Users, userId);
+            if (snapshot == null) return null;
 
-            var field_map = doc_snap.Value.TryGetProperty("fields", out var fields) ? fields : default;
-            return MapFromFirestore(user_id, field_map);
+            var fields = snapshot.Value.TryGetProperty("fields", out var f) ? f : default;
+            return MapFromFirestore(userId, fields);
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[UserRepository] GetByIdAsync query failed for {user_id}: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[UserRepo] GetByIdAsync ({userId}): {ex.Message}");
             return null;
         }
     }
 
-    public async Task CreateAsync(UserAccount account_data)
+    public async Task CreateAsync(UserAccount account)
     {
         try
         {
-            var mapped_fields = MapToFirestore(account_data);
-            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Users, account_data.FirestoreId, mapped_fields);
+            var firestoreFields = MapToFirestore(account);
+            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Users, account.FirestoreId, firestoreFields);
         }
-        catch (Exception write_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[UserRepository] CreateAsync error: {write_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[UserRepo] CreateAsync failed: {ex.Message}");
             throw;
         }
     }
 
-    public async Task UpdateAsync(UserAccount account_data)
+    public async Task UpdateAsync(UserAccount account)
     {
         try
         {
-            var mapped_fields = MapToFirestore(account_data);
-            await FirestoreService.Instance.UpdateDocumentAsync(AppConfig.Collections.Users, account_data.FirestoreId, mapped_fields);
+            var firestoreFields = MapToFirestore(account);
+            await FirestoreService.Instance.UpdateDocumentAsync(AppConfig.Collections.Users, account.FirestoreId, firestoreFields);
         }
-        catch (Exception update_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[UserRepository] UpdateAsync error: {update_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[UserRepo] UpdateAsync failed: {ex.Message}");
             throw;
         }
     }
 
-    public async Task UpdateFcmTokenAsync(string user_id, string fcm_tok)
+    public async Task UpdateFcmTokenAsync(string userId, string fcmToken)
     {
         try
         {
             await FirestoreService.Instance.UpdateDocumentAsync(
-                AppConfig.Collections.Users, user_id,
-                new Dictionary<string, object> { { "fcmToken", fcm_tok } });
+                AppConfig.Collections.Users, userId,
+                new Dictionary<string, object> { { "fcmToken", fcmToken } });
         }
-        catch (Exception update_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[UserRepository] UpdateFcmTokenAsync failed: {update_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[UserRepo] FCM token update failed for {userId}: {ex.Message}");
         }
     }
 
-    public async Task UpdateBiometricSettingAsync(string user_id, bool is_on)
+    public async Task UpdateBiometricSettingAsync(string userId, bool enabled)
     {
         try
         {
             await FirestoreService.Instance.UpdateDocumentAsync(
-                AppConfig.Collections.Users, user_id,
-                new Dictionary<string, object> { { "biometricEnabled", is_on } });
+                AppConfig.Collections.Users, userId,
+                new Dictionary<string, object> { { "biometricEnabled", enabled } });
         }
-        catch (Exception update_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[UserRepository] UpdateBiometricSettingAsync failed: {update_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[UserRepo] biometric setting update failed ({userId}): {ex.Message}");
         }
     }
 
-    private static UserAccount MapFromFirestore(string user_id, System.Text.Json.JsonElement payload_fields)
+    private static UserAccount MapFromFirestore(string userId, System.Text.Json.JsonElement fields)
     {
         return new UserAccount
         {
-            FirestoreId = user_id,
-            Email = FirestoreService.GetString(payload_fields, "email"),
-            FullName = FirestoreService.GetString(payload_fields, "fullName"),
-            Phone = FirestoreService.GetString(payload_fields, "phone"),
-            DateOfBirth = FirestoreService.GetString(payload_fields, "dateOfBirth"),
-            Role = FirestoreService.GetString(payload_fields, "role").IfEmpty("Patient"),
-            AuthProvider = FirestoreService.GetString(payload_fields, "authProvider").IfEmpty("Local"),
-            AvatarColor = FirestoreService.GetString(payload_fields, "avatarColor").IfEmpty("#155EEF"),
-            FCMToken = FirestoreService.GetString(payload_fields, "fcmToken"),
-            NotificationsEnabled = FirestoreService.GetBool(payload_fields, "notificationsEnabled", true),
-            BiometricEnabled = FirestoreService.GetBool(payload_fields, "biometricEnabled"),
-            CreatedAt = FirestoreService.GetDateTime(payload_fields, "createdAt"),
-            UpdatedAt = FirestoreService.GetDateTime(payload_fields, "updatedAt")
+            FirestoreId = userId,
+            Email = FirestoreService.GetString(fields, "email"),
+            FullName = FirestoreService.GetString(fields, "fullName"),
+            Phone = FirestoreService.GetString(fields, "phone"),
+            DateOfBirth = FirestoreService.GetString(fields, "dateOfBirth"),
+            Role = FirestoreService.GetString(fields, "role").IfEmpty("Patient"),
+            AuthProvider = FirestoreService.GetString(fields, "authProvider").IfEmpty("Local"),
+            AvatarColor = FirestoreService.GetString(fields, "avatarColor").IfEmpty("#155EEF"),
+            FCMToken = FirestoreService.GetString(fields, "fcmToken"),
+            NotificationsEnabled = FirestoreService.GetBool(fields, "notificationsEnabled", true),
+            BiometricEnabled = FirestoreService.GetBool(fields, "biometricEnabled"),
+            CreatedAt = FirestoreService.GetDateTime(fields, "createdAt"),
+            UpdatedAt = FirestoreService.GetDateTime(fields, "updatedAt")
         };
     }
 
-    private static Dictionary<string, object> MapToFirestore(UserAccount account_data) => new()
+    private static Dictionary<string, object> MapToFirestore(UserAccount account) => new()
     {
-        { "email", account_data.Email },
-        { "fullName", account_data.FullName },
-        { "phone", account_data.Phone },
-        { "dateOfBirth", account_data.DateOfBirth },
-        { "role", account_data.Role },
-        { "authProvider", account_data.AuthProvider },
-        { "avatarColor", account_data.AvatarColor },
-        { "fcmToken", account_data.FCMToken },
-        { "notificationsEnabled", account_data.NotificationsEnabled },
-        { "biometricEnabled", account_data.BiometricEnabled },
-        { "createdAt", account_data.CreatedAt },
+        { "email", account.Email },
+        { "fullName", account.FullName },
+        { "phone", account.Phone },
+        { "dateOfBirth", account.DateOfBirth },
+        { "role", account.Role },
+        { "authProvider", account.AuthProvider },
+        { "avatarColor", account.AvatarColor },
+        { "fcmToken", account.FCMToken },
+        { "notificationsEnabled", account.NotificationsEnabled },
+        { "biometricEnabled", account.BiometricEnabled },
+        { "createdAt", account.CreatedAt },
         { "updatedAt", DateTime.UtcNow }
     };
 }

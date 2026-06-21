@@ -2,6 +2,7 @@ namespace MediBook.Services.Email;
 
 public static class EmailTemplateService
 {
+    // All styles are inlined — most email clients strip <style> blocks or ignore external CSS
     public static string AppointmentConfirmation(string patientName, string doctorName, string clinicName, string dateText, string timeText, string reason, double fee)
     {
         return $@"
@@ -81,6 +82,7 @@ public static class EmailTemplateService
 
     public static string PasswordResetConfirmation(string userName)
     {
+        // plain layout for reset emails — no need for the full card template
         return $@"<div style='font-family:Arial,sans-serif;max-width:500px;margin:0 auto;'>
             <h2 style='color:#042C53;'>Password Reset Requested</h2>
             <p>Hi {userName}, we received a request to reset your MediBook password.</p>

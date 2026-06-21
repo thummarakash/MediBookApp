@@ -14,12 +14,12 @@ public class ClinicRepository
     {
         try
         {
-            var collection_docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Clinics);
-            return collection_docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+            var documents = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Clinics);
+            return documents.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] GetAllAsync query failed: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepository] GetAllAsync failed: {ex.Message}");
             return new List<Clinic>();
         }
     }
@@ -28,14 +28,14 @@ public class ClinicRepository
     {
         try
         {
-            var doc_item = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Clinics, clinicId);
-            if (doc_item == null) return null;
-            var deserialized_fields = doc_item.Value.TryGetProperty("fields", out var f) ? f : default;
-            return MapFromFirestore(clinicId, deserialized_fields);
+            var snapshot = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Clinics, clinicId);
+            if (snapshot == null) return null;
+            var fields = snapshot.Value.TryGetProperty("fields", out var f) ? f : default;
+            return MapFromFirestore(clinicId, fields);
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] GetByIdAsync query failed for {clinicId}: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepository] GetByIdAsync failed for {clinicId}: {ex.Message}");
             return null;
         }
     }
@@ -44,14 +44,14 @@ public class ClinicRepository
     {
         try
         {
-            var deserialized_fields = MapToFirestore(clinic);
-            var db_id = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Clinics, deserialized_fields);
-            clinic.FirestoreId = db_id;
-            return db_id;
+            var firestoreFields = MapToFirestore(clinic);
+            var newDocId = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Clinics, firestoreFields);
+            clinic.FirestoreId = newDocId;
+            return newDocId;
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] CreateAsync error: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepository] CreateAsync failed: {ex.Message}");
             throw;
         }
     }
@@ -61,12 +61,12 @@ public class ClinicRepository
         try
         {
             if (string.IsNullOrEmpty(clinic.FirestoreId)) return;
-            var deserialized_fields = MapToFirestore(clinic);
-            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Clinics, clinic.FirestoreId, deserialized_fields);
+            var firestoreFields = MapToFirestore(clinic);
+            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Clinics, clinic.FirestoreId, firestoreFields);
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] UpdateAsync error: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepository] UpdateAsync failed: {ex.Message}");
             throw;
         }
     }
@@ -77,9 +77,9 @@ public class ClinicRepository
         {
             await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Clinics, clinicId);
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] DeleteAsync error for {clinicId}: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepository] DeleteAsync failed for {clinicId}: {ex.Message}");
             throw;
         }
     }
@@ -88,18 +88,18 @@ public class ClinicRepository
     {
         try
         {
-            var clinics_list = await GetAllAsync();
-            if (clinics_list.Count > 0) return;
+            var existing = await GetAllAsync();
+            if (existing.Count > 0) return;
 
             foreach (var clinic in seedData)
             {
-                var db_id = await CreateAsync(clinic);
-                clinic.FirestoreId = db_id;
+                var newDocId = await CreateAsync(clinic);
+                clinic.FirestoreId = newDocId;
             }
         }
-        catch (Exception seed_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[ClinicRepo] SeedIfEmptyAsync error: {seed_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ClinicRepository] SeedIfEmptyAsync failed: {ex.Message}");
         }
     }
 
@@ -119,16 +119,16 @@ public class ClinicRepository
         };
     }
 
-    private static Dictionary<string, object> MapToFirestore(Clinic cl) => new()
+    private static Dictionary<string, object> MapToFirestore(Clinic clinic) => new()
     {
-        { "name", cl.Name },
-        { "address", cl.Address },
-        { "latitude", cl.Latitude },
-        { "longitude", cl.Longitude },
-        { "phone", cl.Phone ?? "" },
-        { "openingHoursMonFri", cl.OpeningHoursMonFri ?? "Mon-Fri: 8:00 AM - 6:00 PM" },
-        { "openingHoursSatSun", cl.OpeningHoursSatSun ?? "Sat: 9:00 AM - 1:00 PM" },
-        { "status", cl.Status ?? "Open" },
+        { "name", clinic.Name },
+        { "address", clinic.Address },
+        { "latitude", clinic.Latitude },
+        { "longitude", clinic.Longitude },
+        { "phone", clinic.Phone ?? "" },
+        { "openingHoursMonFri", clinic.OpeningHoursMonFri ?? "Mon-Fri: 8:00 AM - 6:00 PM" },
+        { "openingHoursSatSun", clinic.OpeningHoursSatSun ?? "Sat: 9:00 AM - 1:00 PM" },
+        { "status", clinic.Status ?? "Open" },
         { "updatedAt", DateTime.UtcNow }
     };
 }

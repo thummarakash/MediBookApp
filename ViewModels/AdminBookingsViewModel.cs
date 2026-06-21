@@ -17,14 +17,14 @@ public partial class AdminBookingsViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            // Admin sees ALL appointments across all users
             var all = await DatabaseService.Instance.GetAllAppointmentsAsync();
+            // most recent at top — admins typically need to action the latest bookings first
             Bookings = new ObservableCollection<Appointment>(
                 all.OrderByDescending(a => a.CreatedAt));
         }
-        catch (Exception fetch_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AdminBookingsVM] Failed to retrieve booking list: {fetch_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AdminBookings] fetch error: {ex.Message}");
         }
         finally
         {

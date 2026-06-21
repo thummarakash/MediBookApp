@@ -15,12 +15,12 @@ public partial class DoctorsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _vm.RefreshListCommand.ExecuteAsync(null);
+        await _vm.LoadDoctorsCommand.ExecuteAsync(null);
     }
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
-        _vm.FilterDoctorsByTextCommand.Execute(e.NewTextValue);
+        _vm.SearchDoctorsCommand.Execute(e.NewTextValue);
     }
 
     private async void OnDoctorCardTapped(object sender, EventArgs e)
@@ -50,7 +50,7 @@ public partial class DoctorsPage : ContentPage
             && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap
             && tap.CommandParameter is string category)
         {
-            _vm.ChooseCategoryCommand.Execute(category);
+            _vm.SelectSpecialtyCategoryCommand.Execute(category);
             UpdateChipUI(category);
         }
     }

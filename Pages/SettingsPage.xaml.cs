@@ -1,3 +1,4 @@
+using MediBook.Configuration;
 using MediBook.Helpers;
 using MediBook.Services;
 using MediBook.Services.Email;
@@ -32,11 +33,10 @@ public partial class SettingsPage : ContentPage
         }
         catch (OperationCanceledException)
         {
-            // User cancelled — no error
         }
-        catch (Exception oauth_ex)
+        catch (Exception ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In Failed", oauth_ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Google Sign-In Failed", ex.Message, "icon_warning.svg");
         }
     }
 
@@ -57,8 +57,7 @@ public partial class SettingsPage : ContentPage
         try
         {
             await SmtpEmailService.Instance.SendWelcomeEmailAsync(user.Email, user.FullName);
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Test Email",
-                $"Test email sent to {user.Email}");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Test Email", $"Test email sent to {user.Email}");
         }
         finally
         {
@@ -73,7 +72,7 @@ public partial class SettingsPage : ContentPage
         if (!confirm) return;
 
         DatabaseService.Instance.Logout();
-        Preferences.Default.Set("medibook_logged_in", false);
+        Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
         await Shell.Current.GoToAsync("//login");
     }
 

@@ -17,38 +17,37 @@ public class DocumentService
         if (!MediaPicker.Default.IsCaptureSupported)
             return null;
 
-        var selected_img = await MediaPicker.Default.CapturePhotoAsync();
-        return selected_img == null ? null : await SaveLocallyAsync(selected_img);
+        var selectedMedia = await MediaPicker.Default.CapturePhotoAsync();
+        return selectedMedia == null ? null : await SaveLocallyAsync(selectedMedia);
     }
 
     public async Task<string?> PickDocumentPhotoAsync()
     {
-        var picker_cfg = new MediaPickerOptions { Title = "Select Medical Document" };
-        var selected_img = await MediaPicker.Default.PickPhotoAsync(picker_cfg);
-        return selected_img == null ? null : await SaveLocallyAsync(selected_img);
+        var pickerOptions = new MediaPickerOptions { Title = "Select Medical Document" };
+        var selectedMedia = await MediaPicker.Default.PickPhotoAsync(pickerOptions);
+        return selectedMedia == null ? null : await SaveLocallyAsync(selectedMedia);
     }
 
-    public async Task<string?> UploadToFirebaseAsync(string local_filepath, string category)
+    public async Task<string?> UploadToFirebaseAsync(string localFilePath, string category)
     {
         try
         {
-            if (!File.Exists(local_filepath)) return null;
+            if (!File.Exists(localFilePath)) return null;
             if (!ConnectivityHelper.IsConnected) return null;
 
-            var user_uid = await SessionService.Instance.GetUserIdAsync() ?? "anonymous";
-            var target_dir = category == "Prescription"
+            var userId = await SessionService.Instance.GetUserIdAsync() ?? "anonymous";
+            var storageFolder = category == "Prescription"
                 ? AppConfig.StoragePaths.Prescriptions
                 : AppConfig.StoragePaths.MedicalDocuments;
 
-            // Upload the physical file to Firebase Storage
-            var downloadable_url = await FirebaseStorageService.Instance
-                .UploadFileFromPathAsync(local_filepath, user_uid, target_dir);
+            var downloadUrl = await FirebaseStorageService.Instance
+                .UploadFileFromPathAsync(localFilePath, userId, storageFolder);
 
-            return downloadable_url;
+            return downloadUrl;
         }
-        catch (Exception upload_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DocSvc] Upload to Firebase storage failed: {upload_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DocumentService] Upload to Firebase storage failed: {ex.Message}");
             return null;
         }
     }
@@ -56,19 +55,19 @@ public class DocumentService
     private static async Task<string> SaveLocallyAsync(FileResult file)
     {
         var extension = Path.GetExtension(file.FileName);
-        if (string.IsNullOrWhiteSpace(extension)) 
+        if (string.IsNullOrWhiteSpace(extension))
             extension = ".jpg";
 
-        var target_folder = Path.Combine(FileSystem.AppDataDirectory, "MedicalDocuments");
-        Directory.CreateDirectory(target_folder);
+        var targetFolder = Path.Combine(FileSystem.AppDataDirectory, "MedicalDocuments");
+        Directory.CreateDirectory(targetFolder);
 
-        var unique_filename = $"doc_{DateTime.Now:yyyyMMdd_HHmmss}{extension}";
-        var local_filepath = Path.Combine(target_folder, unique_filename);
+        var uniqueFileName = $"doc_{DateTime.Now:yyyyMMdd_HHmmss}{extension}";
+        var localFilePath = Path.Combine(targetFolder, uniqueFileName);
 
-        await using var read_stream = await file.OpenReadAsync();
-        await using var write_stream = File.OpenWrite(local_filepath);
-        await read_stream.CopyToAsync(write_stream);
+        await using var readStream = await file.OpenReadAsync();
+        await using var writeStream = File.OpenWrite(localFilePath);
+        await readStream.CopyToAsync(writeStream);
 
-        return local_filepath;
+        return localFilePath;
     }
 }

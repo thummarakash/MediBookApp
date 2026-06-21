@@ -18,10 +18,9 @@ public partial class ClinicDetailPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        // ClinicId arrives as a string query param — parse back to int to match the static list
         if (int.TryParse(ClinicId, out var id))
-        {
             _clinic = (await DatabaseService.Instance.GetClinicsAsync()).FirstOrDefault(c => c.Id == id);
-        }
 
         if (_clinic != null)
         {
@@ -66,14 +65,13 @@ public partial class ClinicDetailPage : ContentPage
                 var options = new MapLaunchOptions { Name = _clinic.Name };
                 await Map.OpenAsync(_clinic.Latitude, _clinic.Longitude, options);
             }
-            catch (Exception map_ex)
+            catch (Exception ex)
             {
-                await DisplayAlert("Maps Error", map_ex.Message, "OK");
+                await DisplayAlert("Maps Error", ex.Message, "OK");
             }
         }
     }
 
-    // FIX: was using "//BookAppointmentPage" which crashes because it's a registered route, not a global route
     private async void OnBookClicked(object sender, EventArgs e)
     {
         await Shell.Current.GoToAsync(nameof(BookAppointmentPage));

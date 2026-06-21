@@ -2,13 +2,12 @@ namespace MediBook.Models;
 
 public class Appointment
 {
-    // Local ID for backward compatibility
+    // local SQLite row ID — not used after the Firestore migration but kept to avoid breaking cached records
     public int Id { get; set; }
 
-    // Firestore document ID
     public string FirestoreId { get; set; } = string.Empty;
 
-    // Legacy int UID + new Firestore string UID
+    // legacy int UID + Firestore string UID — both stored for backward compatibility
     public int UserId { get; set; }
     public string UserFirestoreId { get; set; } = string.Empty;
 
@@ -39,6 +38,7 @@ public class Appointment
     {
         get
         {
+            // try the booking format first ("yyyy-MM-dd hh:mm tt"), then fall back to ISO date-only
             if (DateTime.TryParseExact($"{DateText} {TimeText}", "yyyy-MM-dd hh:mm tt",
                 System.Globalization.CultureInfo.InvariantCulture,
                 System.Globalization.DateTimeStyles.None, out var dt))
@@ -54,18 +54,18 @@ public class Appointment
 
     public string DisplayDateTime => $"{DateText} at {TimeText}";
 
-    // Colors match Colors.xaml: Success, Danger, Warning, SuccessBg, DangerBg, WarningBg
+    // colours match the named resources in Colors.xaml
     public Color StatusColor => Status switch
     {
-        "Completed" => Color.FromArgb("#15803D"),   // Success
-        "Cancelled" => Color.FromArgb("#DC2626"),   // Danger
-        _ => Color.FromArgb("#C2740C")              // Warning
+        "Completed" => Color.FromArgb("#15803D"),
+        "Cancelled" => Color.FromArgb("#DC2626"),
+        _ => Color.FromArgb("#C2740C")
     };
 
     public Color StatusBgColor => Status switch
     {
-        "Completed" => Color.FromArgb("#DCFCE7"),   // SuccessBg
-        "Cancelled" => Color.FromArgb("#FEE2E2"),   // DangerBg
-        _ => Color.FromArgb("#FEF3C7")              // WarningBg
+        "Completed" => Color.FromArgb("#DCFCE7"),
+        "Cancelled" => Color.FromArgb("#FEE2E2"),
+        _ => Color.FromArgb("#FEF3C7")
     };
 }

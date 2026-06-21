@@ -17,42 +17,42 @@ public class FcmService
             if (!string.IsNullOrEmpty(CurrentToken))
                 await SyncTokenToFirestoreAsync(CurrentToken);
         }
-        catch (Exception init_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FcmService] Token initialization failed: {init_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FcmService] Token initialization failed: {ex.Message}");
         }
     }
 
-    public async Task OnTokenRefreshedAsync(string new_tok)
+    public async Task OnTokenRefreshedAsync(string newToken)
     {
-        CurrentToken = new_tok;
-        Preferences.Default.Set(AppConfig.PrefKeys.FcmToken, new_tok);
-        await SyncTokenToFirestoreAsync(new_tok);
+        CurrentToken = newToken;
+        Preferences.Default.Set(AppConfig.PrefKeys.FcmToken, newToken);
+        await SyncTokenToFirestoreAsync(newToken);
     }
 
     private async Task SyncTokenToFirestoreAsync(string token)
     {
         try
         {
-            var u_id = await Helpers.SecureStorageHelper.GetUserIdAsync();
-            if (string.IsNullOrEmpty(u_id)) return;
+            var userId = await Helpers.SecureStorageHelper.GetUserIdAsync();
+            if (string.IsNullOrEmpty(userId)) return;
 
             await FirestoreService.Instance.UpdateDocumentAsync(
                 AppConfig.Collections.Users,
-                u_id,
+                userId,
                 new Dictionary<string, object> { { "fcmToken", token } }
             );
         }
-        catch (Exception sync_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[FcmService] Token synchronization to Firestore failed: {sync_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[FcmService] Token sync to Firestore failed: {ex.Message}");
         }
     }
 
     public async Task RequestNotificationPermissionAsync()
     {
-        var perm_status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
-        if (perm_status != PermissionStatus.Granted)
+        var permissionStatus = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+        if (permissionStatus != PermissionStatus.Granted)
             await Permissions.RequestAsync<Permissions.PostNotifications>();
     }
 }

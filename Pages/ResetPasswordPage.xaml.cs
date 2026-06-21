@@ -60,7 +60,6 @@ public partial class ResetPasswordPage : ContentPage
             return;
         }
 
-        // Simulating updating password in memory database
         try
         {
             await Services.DatabaseService.Instance.LoginAsync(Email, newPassword);
@@ -72,13 +71,12 @@ public partial class ResetPasswordPage : ContentPage
                 "Go to Home",
                 async () =>
                 {
-                    // Go to home page directly after reset success
                     await Shell.Current.GoToAsync("//home");
                 });
         }
-        catch (Exception db_login_ex)
+        catch (Exception ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Reset Failed", db_login_ex.Message, "icon_warning.svg", "OK");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Reset Failed", ex.Message, "icon_warning.svg", "OK");
         }
     }
 }

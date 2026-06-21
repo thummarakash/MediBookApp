@@ -1,3 +1,4 @@
+using MediBook.Configuration;
 using MediBook.Helpers;
 using MediBook.Services;
 using MediBook.ViewModels;
@@ -45,7 +46,7 @@ public partial class AdminDashboardPage : ContentPage
             "Sign Out", "Sign out of the admin panel?", "Sign Out", "Cancel");
         if (!confirm) return;
         DatabaseService.Instance.Logout();
-        Preferences.Default.Set("medibook_logged_in", false);
+        Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
         await Shell.Current.GoToAsync("//login");
     }
 }

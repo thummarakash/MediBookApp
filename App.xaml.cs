@@ -6,7 +6,6 @@ public partial class App : Application
     {
         InitializeComponent();
 
-        // Always force Light theme as requested
         UserAppTheme = AppTheme.Light;
 
         Task.Run(async () =>
@@ -15,9 +14,9 @@ public partial class App : Application
             {
                 await Services.DatabaseService.Instance.SeedDefaultAdminAsync();
             }
-            catch (Exception startup_seed_ex)
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[MediBook] Startup seed failed: {startup_seed_ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[App] Startup seed failed: {ex.Message}");
             }
         });
     }

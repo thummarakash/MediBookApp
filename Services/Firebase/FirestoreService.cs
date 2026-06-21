@@ -27,6 +27,7 @@ public class FirestoreService
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
+        // Clone() is required — the JsonDocument is disposed with the response stream
         return JsonDocument.Parse(json).RootElement.Clone();
     }
 
@@ -48,13 +49,13 @@ public class FirestoreService
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(json).RootElement;
-        // Extract the auto-generated document ID from the returned name
         var name = doc.GetProperty("name").GetString() ?? "";
         return name.Split('/').Last();
     }
 
     public async Task UpdateDocumentAsync(string collection, string documentId, Dictionary<string, object> fields)
     {
+        // updateMask.fieldPaths restricts the PATCH to only the fields we specify — prevents wiping unrelated fields
         var fieldPaths = string.Join("&", fields.Keys.Select(k => $"updateMask.fieldPaths={Uri.EscapeDataString(k)}"));
         var url = $"{AppConfig.FirestoreBaseUrl}/{collection}/{documentId}?{fieldPaths}";
         var body = BuildDocumentBody(fields);
@@ -157,6 +158,7 @@ public class FirestoreService
         if (fields.TryGetProperty(name, out var field))
         {
             if (field.TryGetProperty("doubleValue", out var dv)) return dv.GetDouble();
+            // Firestore sometimes stores numbers as integerValue strings
             if (field.TryGetProperty("integerValue", out var iv) && long.TryParse(iv.GetString(), out var l)) return l;
         }
         return defaultValue;

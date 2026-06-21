@@ -14,12 +14,12 @@ public class DoctorRepository
     {
         try
         {
-            var collection_docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Doctors);
-            return collection_docs.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+            var documents = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Doctors);
+            return documents.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] GetAllAsync query failed: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepository] GetAllAsync failed: {ex.Message}");
             return new List<Doctor>();
         }
     }
@@ -28,45 +28,45 @@ public class DoctorRepository
     {
         try
         {
-            var doc_snap = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Doctors, doctorId);
-            if (doc_snap == null) return null;
-            var deserialized_fields = doc_snap.Value.TryGetProperty("fields", out var f) ? f : default;
-            return MapFromFirestore(doctorId, deserialized_fields);
+            var snapshot = await FirestoreService.Instance.GetDocumentAsync(AppConfig.Collections.Doctors, doctorId);
+            if (snapshot == null) return null;
+            var fields = snapshot.Value.TryGetProperty("fields", out var f) ? f : default;
+            return MapFromFirestore(doctorId, fields);
         }
-        catch (Exception read_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] GetByIdAsync query failed for {doctorId}: {read_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepository] GetByIdAsync failed for {doctorId}: {ex.Message}");
             return null;
         }
     }
 
-    public async Task<string> CreateAsync(Doctor doctor_obj)
+    public async Task<string> CreateAsync(Doctor doctor)
     {
         try
         {
-            var deserialized_fields = MapToFirestore(doctor_obj);
-            var inserted_doc_id = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Doctors, deserialized_fields);
-            doctor_obj.FirestoreId = inserted_doc_id;
-            return inserted_doc_id;
+            var firestoreFields = MapToFirestore(doctor);
+            var newDocId = await FirestoreService.Instance.AddDocumentAsync(AppConfig.Collections.Doctors, firestoreFields);
+            doctor.FirestoreId = newDocId;
+            return newDocId;
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] CreateAsync error: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepository] CreateAsync failed: {ex.Message}");
             throw;
         }
     }
 
-    public async Task UpdateAsync(Doctor doctor_obj)
+    public async Task UpdateAsync(Doctor doctor)
     {
         try
         {
-            if (string.IsNullOrEmpty(doctor_obj.FirestoreId)) return;
-            var deserialized_fields = MapToFirestore(doctor_obj);
-            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Doctors, doctor_obj.FirestoreId, deserialized_fields);
+            if (string.IsNullOrEmpty(doctor.FirestoreId)) return;
+            var firestoreFields = MapToFirestore(doctor);
+            await FirestoreService.Instance.SetDocumentAsync(AppConfig.Collections.Doctors, doctor.FirestoreId, firestoreFields);
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] UpdateAsync error: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepository] UpdateAsync failed: {ex.Message}");
             throw;
         }
     }
@@ -77,9 +77,9 @@ public class DoctorRepository
         {
             await FirestoreService.Instance.DeleteDocumentAsync(AppConfig.Collections.Doctors, doctorId);
         }
-        catch (Exception fire_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] DeleteAsync failed for {doctorId}: {fire_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepository] DeleteAsync failed for {doctorId}: {ex.Message}");
             throw;
         }
     }
@@ -88,18 +88,18 @@ public class DoctorRepository
     {
         try
         {
-            var doctors_list = await GetAllAsync();
-            if (doctors_list.Count > 0) return;
+            var existing = await GetAllAsync();
+            if (existing.Count > 0) return;
 
-            foreach (var doctor_obj in seedData)
+            foreach (var doctor in seedData)
             {
-                var inserted_doc_id = await CreateAsync(doctor_obj);
-                doctor_obj.FirestoreId = inserted_doc_id;
+                var newDocId = await CreateAsync(doctor);
+                doctor.FirestoreId = newDocId;
             }
         }
-        catch (Exception seed_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[DoctorRepo] SeedIfEmptyAsync failed: {seed_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[DoctorRepository] SeedIfEmptyAsync failed: {ex.Message}");
         }
     }
 
@@ -125,22 +125,22 @@ public class DoctorRepository
         };
     }
 
-    private static Dictionary<string, object> MapToFirestore(Doctor d) => new()
+    private static Dictionary<string, object> MapToFirestore(Doctor doctor) => new()
     {
-        { "name", d.Name },
-        { "specialty", d.Specialty },
-        { "department", d.Department },
-        { "availability", d.Availability },
-        { "experience", d.Experience },
-        { "rating", d.Rating },
-        { "bio", d.Bio },
-        { "accentColor", d.AccentColor },
-        { "feePerAppointment", d.FeePerAppointment },
-        { "feePerMinute", d.FeePerMinute },
-        { "slotDurationMinutes", d.SlotDurationMinutes },
-        { "isActive", d.IsActive },
-        { "clinicName", d.ClinicName ?? "" },
-        { "clinicFirestoreId", d.ClinicFirestoreId ?? "" },
+        { "name", doctor.Name },
+        { "specialty", doctor.Specialty },
+        { "department", doctor.Department },
+        { "availability", doctor.Availability },
+        { "experience", doctor.Experience },
+        { "rating", doctor.Rating },
+        { "bio", doctor.Bio },
+        { "accentColor", doctor.AccentColor },
+        { "feePerAppointment", doctor.FeePerAppointment },
+        { "feePerMinute", doctor.FeePerMinute },
+        { "slotDurationMinutes", doctor.SlotDurationMinutes },
+        { "isActive", doctor.IsActive },
+        { "clinicName", doctor.ClinicName ?? "" },
+        { "clinicFirestoreId", doctor.ClinicFirestoreId ?? "" },
         { "updatedAt", DateTime.UtcNow }
     };
 }

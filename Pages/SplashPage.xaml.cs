@@ -1,3 +1,4 @@
+using MediBook.Configuration;
 using MediBook.Services;
 using MediBook.Services.Auth;
 
@@ -15,37 +16,35 @@ public partial class SplashPage : ContentPage
         base.OnAppearing();
         await Task.Delay(2000);
 
-        bool seen_onboard = Preferences.Get("medibook_onboarding_seen", false);
-        if (!seen_onboard)
+        bool onboardingSeen = Preferences.Get(AppConfig.PrefKeys.OnboardingSeen, false);
+        if (!onboardingSeen)
         {
             await Shell.Current.GoToAsync("//onboarding");
             return;
         }
 
-        bool has_session = false;
+        bool hasSession = false;
         try
         {
-            var auth_tok = await SessionService.Instance.GetValidTokenAsync();
-            has_session = !string.IsNullOrEmpty(auth_tok);
+            var idToken = await SessionService.Instance.GetValidTokenAsync();
+            hasSession = !string.IsNullOrEmpty(idToken);
         }
-        catch (Exception session_restore_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SplashPage] Session restore failed: {session_restore_ex.Message}");
-            has_session = false;
-        }
-
-        if (!has_session)
-        {
-            has_session = Preferences.Get("medibook_logged_in", false);
+            System.Diagnostics.Debug.WriteLine($"[SplashPage] Session restore failed: {ex.Message}");
+            hasSession = false;
         }
 
-        if (has_session)
-        {
-            bool bio_on = BiometricService.Instance.IsBiometricsEnabled();
-            bool pin_on = BiometricService.Instance.IsPinEnabled()
-                && !string.IsNullOrEmpty(BiometricService.Instance.GetSecurityPin());
+        if (!hasSession)
+            hasSession = Preferences.Get(AppConfig.PrefKeys.LoggedIn, false);
 
-            if (bio_on || pin_on)
+        if (hasSession)
+        {
+            bool biometricsOn = BiometricService.Instance.IsBiometricsEnabled();
+            bool pinOn = BiometricService.Instance.IsPinEnabled()
+                      && !string.IsNullOrEmpty(BiometricService.Instance.GetSecurityPin());
+
+            if (biometricsOn || pinOn)
                 await Shell.Current.GoToAsync($"{nameof(PinPage)}?mode=Verify");
             else
                 await Shell.Current.GoToAsync("//home");

@@ -2,10 +2,10 @@ namespace MediBook.Models;
 
 public class UserAccount
 {
-    // Local integer ID for backward compatibility with existing code
+    // local integer ID for backward compatibility with existing SQLite schema
     public int Id { get; set; }
 
-    // Firebase UID — used as the Firestore document ID
+    // Firebase UID — also the Firestore document ID for this user
     public string FirestoreId { get; set; } = string.Empty;
 
     public string Email { get; set; } = string.Empty;
@@ -36,9 +36,10 @@ public class UserAccount
         get
         {
             var parts = FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            return parts.Length >= 2
-                ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
-                : parts.Length == 1 ? $"{parts[0][0]}".ToUpper() : "US";
+            if (parts.Length >= 2)
+                return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+            // single-word name — just first letter; "US" is the safe fallback for empty names
+            return parts.Length == 1 ? $"{parts[0][0]}".ToUpper() : "US";
         }
     }
 }

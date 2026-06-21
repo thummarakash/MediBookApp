@@ -104,9 +104,10 @@ public partial class ManageClinicsViewModel : ObservableObject
             var loc = locations?.FirstOrDefault();
             if (loc != null) { lat = loc.Latitude; lon = loc.Longitude; }
         }
-        catch (Exception geocode_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Geocoding] Location resolution failed (falling back to defaults): {geocode_ex.Message}");
+            // geocoding is optional — map pins still work with Melbourne CBD coords as fallback
+            System.Diagnostics.Debug.WriteLine($"[ManageClinics] geocode failed, falling back to defaults: {ex.Message}");
         }
 
         if (IsEditMode && _editingClinic != null)
@@ -125,9 +126,9 @@ public partial class ManageClinicsViewModel : ObservableObject
                 if (!string.IsNullOrEmpty(_editingClinic.FirestoreId))
                     await ClinicRepository.Instance.UpdateAsync(_editingClinic);
             }
-            catch (Exception fire_update_ex)
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Firestore] Clinic update failed: {fire_update_ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ManageClinics] update failed: {ex.Message}");
             }
         }
         else
@@ -148,10 +149,9 @@ public partial class ManageClinicsViewModel : ObservableObject
             {
                 await ClinicRepository.Instance.CreateAsync(clinic);
             }
-            catch (Exception fire_create_ex)
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[Firestore] Clinic create failed: {fire_create_ex.Message}");
-                // Still add to static list as fallback
+                System.Diagnostics.Debug.WriteLine($"[ManageClinics] create failed: {ex.Message}");
                 clinic.Id = DatabaseService.StaticClinics.Count + 1;
                 DatabaseService.StaticClinics.Add(clinic);
             }
@@ -179,9 +179,9 @@ public partial class ManageClinicsViewModel : ObservableObject
             else
                 DatabaseService.StaticClinics.Remove(clinic);
         }
-        catch (Exception fire_delete_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Firestore] Clinic delete failed: {fire_delete_ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[ManageClinics] delete failed: {ex.Message}");
             DatabaseService.StaticClinics.Remove(clinic);
         }
 

@@ -34,7 +34,6 @@ public partial class ChangePasswordPage : ContentPage
             return;
         }
 
-        // 1. Verify current password by signing in
         try
         {
             var email = await Services.Auth.SessionService.Instance.GetUserEmailAsync();
@@ -44,26 +43,21 @@ public partial class ChangePasswordPage : ContentPage
                 return;
             }
 
-            // Attempt to authenticate
             var authResult = await Services.Firebase.FirebaseAuthService.Instance.SignInWithEmailPasswordAsync(email, currentPassword);
-            
-            // 2. Change password
             await Services.Firebase.FirebaseAuthService.Instance.ChangePasswordAsync(authResult.IdToken, newPassword);
-            
-            // 3. Save new session tokens
             await Services.Auth.SessionService.Instance.SaveSessionAsync(authResult, await Services.Auth.SessionService.Instance.GetUserRoleAsync() ?? "Patient");
 
             await ConfirmationPopupPage.ShowAsync(Navigation, "Password Updated", "Your password has been changed successfully!");
 
-            // Reset form
             CurrentPasswordEntry.Text = string.Empty;
             NewPasswordEntry.Text = string.Empty;
             ConfirmPasswordEntry.Text = string.Empty;
 
             await Shell.Current.GoToAsync("..");
         }
-        catch (Exception change_pw_ex)
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[ChangePasswordPage] Password update failed: {ex.Message}");
             await ConfirmationPopupPage.ShowAsync(Navigation, "Error", "Current password is incorrect.", "icon_warning.svg");
         }
     }

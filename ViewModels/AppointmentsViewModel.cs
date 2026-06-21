@@ -8,7 +8,7 @@ namespace MediBook.ViewModels;
 
 public partial class AppointmentsViewModel : ObservableObject
 {
-    private List<Appointment> _bkList = new();
+    private List<Appointment> _allAppointments = new();
 
     [ObservableProperty] string searchQuery = "";
     [ObservableProperty] ObservableCollection<Appointment> appointments = new();
@@ -17,18 +17,18 @@ public partial class AppointmentsViewModel : ObservableObject
     [ObservableProperty] bool isEmpty;
 
     [RelayCommand]
-    async Task SyncAppts()
+    async Task LoadAppointmentsAsync()
     {
         IsLoading = true;
         try
         {
-            var res = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
-            _bkList = res ?? new List<Appointment>();
-            CompileFinalList();
+            var result = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
+            _allAppointments = result ?? new List<Appointment>();
+            ApplyFilters();
         }
-        catch (Exception load_ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine("DEBUG_APPT_FAIL: " + load_ex.Message);
+            System.Diagnostics.Debug.WriteLine($"[ApptsVM] LoadAppointmentsAsync: {ex.Message}");
         }
         finally
         {
@@ -37,34 +37,33 @@ public partial class AppointmentsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    void GoToTab(string tName)
+    void SelectTab(string tabName)
     {
-        SelectedTab = string.IsNullOrWhiteSpace(tName) ? "Upcoming" : tName;
-        CompileFinalList();
+        SelectedTab = string.IsNullOrWhiteSpace(tabName) ? "Upcoming" : tabName;
+        ApplyFilters();
     }
 
     [RelayCommand]
-    void MatchText(string val)
+    void SearchAppointments(string text)
     {
-        SearchQuery = val?.Trim() ?? "";
-        CompileFinalList();
+        SearchQuery = text?.Trim() ?? "";
+        ApplyFilters();
     }
 
-    private void CompileFinalList()
+    private void ApplyFilters()
     {
-        var temp = new List<Appointment>();
-        
-        // Manual iteration instead of standard generic linq chains to look human-coded
-        for (int i = 0; i < _bkList.Count; i++)
+        var filtered = new List<Appointment>();
+
+        for (int i = 0; i < _allAppointments.Count; i++)
         {
-            var item = _bkList[i];
-            
-            // Tab verification
-            bool tabMatch = false;
+            var item = _allAppointments[i];
+
+            // Past tab shows both Completed and Cancelled
+            bool tabMatch;
             if (SelectedTab == "Past")
             {
-                tabMatch = item.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase) || 
-                           item.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase);
+                tabMatch = item.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase)
+                        || item.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase);
             }
             else
             {
@@ -73,27 +72,26 @@ public partial class AppointmentsViewModel : ObservableObject
 
             if (!tabMatch) continue;
 
-            // Search query verification
             if (!string.IsNullOrEmpty(SearchQuery))
             {
                 var q = SearchQuery.ToLowerInvariant();
-                bool matchesSearch = (item.DoctorName != null && item.DoctorName.ToLower().Contains(q))
-                                     || (item.ClinicName != null && item.ClinicName.ToLower().Contains(q))
-                                     || (item.Department != null && item.Department.ToLower().Contains(q));
-                
-                if (!matchesSearch) continue;
+                bool hit = (item.DoctorName != null && item.DoctorName.ToLower().Contains(q))
+                        || (item.ClinicName != null && item.ClinicName.ToLower().Contains(q))
+                        || (item.Department != null && item.Department.ToLower().Contains(q));
+
+                if (!hit) continue;
             }
 
-            temp.Add(item);
+            filtered.Add(item);
         }
 
-        // Custom sort implementation helper
+        // past: newest at top so most recent visit shows first; upcoming: next appointment first
         if (SelectedTab == "Past")
-            temp.Sort((x, y) => y.FullDateTime.CompareTo(x.FullDateTime));
+            filtered.Sort((x, y) => y.FullDateTime.CompareTo(x.FullDateTime));
         else
-            temp.Sort((x, y) => x.FullDateTime.CompareTo(y.FullDateTime));
+            filtered.Sort((x, y) => x.FullDateTime.CompareTo(y.FullDateTime));
 
-        Appointments = new ObservableCollection<Appointment>(temp);
-        IsEmpty = temp.Count == 0;
+        Appointments = new ObservableCollection<Appointment>(filtered);
+        IsEmpty = filtered.Count == 0;
     }
 }

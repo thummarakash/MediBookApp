@@ -14,6 +14,8 @@ public class Doctor
     public string Rating { get; set; } = string.Empty;
     public string Bio { get; set; } = string.Empty;
     public string AccentColor { get; set; } = "#155EEF";
+
+    // standard consultation fee; FeePerMinute is used for extended sessions
     public double FeePerAppointment { get; set; } = 80.00;
     public double FeePerMinute { get; set; } = 3.00;
     public int SlotDurationMinutes { get; set; } = 30;

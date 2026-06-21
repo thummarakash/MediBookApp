@@ -35,9 +35,9 @@ public partial class UploadDocumentPage : ContentPage
                 SelectedFileLabel.Text = "Camera not supported on this device.";
             }
         }
-        catch (Exception camera_ex)
+        catch (Exception ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Camera Error", camera_ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Camera Error", ex.Message, "icon_warning.svg");
         }
     }
 
@@ -80,9 +80,9 @@ public partial class UploadDocumentPage : ContentPage
                 await AnimationHelper.SuccessPulseAsync(SelectedFileLabel);
             }
         }
-        catch (Exception pick_ex)
+        catch (Exception ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Picker Error", pick_ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Picker Error", ex.Message, "icon_warning.svg");
         }
     }
 
@@ -135,7 +135,6 @@ public partial class UploadDocumentPage : ContentPage
 
             if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
             {
-                // Upload to Firebase Storage in background
                 storageUrl = await DocumentService.Instance.UploadToFirebaseAsync(_tempFilePath, docType);
                 if (!string.IsNullOrEmpty(storageUrl))
                     storagePath = Helpers.ImageCompressor.GenerateStoragePath(
@@ -168,9 +167,9 @@ public partial class UploadDocumentPage : ContentPage
                     : "Document saved locally. Will sync when online.");
             await Shell.Current.GoToAsync("//documents");
         }
-        catch (Exception upload_ex)
+        catch (Exception ex)
         {
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Upload Error", upload_ex.Message, "icon_warning.svg");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Upload Error", ex.Message, "icon_warning.svg");
         }
         finally
         {
