@@ -92,11 +92,12 @@ public class AppointmentRepository
             var documents = await FirestoreService.Instance.QueryAsync(
                 AppConfig.Collections.Appointments,
                 whereField: "userId",
-                whereValue: userId,
-                orderByField: "createdAt",
-                descending: true);
+                whereValue: userId);
 
-            return documents.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+            return documents
+                .Select(d => MapFromFirestore(d.Id, d.Fields))
+                .OrderByDescending(a => a.CreatedAt)
+                .ToList();
         }
         catch (Exception ex)
         {

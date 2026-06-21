@@ -62,11 +62,12 @@ public class DocumentRepository
             var documents = await FirestoreService.Instance.QueryAsync(
                 AppConfig.Collections.MedicalDocuments,
                 whereField: "userId",
-                whereValue: userId,
-                orderByField: "uploadedAt",
-                descending: true);
+                whereValue: userId);
 
-            return documents.Select(d => MapFromFirestore(d.Id, d.Fields)).ToList();
+            return documents
+                .Select(d => MapFromFirestore(d.Id, d.Fields))
+                .OrderByDescending(d => d.UploadedAt)
+                .ToList();
         }
         catch (Exception ex)
         {
