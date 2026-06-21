@@ -1,4 +1,5 @@
 using MediBook.Configuration;
+using Microsoft.Maui.Graphics;
 
 namespace MediBook.Helpers;
 
@@ -9,14 +10,14 @@ public static class ImageCompressor
         if (!File.Exists(imageFilePath))
             return null;
 
-        var fileInfo = new FileInfo(imageFilePath);
-        long fileSizeKb = fileInfo.Length / 1024;
-
-        if (fileSizeKb <= AppConfig.MaxImageSizeKb)
-            return File.OpenRead(imageFilePath);
-
         var imageBytes = await File.ReadAllBytesAsync(imageFilePath);
-        return await CompressBytesAsync(imageBytes);
+        var compressed = ResizeAndCompress(imageBytes, 1024, 0.75f);
+        if (compressed != null)
+        {
+            return new MemoryStream(compressed);
+        }
+
+        return File.OpenRead(imageFilePath);
     }
 
     public static async Task<Stream?> CompressImageStreamAsync(Stream inputStream)
@@ -25,21 +26,35 @@ public static class ImageCompressor
         await inputStream.CopyToAsync(memoryBuffer);
         var imageBytes = memoryBuffer.ToArray();
 
-        long fileSizeKb = imageBytes.Length / 1024;
-        if (fileSizeKb <= AppConfig.MaxImageSizeKb)
-            return new MemoryStream(imageBytes);
+        // Target maximum dimension of 1024 for standard image streams
+        var compressed = ResizeAndCompress(imageBytes, 1024, 0.75f);
+        if (compressed != null)
+        {
+            return new MemoryStream(compressed);
+        }
 
-        return await CompressBytesAsync(imageBytes);
+        return new MemoryStream(imageBytes);
     }
 
-    private static async Task<Stream> CompressBytesAsync(byte[] imageBytes)
+    public static byte[]? ResizeAndCompress(byte[] imageBytes, float maxDimension, float quality)
     {
-        int targetSize = AppConfig.MaxImageSizeKb * 1024;
-        if (imageBytes.Length <= targetSize)
-            return new MemoryStream(imageBytes);
+        try
+        {
+            using var ms = new MemoryStream(imageBytes);
+            var image = Microsoft.Maui.Graphics.Platform.PlatformImage.FromStream(ms);
+            if (image == null) return null;
 
-        await Task.CompletedTask;
-        return new MemoryStream(imageBytes);
+            // Downsize to target dimension keeping aspect ratio
+            using var resizedImage = image.Downsize(maxDimension, disposeOriginal: true);
+            if (resizedImage == null) return null;
+
+            return resizedImage.AsBytes(ImageFormat.Jpeg, quality);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ImageCompressor] ResizeAndCompress failed: {ex.Message}");
+            return null;
+        }
     }
 
     public static string GetMimeType(string imageFilePath)

@@ -54,12 +54,6 @@
                                 AutomationId="BiometricLoginBtn" SemanticProperties.Description="Biometric login" />
                     </Grid>
 
-                    <!-- Quick Testing Buttons -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,2">
-                        <Button Text="Patient Login" Style="{StaticResource OutlineButtonStyle}" Clicked="OnPatientQuickLoginClicked" Padding="0" HeightRequest="46" />
-                        <Button Grid.Column="1" Text="Admin Login" Style="{StaticResource OutlineButtonStyle}" Clicked="OnAdminQuickLoginClicked" Padding="0" HeightRequest="46" />
-                    </Grid>
-
                     <Button Text="Continue with Google" ImageSource="icon_google.svg" Style="{StaticResource OutlineButtonStyle}" Clicked="OnGoogleClicked" />
 
                     <!-- Sign up link -->

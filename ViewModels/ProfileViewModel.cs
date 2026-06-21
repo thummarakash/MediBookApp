@@ -29,6 +29,8 @@ public partial class ProfileViewModel : ObservableObject
 
     public bool IsNotEditing => !IsEditing;
 
+    [ObservableProperty] bool showProfileSetupAlert;
+
     [RelayCommand]
     public async Task LoadAsync()
     {
@@ -46,6 +48,9 @@ public partial class ProfileViewModel : ObservableObject
                 DateOfBirthDate = ParseDate(DateOfBirth);
                 AvatarUrl = user.AvatarUrl;
                 HasAvatarUrl = !string.IsNullOrEmpty(AvatarUrl);
+
+                // Show setup alert if phone or date of birth is missing
+                ShowProfileSetupAlert = string.IsNullOrWhiteSpace(Phone) || string.IsNullOrWhiteSpace(user.DateOfBirth);
             }
         }
         finally
@@ -87,6 +92,8 @@ public partial class ProfileViewModel : ObservableObject
 
                 await UserRepository.Instance.UpdateAsync(user);
                 UserInitials = user.Initials;
+
+                ShowProfileSetupAlert = string.IsNullOrWhiteSpace(Phone) || string.IsNullOrWhiteSpace(DateOfBirth);
             }
             IsEditing = false;
         }

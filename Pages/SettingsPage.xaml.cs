@@ -67,13 +67,24 @@ public partial class SettingsPage : ContentPage
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
+        var grid = sender as VisualElement;
+        if (grid != null) await AnimationHelper.ButtonPressAsync(grid);
+
         bool confirm = await ConfirmationPopupPage.ShowConfirmAsync(Navigation,
-            "Sign Out", "Are you sure you want to sign out?", "Sign Out", "Cancel");
+            "Sign Out", "Are you sure you want to sign out?", "Sign Out", "Cancel", "icon_warning.svg");
         if (!confirm) return;
 
-        DatabaseService.Instance.Logout();
-        Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
-        await Shell.Current.GoToAsync("//login");
+        if (grid != null) grid.IsEnabled = false;
+        try
+        {
+            await DatabaseService.Instance.LogoutAsync();
+            Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
+            await Shell.Current.GoToAsync("//login");
+        }
+        finally
+        {
+            if (grid != null) grid.IsEnabled = true;
+        }
     }
 
     private async void OnBackClicked(object sender, EventArgs e)

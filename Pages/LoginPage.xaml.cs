@@ -84,33 +84,7 @@ public partial class LoginPage : ContentPage
         await NavigateAfterLoginAsync(user.Role);
     }
 
-    private async void OnPatientQuickLoginClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            await DatabaseService.Instance.LoginAsync("patient@medibook.com", "password123");
-            await Shell.Current.GoToAsync("//home");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[LoginPage] Patient quick login fallback: {ex.Message}");
-            await Shell.Current.GoToAsync("//home");
-        }
-    }
 
-    private async void OnAdminQuickLoginClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            await DatabaseService.Instance.LoginAsync("admin@medibook.com", "password123");
-            await Shell.Current.GoToAsync("//admindashboard");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[LoginPage] Admin quick login fallback: {ex.Message}");
-            await Shell.Current.GoToAsync("//admindashboard");
-        }
-    }
 
     private async void OnGoogleClicked(object sender, EventArgs e)
     {
@@ -120,7 +94,7 @@ public partial class LoginPage : ContentPage
         try
         {
             await GoogleAuthService.Instance.SignInAsync();
-            await Shell.Current.GoToAsync("//home");
+            await Shell.Current.GoToAsync("//profile");
         }
         catch (OperationCanceledException)
         {
@@ -149,15 +123,55 @@ public partial class LoginPage : ContentPage
             await Shell.Current.GoToAsync("//home");
     }
 
+    private static CancellationTokenSource? _loadingCts;
+
     private static async Task SetLoadingStateAsync(Button? btn, bool isLoading)
     {
         if (btn == null) return;
         btn.IsEnabled = !isLoading;
-        btn.Text = isLoading ? "Signing In..." : "Sign In";
+        btn.Opacity = isLoading ? 0.75 : 1.0;
+
         if (isLoading)
-            await AnimationHelper.FadeOutAsync(btn, 100);
+        {
+            _loadingCts?.Cancel();
+            _loadingCts = new CancellationTokenSource();
+            var token = _loadingCts.Token;
+
+            // Start dynamic dot animation loop
+            _ = Task.Run(async () =>
+            {
+                int dotCount = 0;
+                while (!token.IsCancellationRequested)
+                {
+                    string dots = new string('.', dotCount);
+                    string spaces = new string(' ', 3 - dotCount);
+                    
+                    // Update UI safely on the main thread
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        btn.Text = "Signing In" + dots + spaces;
+                    });
+
+                    dotCount = (dotCount + 1) % 4;
+
+                    try
+                    {
+                        await Task.Delay(400, token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                }
+            }, token);
+        }
         else
-            await AnimationHelper.FadeInAsync(btn, 150);
+        {
+            _loadingCts?.Cancel();
+            _loadingCts = null;
+            btn.Text = "Sign In";
+        }
+        await Task.CompletedTask;
     }
 
     private void OnTogglePasswordClicked(object sender, EventArgs e)

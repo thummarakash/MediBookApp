@@ -13,6 +13,8 @@ public partial class ForgotPasswordPage : ContentPage
     private async void OnBackClicked(object sender, EventArgs e)
         => await Shell.Current.GoToAsync("..");
 
+    private static CancellationTokenSource? _loadingCts;
+
     private async void OnSendCodeClicked(object sender, EventArgs e)
     {
         var btn = sender as Button;
@@ -31,7 +33,36 @@ public partial class ForgotPasswordPage : ContentPage
         if (btn != null)
         {
             btn.IsEnabled = false;
-            btn.Text = "Sending...";
+            btn.Opacity = 0.75;
+            _loadingCts?.Cancel();
+            _loadingCts = new CancellationTokenSource();
+            var token = _loadingCts.Token;
+
+            _ = Task.Run(async () =>
+            {
+                int dotCount = 0;
+                while (!token.IsCancellationRequested)
+                {
+                    string dots = new string('.', dotCount);
+                    string spaces = new string(' ', 3 - dotCount);
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        btn.Text = "Sending" + dots + spaces;
+                    });
+
+                    dotCount = (dotCount + 1) % 4;
+
+                    try
+                    {
+                        await Task.Delay(400, token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                }
+            }, token);
         }
 
         try
@@ -53,11 +84,15 @@ public partial class ForgotPasswordPage : ContentPage
         }
         finally
         {
+            _loadingCts?.Cancel();
+            _loadingCts = null;
             if (btn != null)
             {
                 btn.IsEnabled = true;
+                btn.Opacity = 1.0;
                 btn.Text = "Send Reset Link";
             }
         }
     }
 }
+

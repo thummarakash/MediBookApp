@@ -67,7 +67,7 @@ public partial class ClinicDetailPage : ContentPage
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Maps Error", ex.Message, "OK");
+                await ConfirmationPopupPage.ShowAsync(Navigation, "Maps Error", ex.Message, "icon_warning.svg");
             }
         }
     }

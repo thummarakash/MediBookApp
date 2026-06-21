@@ -108,7 +108,9 @@ namespace MediBook.Pages
             if (success)
             {
                 ResetLockout();
-                await Shell.Current.GoToAsync("//home");
+                var user = await DatabaseService.Instance.GetCurrentUserAsync();
+                string targetRoute = (user != null && user.Role == "Admin") ? "//admindashboard" : "//home";
+                await Shell.Current.GoToAsync(targetRoute);
             }
         }
 
@@ -281,7 +283,7 @@ namespace MediBook.Pages
             var user = await DatabaseService.Instance.GetCurrentUserAsync();
             if (user == null)
             {
-                await DisplayAlert("Session Expired", "Please login with your credentials.", "OK");
+                await ConfirmationPopupPage.ShowAsync(Navigation, "Session Expired", "Please login with your credentials.", "icon_warning.svg");
                 ResetLockout();
                 await Shell.Current.GoToAsync("//login");
                 return;
@@ -289,7 +291,7 @@ namespace MediBook.Pages
 
             if (user.AuthProvider == "Google")
             {
-                bool confirm = await DisplayAlert("Unlock PIN", "Please verify your identity using Google Sign-In.", "Verify", "Cancel");
+                bool confirm = await ConfirmationPopupPage.ShowConfirmAsync(Navigation, "Unlock PIN", "Please verify your identity using Google Sign-In.", "Verify", "Cancel", "icon_warning.svg");
                 if (confirm)
                 {
                     try
@@ -298,11 +300,11 @@ namespace MediBook.Pages
                         ResetLockout();
                         ApplyModeSettings();
                         ResetPinState();
-                        await DisplayAlert("Success", "PIN unlocked successfully.", "OK");
+                        await ConfirmationPopupPage.ShowAsync(Navigation, "Success", "PIN unlocked successfully.", "icon_lock_confirm.svg");
                     }
                     catch (Exception ex)
                     {
-                        await DisplayAlert("Verification Failed", ex.Message, "OK");
+                        await ConfirmationPopupPage.ShowAsync(Navigation, "Verification Failed", ex.Message, "icon_warning.svg");
                     }
                 }
                 return;
@@ -317,11 +319,11 @@ namespace MediBook.Pages
                 ResetLockout();
                 ApplyModeSettings();
                 ResetPinState();
-                await DisplayAlert("Success", "PIN unlocked successfully.", "OK");
+                await ConfirmationPopupPage.ShowAsync(Navigation, "Success", "PIN unlocked successfully.", "icon_lock_confirm.svg");
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Verification Failed", "Incorrect password: " + ex.Message, "OK");
+                await ConfirmationPopupPage.ShowAsync(Navigation, "Verification Failed", "Incorrect password: " + ex.Message, "icon_warning.svg");
             }
         }
 
@@ -342,12 +344,18 @@ namespace MediBook.Pages
                 {
                     BiometricService.Instance.SetSecurityPin(_enteredPin);
                     BiometricService.Instance.SetPinEnabled(true);
-                    await DisplayAlert("Success", "Security PIN set successfully.", "OK");
-                    await Navigation.PopAsync();
+                    await ConfirmationPopupPage.ShowAsync(
+                        Navigation, 
+                        "Success", 
+                        "Security PIN set successfully.", 
+                        "icon_lock_confirm.svg",
+                        "OK",
+                        async () => await Navigation.PopAsync()
+                    );
                 }
                 else
                 {
-                    await DisplayAlert("Error", "PINs did not match. Please try again.", "OK");
+                    await ConfirmationPopupPage.ShowAsync(Navigation, "Error", "PINs did not match. Please try again.", "icon_warning.svg");
                     _mode = "Setup";
                     ResetPinState();
                     ApplyModeSettings();
@@ -367,7 +375,9 @@ namespace MediBook.Pages
                     }
                     else
                     {
-                        await Shell.Current.GoToAsync("//home");
+                        var user = await DatabaseService.Instance.GetCurrentUserAsync();
+                        string targetRoute = (user != null && user.Role == "Admin") ? "//admindashboard" : "//home";
+                        await Shell.Current.GoToAsync(targetRoute);
                     }
                 }
                 else
@@ -381,18 +391,18 @@ namespace MediBook.Pages
                         if (_lockoutCount == 1)
                         {
                             _lockoutEndTime = DateTime.UtcNow.AddSeconds(30);
-                            await DisplayAlert("App Disabled", "Too many incorrect attempts. App disabled for 30 seconds.", "OK");
+                            await ConfirmationPopupPage.ShowAsync(Navigation, "App Disabled", "Too many incorrect attempts. App disabled for 30 seconds.", "icon_warning.svg");
                             StartLockoutTimer(30);
                         }
                         else if (_lockoutCount == 2)
                         {
                             _lockoutEndTime = DateTime.UtcNow.AddSeconds(60);
-                            await DisplayAlert("App Disabled", "Too many incorrect attempts. App disabled for 60 seconds.", "OK");
+                            await ConfirmationPopupPage.ShowAsync(Navigation, "App Disabled", "Too many incorrect attempts. App disabled for 60 seconds.", "icon_warning.svg");
                             StartLockoutTimer(60);
                         }
                         else
                         {
-                            await DisplayAlert("App Locked", "Too many incorrect attempts. Please verify your account password to unlock PIN.", "OK");
+                            await ConfirmationPopupPage.ShowAsync(Navigation, "App Locked", "Too many incorrect attempts. Please verify your account password to unlock PIN.", "icon_warning.svg");
                             ShowPasswordUnlockState();
                             _ = PromptPasswordToUnlockAsync();
                         }
@@ -400,7 +410,7 @@ namespace MediBook.Pages
                     else
                     {
                         int remaining = 3 - _failedAttempts;
-                        await DisplayAlert("Incorrect PIN", $"The Security PIN entered is incorrect. {remaining} attempt(s) remaining.", "OK");
+                        await ConfirmationPopupPage.ShowAsync(Navigation, "Incorrect PIN", $"The Security PIN entered is incorrect. {remaining} attempt(s) remaining.", "icon_warning.svg");
                         ResetPinState();
                     }
                 }

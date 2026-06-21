@@ -79,66 +79,88 @@ public partial class CustomTabBar : ContentView
 
     private async void OnHomeTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Home")
             await Shell.Current.GoToAsync("//home");
     }
 
     private async void OnAppointmentsTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Appointments")
             await Shell.Current.GoToAsync("//appointments");
     }
 
     private async void OnClinicsTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Clinics")
             await Shell.Current.GoToAsync("//clinics");
     }
 
     private async void OnDoctorsTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Doctors")
             await Shell.Current.GoToAsync("//doctors");
     }
 
     private async void OnDocumentsTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Documents")
             await Shell.Current.GoToAsync("//documents");
     }
 
     private async void OnProfileTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Profile")
             await Shell.Current.GoToAsync("//profile");
     }
 
     private async void OnAdminDashboardTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Home")
             await Shell.Current.GoToAsync("//admindashboard");
     }
 
     private async void OnAdminClinicsTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Clinics")
             await Shell.Current.GoToAsync("//adminclinics");
     }
 
     private async void OnAdminDoctorsTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Doctors")
             await Shell.Current.GoToAsync("//admindoctors");
     }
 
     private async void OnAdminAppointmentsTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Appointments")
             await Shell.Current.GoToAsync("//adminappointments");
     }
 
     private async void OnAdminProfileTapped(object sender, EventArgs e)
     {
+        var view = sender as VisualElement;
+        if (view != null) await MediBook.Helpers.AnimationHelper.ButtonPressAsync(view);
         if (ActiveTab != "Profile")
             await Shell.Current.GoToAsync("//adminprofile");
     }

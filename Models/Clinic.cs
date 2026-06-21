@@ -36,7 +36,7 @@ public class Clinic : INotifyPropertyChanged
 
     public string DistanceText => DistanceToUser.HasValue
         ? $"{DistanceToUser.Value:F1} km away"
-        : (Id == 1 ? "0.4 km away" : Id == 2 ? "1.2 km away" : "2.5 km away");
+        : "- km";
 
     public string Rating => Id == 1 ? "4.8" : Id == 2 ? "4.5" : "4.2";
     public string RatingCount => Id == 1 ? "234" : Id == 2 ? "118" : "64";

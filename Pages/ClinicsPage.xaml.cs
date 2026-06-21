@@ -63,6 +63,7 @@ public partial class ClinicsPage : ContentPage
 
     private async Task CheckAndCenterUserLocationAsync(bool requestIfNeeded)
     {
+        bool newLocationAvailable = false;
         try
         {
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
@@ -75,55 +76,44 @@ public partial class ClinicsPage : ContentPage
 
             if (status == PermissionStatus.Granted && isGpsEnabled)
             {
-                if (!_isLocationAvailable)
+                var location = await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5)));
+                if (location != null)
                 {
-                    var location = await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(5)));
-                    if (location != null)
+                    foreach (var clinic in _clinics)
                     {
-                        foreach (var clinic in _clinics)
-                        {
-                            var clinicLoc = new Location(clinic.Latitude, clinic.Longitude);
-                            double straightLineDist = location.CalculateDistance(clinicLoc, DistanceUnits.Kilometers);
-                            clinic.DistanceToUser = straightLineDist * 1.3;
-                        }
+                        var clinicLoc = new Location(clinic.Latitude, clinic.Longitude);
+                        double straightLineDist = location.CalculateDistance(clinicLoc, DistanceUnits.Kilometers);
+                        clinic.DistanceToUser = straightLineDist * 1.3;
+                    }
 
-                        _clinics = _clinics.OrderBy(c => c.DistanceToUser ?? double.MaxValue).ToList();
+                    _clinics = _clinics.OrderBy(c => c.DistanceToUser ?? double.MaxValue).ToList();
+                    newLocationAvailable = true;
 
-                        SetupMapPins();
+                    SetupMapPins();
 
-                        ClinicsCollection.ItemsSource = null;
-                        ClinicsCollection.ItemsSource = _clinics;
+                    if (_selectedClinic == null && _clinics.Any())
+                    {
+                        SelectClinic(_clinics.First());
+                    }
+                    else if (_selectedClinic != null)
+                    {
+                        _selectedClinic = _clinics.FirstOrDefault(c => c.Id == _selectedClinic.Id) ?? _selectedClinic;
+                        MapClinicName.Text = _selectedClinic.Name;
+                        MapClinicDistance.Text = _selectedClinic.DistanceText;
+                        MapClinicRating.Text = _selectedClinic.Rating;
+                    }
 
-                        _isLocationAvailable = true;
-                        UpdateContentVisibility();
-
-                        if (_selectedClinic == null && _clinics.Any())
-                        {
-                            SelectClinic(_clinics.First());
-                        }
-                        else if (_selectedClinic != null)
-                        {
-                            _selectedClinic = _clinics.FirstOrDefault(c => c.Id == _selectedClinic.Id) ?? _selectedClinic;
-                            MapClinicName.Text = _selectedClinic.Name;
-                            MapClinicDistance.Text = _selectedClinic.DistanceText;
-                            MapClinicRating.Text = _selectedClinic.Rating;
-                        }
-
+                    try
+                    {
                         ClinicsMap.MoveToRegion(MapSpan.FromCenterAndRadius(location, Distance.FromKilometers(1.5)));
                     }
+                    catch { }
                 }
-                return;
             }
 
             if (requestIfNeeded && !isGpsEnabled)
             {
-#if ANDROID
-                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionLocationSourceSettings);
-                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
-                Android.App.Application.Context.StartActivity(intent);
-#else
-                await DisplayAlert("GPS Required", "Please enable GPS/location services on your device.", "OK");
-#endif
+                await ConfirmationPopupPage.ShowAsync(Navigation, "GPS Required", "Please enable GPS/location services on your device.", "icon_warning.svg");
             }
         }
         catch (Exception ex)
@@ -131,26 +121,29 @@ public partial class ClinicsPage : ContentPage
             System.Diagnostics.Debug.WriteLine($"[ClinicsPage] Location retrieval failed: {ex.Message}");
         }
 
-        _isLocationAvailable = false;
+        if (!newLocationAvailable)
+        {
+            foreach (var clinic in _clinics)
+            {
+                clinic.DistanceToUser = null;
+            }
+            _clinics = _clinics.OrderBy(c => c.Name).ToList();
+            SetupMapPins();
+        }
+
+        _isLocationAvailable = newLocationAvailable;
         UpdateContentVisibility();
+        ApplyFilterAndSearch();
     }
 
     private void UpdateContentVisibility()
     {
-        if (_isLocationAvailable)
-        {
-            LocationPromptContainer.IsVisible = false;
-            MapViewGrid.IsVisible = _isMapView;
-            SelectedClinicCard.IsVisible = _isMapView;
-            ClinicsCollection.IsVisible = !_isMapView;
-        }
-        else
-        {
-            LocationPromptContainer.IsVisible = true;
-            MapViewGrid.IsVisible = false;
-            SelectedClinicCard.IsVisible = false;
-            ClinicsCollection.IsVisible = false;
-        }
+        LocationPromptContainer.IsVisible = false;
+        LocationWarningBanner.IsVisible = !_isLocationAvailable;
+
+        MapViewGrid.IsVisible = _isMapView;
+        SelectedClinicCard.IsVisible = _isMapView && _selectedClinic != null;
+        ListViewContainer.IsVisible = !_isMapView;
     }
 
     private async void OnEnableLocationClicked(object sender, EventArgs e)

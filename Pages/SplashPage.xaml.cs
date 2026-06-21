@@ -14,7 +14,17 @@ public partial class SplashPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await Task.Delay(2000);
+        
+        // Reset progress bar and animate to 100% over 1.8s
+        if (SplashProgress != null)
+        {
+            SplashProgress.Progress = 0;
+            await SplashProgress.ProgressTo(1.0, 1800, Easing.CubicOut);
+        }
+        else
+        {
+            await Task.Delay(2000);
+        }
 
         bool onboardingSeen = Preferences.Get(AppConfig.PrefKeys.OnboardingSeen, false);
         if (!onboardingSeen)
@@ -40,6 +50,9 @@ public partial class SplashPage : ContentPage
 
         if (hasSession)
         {
+            var user = await DatabaseService.Instance.GetCurrentUserAsync();
+            string targetRoute = (user != null && user.Role == "Admin") ? "//admindashboard" : "//home";
+
             bool biometricsOn = BiometricService.Instance.IsBiometricsEnabled();
             bool pinOn = BiometricService.Instance.IsPinEnabled()
                       && !string.IsNullOrEmpty(BiometricService.Instance.GetSecurityPin());
@@ -47,7 +60,7 @@ public partial class SplashPage : ContentPage
             if (biometricsOn || pinOn)
                 await Shell.Current.GoToAsync($"{nameof(PinPage)}?mode=Verify");
             else
-                await Shell.Current.GoToAsync("//home");
+                await Shell.Current.GoToAsync(targetRoute);
         }
         else
         {

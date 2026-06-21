@@ -63,8 +63,8 @@
                 </Grid>
 
                 <Grid Grid.Row="1">
-                    <!-- Location Disabled Placeholder (visible when location is not enabled/granted) -->
-                    <Border x:Name="LocationPromptContainer" Stroke="{StaticResource Aqua}" StrokeThickness="1" BackgroundColor="{StaticResource SkyBlue}" IsVisible="True">
+                    <!-- Location Disabled Placeholder (hidden by default) -->
+                    <Border x:Name="LocationPromptContainer" Stroke="{StaticResource Aqua}" StrokeThickness="1" BackgroundColor="{StaticResource SkyBlue}" IsVisible="False">
                         <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="12" Padding="20">
                             <Image Source="icon_gps.svg" HeightRequest="48" WidthRequest="48" HorizontalOptions="Center" />
@@ -75,7 +75,7 @@
                     </Border>
 
                     <!-- Map View Section -->
-                    <Grid x:Name="MapViewGrid" RowDefinitions="*,Auto" IsVisible="False">
+                    <Grid x:Name="MapViewGrid" RowDefinitions="*,Auto" IsVisible="True">
                         <!-- Real Interactive Map Container -->
                         <Border x:Name="MapContainer" Stroke="{StaticResource Aqua}" StrokeThickness="1" BackgroundColor="Transparent" Margin="0,0,0,14">
                             <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
@@ -108,37 +108,53 @@
                         </Border>
                     </Grid>
 
-                    <!-- List View Section -->
-                    <CollectionView x:Name="ClinicsCollection" IsVisible="False" SelectionMode="None" ScrollView.VerticalScrollBarVisibility="Never">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Margin="0,5" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
-                                    <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnClinicCardTapped" CommandParameter="{Binding .}" />
-                                    </Border.GestureRecognizers>
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                                        <VerticalStackLayout Spacing="4">
-                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="15.5" TextColor="{StaticResource PrimaryNavy}" />
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Label Text="{Binding DistanceText}" FontSize="12" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
-                                                <Label Text="•" FontSize="12" TextColor="{StaticResource MutedText}" />
-                                                <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
-                                                    <Image Source="icon_star.svg" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
-                                                    <Label Text="{Binding Rating}" FontSize="12" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
+                    <!-- List View Section Container -->
+                    <VerticalStackLayout x:Name="ListViewContainer" IsVisible="False" Spacing="8" VerticalOptions="FillAndExpand">
+                        <!-- Small Location Warning Banner -->
+                        <Border x:Name="LocationWarningBanner" Stroke="{StaticResource Aqua}" StrokeThickness="1" BackgroundColor="{StaticResource SkyBlue}" Padding="12,8" Margin="0,0,0,4">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                <Image Source="icon_warning.svg" WidthRequest="16" HeightRequest="16" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="Turn on your location to find nearest clinic" FontSize="11" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" VerticalOptions="Center" />
+                                <Label Grid.Column="2" Text="Enable" FontSize="11" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" VerticalOptions="Center" TextDecorations="Underline">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnEnableLocationClicked" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+                            </Grid>
+                        </Border>
+
+                        <CollectionView x:Name="ClinicsCollection" SelectionMode="None" ScrollView.VerticalScrollBarVisibility="Never" VerticalOptions="FillAndExpand">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="16" Margin="0,5" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="20" /></Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnClinicCardTapped" CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                            <VerticalStackLayout Spacing="4">
+                                                <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="15.5" TextColor="{StaticResource PrimaryNavy}" />
+                                                <HorizontalStackLayout Spacing="8">
+                                                    <Label Text="{Binding DistanceText}" FontSize="12" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" />
+                                                    <Label Text="•" FontSize="12" TextColor="{StaticResource MutedText}" />
+                                                    <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
+                                                        <Image Source="icon_star.svg" WidthRequest="12" HeightRequest="12" VerticalOptions="Center" />
+                                                        <Label Text="{Binding Rating}" FontSize="12" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
+                                                    </HorizontalStackLayout>
                                                 </HorizontalStackLayout>
-                                            </HorizontalStackLayout>
-                                            <Label Text="{Binding Address}" FontSize="12" Style="{StaticResource MutedLabel}" Margin="0,2,0,0" />
-                                        </VerticalStackLayout>
-                                        <Border Grid.Column="1" BackgroundColor="{StaticResource SuccessBg}" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
-                                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
-                                            <Label Text="Open" TextColor="{StaticResource Success}" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" />
-                                        </Border>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                                                <Label Text="{Binding Address}" FontSize="12" Style="{StaticResource MutedLabel}" Margin="0,2,0,0" />
+                                            </VerticalStackLayout>
+                                            <Border Grid.Column="1" BackgroundColor="{StaticResource SuccessBg}" StrokeThickness="0" Padding="8,4" HeightRequest="26" VerticalOptions="Center">
+                                                <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                                                <Label Text="Open" TextColor="{StaticResource Success}" FontSize="11" FontAttributes="Bold" VerticalOptions="Center" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
                 </Grid>
             </Grid>
         </Grid>

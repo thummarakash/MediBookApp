@@ -36,7 +36,14 @@ public partial class DoctorsPage : ContentPage
                              $"Fee: ${doctor.FeePerAppointment:F2} / {doctor.SlotDurationMinutes} mins\n\n" +
                              $"About: {doctor.Bio}";
 
-            bool book = await DisplayAlert(doctor.Name, details, "Book Appointment", "Close");
+            bool book = await ConfirmationPopupPage.ShowConfirmAsync(
+                Navigation, 
+                doctor.Name, 
+                details, 
+                "Book Appointment", 
+                "Close", 
+                "icon_doctor.svg"
+            );
             if (book)
             {
                 await Shell.Current.GoToAsync($"{nameof(BookAppointmentPage)}?doctorId={doctor.Id}");

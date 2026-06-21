@@ -8,6 +8,7 @@ namespace MediBook.Pages;
 public partial class UploadDocumentPage : ContentPage
 {
     private string _tempFilePath = string.Empty;
+    private static System.Threading.CancellationTokenSource? _loadingCts;
 
     public UploadDocumentPage()
     {
@@ -126,7 +127,40 @@ public partial class UploadDocumentPage : ContentPage
             "Confirm Upload", "Upload this medical document to your records?", "Upload", "Cancel");
         if (!confirm) return;
 
-        if (btn != null) { btn.IsEnabled = false; btn.Text = "Uploading..."; }
+        if (btn != null)
+        {
+            btn.IsEnabled = false;
+            btn.Opacity = 0.75;
+            _loadingCts?.Cancel();
+            _loadingCts = new CancellationTokenSource();
+            var token = _loadingCts.Token;
+
+            _ = Task.Run(async () =>
+            {
+                int dotCount = 0;
+                while (!token.IsCancellationRequested)
+                {
+                    string dots = new string('.', dotCount);
+                    string spaces = new string(' ', 3 - dotCount);
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        btn.Text = "Uploading" + dots + spaces;
+                    });
+
+                    dotCount = (dotCount + 1) % 4;
+
+                    try
+                    {
+                        await Task.Delay(400, token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                }
+            }, token);
+        }
 
         try
         {
@@ -135,14 +169,25 @@ public partial class UploadDocumentPage : ContentPage
 
             if (!string.IsNullOrEmpty(_tempFilePath) && File.Exists(_tempFilePath))
             {
-                storageUrl = await DocumentService.Instance.UploadToFirebaseAsync(_tempFilePath, docType);
-                if (!string.IsNullOrEmpty(storageUrl))
-                    storagePath = Helpers.ImageCompressor.GenerateStoragePath(
-                        user.FirestoreId.IfEmpty("anonymous"),
-                        docType == "Prescription"
-                            ? Configuration.AppConfig.StoragePaths.Prescriptions
-                            : Configuration.AppConfig.StoragePaths.MedicalDocuments,
-                        Path.GetFileName(_tempFilePath));
+                // Convert document/image to Base64 to save for free directly in Firestore
+                byte[] fileBytes = await File.ReadAllBytesAsync(_tempFilePath);
+                string ext = Path.GetExtension(_tempFilePath).ToLowerInvariant();
+                string mimeType = ImageCompressor.GetMimeType(_tempFilePath);
+
+                // Compress images to fit in Firestore 1MB document limit comfortably
+                if (new[] { ".jpg", ".jpeg", ".png" }.Contains(ext))
+                {
+                    var compressed = ImageCompressor.ResizeAndCompress(fileBytes, 1024, 0.75f);
+                    if (compressed != null)
+                    {
+                        fileBytes = compressed;
+                        mimeType = "image/jpeg"; // Compressed output is JPEG format
+                    }
+                }
+
+                string base64String = Convert.ToBase64String(fileBytes);
+                storageUrl = $"data:{mimeType};base64,{base64String}";
+                storagePath = "local_base64_db";
             }
 
             var document = new MedicalDocument
@@ -161,10 +206,7 @@ public partial class UploadDocumentPage : ContentPage
             };
 
             await DatabaseService.Instance.SaveDocumentAsync(document);
-            await ConfirmationPopupPage.ShowAsync(Navigation, "Uploaded",
-                storageUrl != null
-                    ? "Document uploaded to the cloud successfully!"
-                    : "Document saved locally. Will sync when online.");
+            await ConfirmationPopupPage.ShowAsync(Navigation, "Uploaded", "Document saved successfully to your records!");
             await Shell.Current.GoToAsync("//documents");
         }
         catch (Exception ex)
@@ -173,7 +215,14 @@ public partial class UploadDocumentPage : ContentPage
         }
         finally
         {
-            if (btn != null) { btn.IsEnabled = true; btn.Text = "Upload Document"; }
+            _loadingCts?.Cancel();
+            _loadingCts = null;
+            if (btn != null)
+            {
+                btn.IsEnabled = true;
+                btn.Opacity = 1.0;
+                btn.Text = "Upload Document";
+            }
         }
     }
 

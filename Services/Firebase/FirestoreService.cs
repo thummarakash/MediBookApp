@@ -61,6 +61,11 @@ public class FirestoreService
         var body = BuildDocumentBody(fields);
         var request = await BuildRequestAsync(HttpMethod.Patch, url, body);
         var response = await _http.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var errContent = await response.Content.ReadAsStringAsync();
+            System.Diagnostics.Debug.WriteLine($"[FirestoreService] UpdateDocumentAsync failed: {response.StatusCode} - {errContent}");
+        }
         response.EnsureSuccessStatusCode();
     }
 

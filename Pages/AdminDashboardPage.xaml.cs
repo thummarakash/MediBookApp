@@ -42,11 +42,23 @@ public partial class AdminDashboardPage : ContentPage
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
+        var view = sender as View;
+        if (view != null) await AnimationHelper.ButtonPressAsync(view);
+
         bool confirm = await ConfirmationPopupPage.ShowConfirmAsync(Navigation,
-            "Sign Out", "Sign out of the admin panel?", "Sign Out", "Cancel");
+            "Sign Out", "Sign out of the admin panel?", "Sign Out", "Cancel", "icon_warning.svg");
         if (!confirm) return;
-        DatabaseService.Instance.Logout();
-        Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
-        await Shell.Current.GoToAsync("//login");
+
+        if (view != null) view.IsEnabled = false;
+        try
+        {
+            await DatabaseService.Instance.LogoutAsync();
+            Preferences.Default.Set(AppConfig.PrefKeys.LoggedIn, false);
+            await Shell.Current.GoToAsync("//login");
+        }
+        finally
+        {
+            if (view != null) view.IsEnabled = true;
+        }
     }
 }

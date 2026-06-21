@@ -90,15 +90,54 @@ public partial class RegisterPage : ContentPage
     private async void OnBackClicked(object sender, EventArgs e)
         => await Shell.Current.GoToAsync("//login");
 
+    private static CancellationTokenSource? _loadingCts;
+
     private static async Task SetLoadingStateAsync(Button? btn, bool isLoading)
     {
         if (btn == null) return;
         btn.IsEnabled = !isLoading;
-        btn.Text = isLoading ? "Creating Account..." : "Create Account";
+        btn.Opacity = isLoading ? 0.75 : 1.0;
+
         if (isLoading)
-            await AnimationHelper.FadeOutAsync(btn, 100);
+        {
+            _loadingCts?.Cancel();
+            _loadingCts = new CancellationTokenSource();
+            var token = _loadingCts.Token;
+
+            // Start dynamic dot animation loop
+            _ = Task.Run(async () =>
+            {
+                int dotCount = 0;
+                while (!token.IsCancellationRequested)
+                {
+                    string dots = new string('.', dotCount);
+                    string spaces = new string(' ', 3 - dotCount);
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        btn.Text = "Creating Account" + dots + spaces;
+                    });
+
+                    dotCount = (dotCount + 1) % 4;
+
+                    try
+                    {
+                        await Task.Delay(400, token);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+                }
+            }, token);
+        }
         else
-            await AnimationHelper.FadeInAsync(btn, 150);
+        {
+            _loadingCts?.Cancel();
+            _loadingCts = null;
+            btn.Text = "Create Account";
+        }
+        await Task.CompletedTask;
     }
 
     private void OnTogglePasswordClicked(object sender, EventArgs e)
