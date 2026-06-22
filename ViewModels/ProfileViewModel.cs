@@ -16,6 +16,16 @@ public partial class ProfileViewModel : ObservableObject
     [ObservableProperty] string dateOfBirth = "";
     [ObservableProperty] DateTime dateOfBirthDate = DateTime.Now;
     [ObservableProperty] string avatarUrl = "";
+    [ObservableProperty] double avatarScale = 1.0;
+    [ObservableProperty] double avatarX = 0.0;
+    [ObservableProperty] double avatarY = 0.0;
+    [ObservableProperty] double avatarRotation = 0.0;
+    [ObservableProperty] bool isAvatarPreviewVisible;
+    [ObservableProperty] string tempAvatarUrl = "";
+    [ObservableProperty] double tempScale = 1.0;
+    [ObservableProperty] double tempX = 0.0;
+    [ObservableProperty] double tempY = 0.0;
+    [ObservableProperty] double tempRotation = 0.0;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowInitials))]
     bool hasAvatarUrl;
@@ -30,6 +40,18 @@ public partial class ProfileViewModel : ObservableObject
     public bool IsNotEditing => !IsEditing;
 
     [ObservableProperty] bool showProfileSetupAlert;
+    [ObservableProperty] bool notificationsEnabled;
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotAdmin))]
+    bool isAdmin;
+
+    public bool IsNotAdmin => !IsAdmin;
+
+    partial void OnNotificationsEnabledChanged(bool value)
+    {
+        Microsoft.Maui.Storage.Preferences.Default.Set("notifications_enabled", value);
+    }
 
     [RelayCommand]
     public async Task LoadAsync()
@@ -47,10 +69,17 @@ public partial class ProfileViewModel : ObservableObject
                 DateOfBirth = string.IsNullOrWhiteSpace(user.DateOfBirth) ? "" : user.DateOfBirth;
                 DateOfBirthDate = ParseDate(DateOfBirth);
                 AvatarUrl = user.AvatarUrl;
+                AvatarScale = user.AvatarScale == 0 ? 1.0 : user.AvatarScale;
+                AvatarX = user.AvatarX;
+                AvatarY = user.AvatarY;
+                AvatarRotation = user.AvatarRotation;
                 HasAvatarUrl = !string.IsNullOrEmpty(AvatarUrl) && (AvatarUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || AvatarUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase));
 
+                IsAdmin = user.Role == "Admin";
+                NotificationsEnabled = Microsoft.Maui.Storage.Preferences.Default.Get("notifications_enabled", true);
+
                 // Show setup alert if phone or date of birth is missing
-                ShowProfileSetupAlert = string.IsNullOrWhiteSpace(Phone) || string.IsNullOrWhiteSpace(user.DateOfBirth);
+                ShowProfileSetupAlert = (string.IsNullOrWhiteSpace(Phone) || string.IsNullOrWhiteSpace(user.DateOfBirth)) && !IsAdmin;
             }
         }
         catch (Exception ex)
@@ -93,6 +122,10 @@ public partial class ProfileViewModel : ObservableObject
                 user.Phone = Phone;
                 DateOfBirth = DateOfBirthDate.ToString("dd/MM/yyyy");
                 user.DateOfBirth = DateOfBirth;
+                user.AvatarScale = AvatarScale;
+                user.AvatarX = AvatarX;
+                user.AvatarY = AvatarY;
+                user.AvatarRotation = AvatarRotation;
 
                 await UserRepository.Instance.UpdateAsync(user);
                 UserInitials = user.Initials;

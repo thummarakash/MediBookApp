@@ -34,6 +34,7 @@ public partial class ProfilePage : ContentPage
 
     private async void OnNotificationsClicked(object sender, EventArgs e)
     {
+        if (_vm.IsAdmin) return;
         var grid = sender as VisualElement;
         if (grid != null) await AnimationHelper.ButtonPressAsync(grid);
         await Shell.Current.GoToAsync(nameof(NotificationSettingsPage));
@@ -88,6 +89,36 @@ public partial class ProfilePage : ContentPage
             "Gallery",
             "icon_user.svg"
         );
+
+        // Request runtime permissions to ensure stability
+        try
+        {
+            if (isCamera)
+            {
+                var cameraStatus = await Permissions.CheckStatusAsync<Permissions.Camera>();
+                if (cameraStatus != PermissionStatus.Granted)
+                {
+                    cameraStatus = await Permissions.RequestAsync<Permissions.Camera>();
+                    if (cameraStatus != PermissionStatus.Granted)
+                    {
+                        await ConfirmationPopupPage.ShowAsync(Navigation, "Permission Denied", "Camera permission is required to take photos.", "icon_warning.svg");
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                var photosStatus = await Permissions.CheckStatusAsync<Permissions.Photos>();
+                if (photosStatus != PermissionStatus.Granted)
+                {
+                    await Permissions.RequestAsync<Permissions.Photos>();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ProfilePage] Permission request failed: {ex.Message}");
+        }
 
         try
         {

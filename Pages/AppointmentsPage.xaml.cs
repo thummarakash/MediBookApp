@@ -70,4 +70,34 @@ public partial class AppointmentsPage : ContentPage
         if (sender is Button btn) await AnimationHelper.ButtonPressAsync(btn);
         await Shell.Current.GoToAsync(nameof(BookAppointmentPage));
     }
+
+    private async void OnAppointmentCardTapped(object sender, EventArgs e)
+    {
+        if (sender is Border border && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap && tap.CommandParameter is Models.Appointment appt)
+        {
+            var apntmt = appt;
+            string docNme = string.IsNullOrEmpty(apntmt.DoctorName) ? "-" : apntmt.DoctorName;
+            string dpt = string.IsNullOrEmpty(apntmt.Department) ? "-" : apntmt.Department;
+            string clnc = string.IsNullOrEmpty(apntmt.ClinicName) ? "-" : apntmt.ClinicName;
+            string dtTime = string.IsNullOrEmpty(apntmt.DisplayDateTime) ? "-" : apntmt.DisplayDateTime;
+            string stat = string.IsNullOrEmpty(apntmt.Status) ? "-" : apntmt.Status;
+            string rsn = string.IsNullOrEmpty(apntmt.Reason) ? "-" : apntmt.Reason;
+
+            string apntmtInfo = $"Doctor: {docNme}\n" +
+                                 $"Department: {dpt}\n" +
+                                 $"Clinic: {clnc}\n" +
+                                 $"Date & Time: {dtTime}\n" +
+                                 $"Status: {stat}\n" +
+                                 $"Fee: ${apntmt.TotalFee:F2}\n" +
+                                 $"Reason: {rsn}";
+
+            await ConfirmationPopupPage.ShowAsync(
+                Navigation,
+                "Appointment Details",
+                apntmtInfo,
+                "icon_calendar.svg",
+                "Close"
+            );
+        }
+    }
 }

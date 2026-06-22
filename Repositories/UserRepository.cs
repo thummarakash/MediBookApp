@@ -69,6 +69,26 @@ public class UserRepository
         }
     }
 
+    public async Task<System.Collections.Generic.List<UserAccount>> GetAllAsync()
+    {
+        try
+        {
+            var docs = await FirestoreService.Instance.GetCollectionAsync(AppConfig.Collections.Users);
+            var results = new System.Collections.Generic.List<UserAccount>();
+            foreach (var doc in docs)
+            {
+                var fields = doc.Fields;
+                results.Add(MapFromFirestore(doc.Id, fields));
+            }
+            return results;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[UserRepo] GetAllAsync failed: {ex.Message}");
+            return new System.Collections.Generic.List<UserAccount>();
+        }
+    }
+
     public async Task UpdateBiometricSettingAsync(string userId, bool enabled)
     {
         try
@@ -96,6 +116,10 @@ public class UserRepository
             AuthProvider = FirestoreService.GetString(fields, "authProvider").IfEmpty("Local"),
             AvatarColor = FirestoreService.GetString(fields, "avatarColor").IfEmpty("#155EEF"),
             AvatarUrl = FirestoreService.GetString(fields, "avatarUrl"),
+            AvatarScale = FirestoreService.GetDouble(fields, "avatarScale", 1.0),
+            AvatarX = FirestoreService.GetDouble(fields, "avatarX", 0.0),
+            AvatarY = FirestoreService.GetDouble(fields, "avatarY", 0.0),
+            AvatarRotation = FirestoreService.GetDouble(fields, "avatarRotation", 0.0),
             FCMToken = FirestoreService.GetString(fields, "fcmToken"),
             NotificationsEnabled = FirestoreService.GetBool(fields, "notificationsEnabled", true),
             BiometricEnabled = FirestoreService.GetBool(fields, "biometricEnabled"),
@@ -103,7 +127,7 @@ public class UserRepository
             UpdatedAt = FirestoreService.GetDateTime(fields, "updatedAt")
         };
     }
-
+ 
     private static Dictionary<string, object> MapToFirestore(UserAccount account) => new()
     {
         { "email", account.Email },
@@ -114,6 +138,10 @@ public class UserRepository
         { "authProvider", account.AuthProvider },
         { "avatarColor", account.AvatarColor },
         { "avatarUrl", account.AvatarUrl ?? string.Empty },
+        { "avatarScale", account.AvatarScale },
+        { "avatarX", account.AvatarX },
+        { "avatarY", account.AvatarY },
+        { "avatarRotation", account.AvatarRotation },
         { "fcmToken", account.FCMToken },
         { "notificationsEnabled", account.NotificationsEnabled },
         { "biometricEnabled", account.BiometricEnabled },

@@ -18,6 +18,23 @@ public class Clinic : INotifyPropertyChanged
     public string? OpeningHoursMonFri { get; set; }
     public string? OpeningHoursSatSun { get; set; }
     public string? Status { get; set; }
+    public string? ScheduleJson { get; set; }
+
+    private WeeklySchedule? _weeklySchedule;
+    public WeeklySchedule GetWeeklySchedule()
+    {
+        if (_weeklySchedule == null)
+        {
+            _weeklySchedule = WeeklySchedule.FromJson(ScheduleJson);
+        }
+        return _weeklySchedule;
+    }
+
+    public void UpdateSchedule(WeeklySchedule schedule)
+    {
+        _weeklySchedule = schedule;
+        ScheduleJson = schedule.ToJson();
+    }
 
     private double? _distanceToUser;
     public double? DistanceToUser

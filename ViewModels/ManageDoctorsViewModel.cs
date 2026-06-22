@@ -18,20 +18,6 @@ public class SelectionItem : ObservableObject
     }
 }
 
-public class ClinicSelectionItem : ObservableObject
-{
-    public Clinic Clinic { get; set; } = null!;
-
-    private bool _isSelected;
-    public bool IsSelected { get => _isSelected; set => SetProperty(ref _isSelected, value); }
-
-    private string _days = "Mon-Fri";
-    public string Days { get => _days; set => SetProperty(ref _days, value); }
-
-    private string _timeSlot = "09:00 AM - 05:00 PM";
-    public string TimeSlot { get => _timeSlot; set => SetProperty(ref _timeSlot, value); }
-}
-
 public partial class ManageDoctorsViewModel : ObservableObject
 {
     private Doctor? _editingDoctor;
@@ -40,15 +26,22 @@ public partial class ManageDoctorsViewModel : ObservableObject
     [ObservableProperty] string saveButtonText = "Save Doctor";
     [ObservableProperty] bool isEditMode;
     [ObservableProperty] string doctorName = string.Empty;
+    [ObservableProperty] string doctorEmail = string.Empty;
     [ObservableProperty] string feePerSession = "90.00";
     [ObservableProperty] ObservableCollection<SelectionItem> specialtySelections = new();
     [ObservableProperty] ObservableCollection<SelectionItem> departmentSelections = new();
-    [ObservableProperty] ObservableCollection<ClinicSelectionItem> clinicSelections = new();
     [ObservableProperty] ObservableCollection<Doctor> doctors = new();
     [ObservableProperty] bool isLoading;
-    [ObservableProperty] bool isClinicsDropdownExpanded;
     [ObservableProperty] bool isSpecialtiesExpanded;
     [ObservableProperty] bool isDepartmentsExpanded;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFormHidden))]
+    bool isFormVisible;
+
+    public bool IsFormHidden => !IsFormVisible;
+
+    [RelayCommand]
+    void ShowForm() => IsFormVisible = true;
 
     public string SelectedSpecialtiesText =>
         SpecialtySelections.Any(s => s.IsSelected)
@@ -78,7 +71,6 @@ public partial class ManageDoctorsViewModel : ObservableObject
 
     [RelayCommand] void ToggleSpecialtiesDropdown() => IsSpecialtiesExpanded = !IsSpecialtiesExpanded;
     [RelayCommand] void ToggleDepartmentsDropdown() => IsDepartmentsExpanded = !IsDepartmentsExpanded;
-    [RelayCommand] void ToggleClinicsDropdown() => IsClinicsDropdownExpanded = !IsClinicsDropdownExpanded;
 
     [RelayCommand]
     async Task LoadDataAsync()
@@ -86,13 +78,6 @@ public partial class ManageDoctorsViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            var clinicList = await DatabaseService.Instance.GetClinicsAsync();
-            var existingSelections = ClinicSelections.ToDictionary(c => c.Clinic.Name, c => c);
-            ClinicSelections = new ObservableCollection<ClinicSelectionItem>(
-                clinicList.Select(c => existingSelections.TryGetValue(c.Name, out var ex)
-                    ? ex
-                    : new ClinicSelectionItem { Clinic = c }));
-
             var doctorList = await DatabaseService.Instance.GetDoctorsAsync();
             Doctors = new ObservableCollection<Doctor>(doctorList);
         }
@@ -108,9 +93,11 @@ public partial class ManageDoctorsViewModel : ObservableObject
         if (doctor == null) return;
         _editingDoctor = doctor;
         IsEditMode = true;
+        IsFormVisible = true;
         FormTitle = "Edit Doctor";
         SaveButtonText = "Update Doctor";
         DoctorName = doctor.Name;
+        DoctorEmail = doctor.Email;
         FeePerSession = doctor.FeePerAppointment.ToString("F2");
 
         var savedSpecialties = doctor.Specialty?.Split(',').Select(s => s.Trim()).ToHashSet() ?? new HashSet<string>();
@@ -121,7 +108,6 @@ public partial class ManageDoctorsViewModel : ObservableObject
 
         IsSpecialtiesExpanded = false;
         IsDepartmentsExpanded = false;
-        IsClinicsDropdownExpanded = false;
     }
 
     [RelayCommand]
@@ -129,6 +115,7 @@ public partial class ManageDoctorsViewModel : ObservableObject
     {
         _editingDoctor = null;
         IsEditMode = false;
+        IsFormVisible = false;
         FormTitle = "Add New Doctor";
         SaveButtonText = "Save Doctor";
         ClearForm();
@@ -140,6 +127,12 @@ public partial class ManageDoctorsViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(DoctorName))
         {
             await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Missing Details", "Please enter the doctor's name.", "icon_warning.svg");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(DoctorEmail))
+        {
+            await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Missing Details", "Please enter the doctor's email address.", "icon_warning.svg");
             return;
         }
 
@@ -157,21 +150,11 @@ public partial class ManageDoctorsViewModel : ObservableObject
             return;
         }
 
-        var selectedClinics = ClinicSelections.Where(c => c.IsSelected).ToList();
-        if (!selectedClinics.Any())
-        {
-            await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Required", "Please assign the doctor to at least one clinic.", "icon_warning.svg");
-            return;
-        }
-
         double.TryParse(FeePerSession, out var sessionFee);
         if (sessionFee <= 0) sessionFee = 90.00;
 
         string specialtyStr = string.Join(", ", selectedSpecialties.Select(s => s.Name));
         string deptStr = string.Join(", ", selectedDepts.Select(d => d.Name));
-        string availability = string.Join(" | ", selectedClinics.Select(sc => $"{sc.Clinic.Name}: {sc.Days} • {sc.TimeSlot}"));
-        string primaryClinicName = selectedClinics.First().Clinic.Name;
-        string primaryClinicId = selectedClinics.First().Clinic.FirestoreId;
 
         if (IsEditMode && _editingDoctor != null)
         {
@@ -180,13 +163,11 @@ public partial class ManageDoctorsViewModel : ObservableObject
             if (!confirm) return;
 
             _editingDoctor.Name = DoctorName.Trim();
+            _editingDoctor.Email = DoctorEmail.Trim();
             _editingDoctor.Specialty = specialtyStr;
             _editingDoctor.Department = deptStr;
-            _editingDoctor.Availability = availability;
             _editingDoctor.FeePerAppointment = sessionFee;
             _editingDoctor.FeePerMinute = sessionFee / 30.0;
-            _editingDoctor.ClinicName = primaryClinicName;
-            _editingDoctor.ClinicFirestoreId = primaryClinicId;
 
             try
             {
@@ -212,17 +193,18 @@ public partial class ManageDoctorsViewModel : ObservableObject
             var doctor = new Doctor
             {
                 Name = DoctorName.Trim(),
+                Email = DoctorEmail.Trim(),
                 Specialty = specialtyStr,
                 Department = deptStr,
-                Availability = availability,
                 FeePerAppointment = sessionFee,
                 FeePerMinute = sessionFee / 30.0,
                 SlotDurationMinutes = 30,
                 Experience = "5 years",
                 Rating = "5.0",
                 Bio = "Professional healthcare provider.",
-                ClinicName = primaryClinicName,
-                ClinicFirestoreId = primaryClinicId
+                ClinicName = string.Empty,
+                ClinicFirestoreId = string.Empty,
+                Availability = string.Empty
             };
 
             try
@@ -279,12 +261,11 @@ public partial class ManageDoctorsViewModel : ObservableObject
     private void ClearForm()
     {
         DoctorName = string.Empty;
+        DoctorEmail = string.Empty;
         FeePerSession = "90.00";
         foreach (var s in SpecialtySelections) s.IsSelected = false;
         foreach (var d in DepartmentSelections) d.IsSelected = false;
-        foreach (var c in ClinicSelections) c.IsSelected = false;
         IsSpecialtiesExpanded = false;
         IsDepartmentsExpanded = false;
-        IsClinicsDropdownExpanded = false;
     }
 }

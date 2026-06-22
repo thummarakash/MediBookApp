@@ -13,6 +13,7 @@ public partial class ClinicsPage : ContentPage
     private IDispatcherTimer? _locationCheckTimer;
     private string _searchText = "";
     private string _selectedCategory = "All";
+    private bool _isAdmin = false;
 
     public ClinicsPage()
     {
@@ -22,6 +23,9 @@ public partial class ClinicsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        var user = await DatabaseService.Instance.GetCurrentUserAsync();
+        _isAdmin = user?.Role == "Admin";
+
         _clinics = await DatabaseService.Instance.GetClinicsAsync();
         
         ApplyFilterAndSearch();
@@ -89,6 +93,26 @@ public partial class ClinicsPage : ContentPage
                     _clinics = _clinics.OrderBy(c => c.DistanceToUser ?? double.MaxValue).ToList();
                     newLocationAvailable = true;
 
+                    try
+                    {
+                        var placemarks = await Geocoding.Default.GetPlacemarksAsync(location.Latitude, location.Longitude);
+                        var placemark = placemarks?.FirstOrDefault();
+                        if (placemark != null)
+                        {
+                            string city = placemark.Locality ?? placemark.SubLocality ?? "Active Location";
+                            string state = placemark.AdminArea ?? "";
+                            UserLocationLabel.Text = !string.IsNullOrEmpty(state) ? $"{city}, {state}" : city;
+                        }
+                        else
+                        {
+                            UserLocationLabel.Text = "Active Location";
+                        }
+                    }
+                    catch
+                    {
+                        UserLocationLabel.Text = "Active Location";
+                    }
+
                     SetupMapPins();
 
                     if (_selectedClinic == null && _clinics.Any())
@@ -113,7 +137,23 @@ public partial class ClinicsPage : ContentPage
 
             if (requestIfNeeded && !isGpsEnabled)
             {
-                await ConfirmationPopupPage.ShowAsync(Navigation, "GPS Required", "Please enable GPS/location services on your device.", "icon_warning.svg");
+                bool openSettings = await ConfirmationPopupPage.ShowConfirmAsync(
+                    Navigation,
+                    "GPS Required",
+                    "Location services are disabled. Please enable them in your device settings.",
+                    "Settings",
+                    "Cancel",
+                    "icon_warning.svg"
+                );
+
+                if (openSettings)
+                {
+#if ANDROID
+                    var intent = new Android.Content.Intent(Android.Provider.Settings.ActionLocationSourceSettings);
+                    intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                    Android.App.Application.Context.StartActivity(intent);
+#endif
+                }
             }
         }
         catch (Exception ex)
@@ -123,6 +163,7 @@ public partial class ClinicsPage : ContentPage
 
         if (!newLocationAvailable)
         {
+            UserLocationLabel.Text = "-";
             foreach (var clinic in _clinics)
             {
                 clinic.DistanceToUser = null;
@@ -138,12 +179,21 @@ public partial class ClinicsPage : ContentPage
 
     private void UpdateContentVisibility()
     {
-        LocationPromptContainer.IsVisible = false;
-        LocationWarningBanner.IsVisible = !_isLocationAvailable;
-
-        MapViewGrid.IsVisible = _isMapView;
-        SelectedClinicCard.IsVisible = _isMapView && _selectedClinic != null;
-        ListViewContainer.IsVisible = !_isMapView;
+        if (_isMapView)
+        {
+            LocationPromptContainer.IsVisible = !_isLocationAvailable;
+            MapViewGrid.IsVisible = _isLocationAvailable;
+            SelectedClinicCard.IsVisible = _isLocationAvailable && _selectedClinic != null;
+            ListViewContainer.IsVisible = false;
+        }
+        else
+        {
+            LocationPromptContainer.IsVisible = false;
+            MapViewGrid.IsVisible = false;
+            SelectedClinicCard.IsVisible = false;
+            ListViewContainer.IsVisible = true;
+            LocationWarningBanner.IsVisible = !_isLocationAvailable;
+        }
     }
 
     private async void OnEnableLocationClicked(object sender, EventArgs e)
@@ -231,7 +281,44 @@ public partial class ClinicsPage : ContentPage
     {
         if (_selectedClinic != null)
         {
-            await Shell.Current.GoToAsync($"{nameof(ClinicDetailPage)}?clinicId={_selectedClinic.Id}");
+            var clnic = _selectedClinic;
+            string addr = string.IsNullOrEmpty(clnic.Address) ? "-" : clnic.Address;
+            string phn = string.IsNullOrEmpty(clnic.Phone) ? "-" : clnic.Phone;
+            string rtng = string.IsNullOrEmpty(clnic.Rating) ? "-" : $"{clnic.Rating} ({clnic.RatingCount} reviews)";
+            string hrs = $"Mon-Fri: {(string.IsNullOrEmpty(clnic.OpeningHoursMonFri) ? "-" : clnic.OpeningHoursMonFri)} / Sat-Sun: {(string.IsNullOrEmpty(clnic.OpeningHoursSatSun) ? "-" : clnic.OpeningHoursSatSun)}";
+            string specs = (clnic.Specialties != null && clnic.Specialties.Any()) ? string.Join(", ", clnic.Specialties) : "-";
+
+            string clnicDetals = $"Address: {addr}\n" +
+                                 $"Phone: {phn}\n" +
+                                 $"Rating: {rtng}\n" +
+                                 $"Hours: {hrs}\n" +
+                                 $"Specialties: {specs}";
+
+            if (_isAdmin)
+            {
+                await ConfirmationPopupPage.ShowAsync(
+                    Navigation, 
+                    clnic.Name ?? "-", 
+                    clnicDetals, 
+                    "icon_clinic.svg",
+                    "Close"
+                );
+            }
+            else
+            {
+                bool book = await ConfirmationPopupPage.ShowConfirmAsync(
+                    Navigation, 
+                    clnic.Name ?? "-", 
+                    clnicDetals, 
+                    "Book Appointment", 
+                    "Close", 
+                    "icon_clinic.svg"
+                );
+                if (book)
+                {
+                    await Shell.Current.GoToAsync($"{nameof(ClinicDetailPage)}?clinicId={clnic.Id}");
+                }
+            }
         }
     }
 
@@ -239,7 +326,44 @@ public partial class ClinicsPage : ContentPage
     {
         if (sender is Border border && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap && tap.CommandParameter is Clinic clinic)
         {
-            await Shell.Current.GoToAsync($"{nameof(ClinicDetailPage)}?clinicId={clinic.Id}");
+            var clnic = clinic;
+            string addr = string.IsNullOrEmpty(clnic.Address) ? "-" : clnic.Address;
+            string phn = string.IsNullOrEmpty(clnic.Phone) ? "-" : clnic.Phone;
+            string rtng = string.IsNullOrEmpty(clnic.Rating) ? "-" : $"{clnic.Rating} ({clnic.RatingCount} reviews)";
+            string hrs = $"Mon-Fri: {(string.IsNullOrEmpty(clnic.OpeningHoursMonFri) ? "-" : clnic.OpeningHoursMonFri)} / Sat-Sun: {(string.IsNullOrEmpty(clnic.OpeningHoursSatSun) ? "-" : clnic.OpeningHoursSatSun)}";
+            string specs = (clnic.Specialties != null && clnic.Specialties.Any()) ? string.Join(", ", clnic.Specialties) : "-";
+
+            string clnicDetals = $"Address: {addr}\n" +
+                                 $"Phone: {phn}\n" +
+                                 $"Rating: {rtng}\n" +
+                                 $"Hours: {hrs}\n" +
+                                 $"Specialties: {specs}";
+
+            if (_isAdmin)
+            {
+                await ConfirmationPopupPage.ShowAsync(
+                    Navigation, 
+                    clnic.Name ?? "-", 
+                    clnicDetals, 
+                    "icon_clinic.svg",
+                    "Close"
+                );
+            }
+            else
+            {
+                bool book = await ConfirmationPopupPage.ShowConfirmAsync(
+                    Navigation, 
+                    clnic.Name ?? "-", 
+                    clnicDetals, 
+                    "Book Appointment", 
+                    "Close", 
+                    "icon_clinic.svg"
+                );
+                if (book)
+                {
+                    await Shell.Current.GoToAsync($"{nameof(ClinicDetailPage)}?clinicId={clnic.Id}");
+                }
+            }
         }
     }
 

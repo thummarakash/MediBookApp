@@ -16,7 +16,7 @@
 
                     <!-- Circular Avatar Container with Pencil Overlay -->
                     <Grid HeightRequest="72" WidthRequest="72" HorizontalOptions="Center" Margin="0,4">
-                        <Border HeightRequest="64" WidthRequest="64" StrokeThickness="2" Stroke="White" BackgroundColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Border HeightRequest="64" WidthRequest="64" StrokeThickness="2" Stroke="White" BackgroundColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Center" IsClippedToBounds="True">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnAvatarClicked" />
                             </Border.GestureRecognizers>
@@ -56,8 +56,8 @@
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                             <Image Source="icon_warning.svg" WidthRequest="22" HeightRequest="22" VerticalOptions="Center" />
                             <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                <Label Text="Finish Setting Up Profile" FontAttributes="Bold" TextColor="{StaticResource WarningText}" FontSize="13" />
-                                <Label Text="Please update your Mobile Number and Date of Birth." TextColor="{StaticResource WarningText}" FontSize="11.5" />
+                                <Label Text="Finish Setting Up Profile" FontAttributes="Bold" TextColor="{StaticResource Warning}" FontSize="13" />
+                                <Label Text="Please update your Mobile Number and Date of Birth." TextColor="{StaticResource Warning}" FontSize="11.5" />
                             </VerticalStackLayout>
                         </Grid>
                     </Border>
@@ -73,7 +73,10 @@
 
                             <!-- Full Name -->
                             <VerticalStackLayout Spacing="4">
-                                <Label Text="Full Name" FontSize="11.5" TextColor="{StaticResource MutedText}" IsVisible="{Binding IsEditing}" />
+                                <HorizontalStackLayout Spacing="3" IsVisible="{Binding IsEditing}">
+                                    <Label Text="Full Name" FontSize="11.5" TextColor="{StaticResource MutedText}" />
+                                    <Label Text="*" TextColor="{StaticResource Danger}" FontSize="11.5" FontAttributes="Bold" />
+                                </HorizontalStackLayout>
                                 <Grid ColumnDefinitions="30,*" ColumnSpacing="4">
                                     <Image Grid.Column="0" Source="icon_user.svg" Style="{StaticResource ListIconStyle}" VerticalOptions="Center" />
                                     <Label Grid.Column="1" Text="{Binding UserName}" FontSize="13" TextColor="{StaticResource PrimaryNavy}" VerticalOptions="Center" HeightRequest="40" VerticalTextAlignment="Center" IsVisible="{Binding IsNotEditing}" />
@@ -146,16 +149,18 @@
                     <Border Style="{StaticResource CardStyle}">
                         <VerticalStackLayout Spacing="12">
                             <!-- Medical Records -->
-                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="0,4">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnMedicalRecordsClicked" />
-                                </Grid.GestureRecognizers>
-                                <Image Source="{StaticResource IconDocument}" Style="{StaticResource ListIconStyle}" />
-                                <Label Grid.Column="1" Text="Medical Records" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource MutedText}" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView Style="{StaticResource DividerStyle}" />
-
+                            <VerticalStackLayout IsVisible="{Binding IsNotAdmin}">
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="0,4">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnMedicalRecordsClicked" />
+                                    </Grid.GestureRecognizers>
+                                    <Image Source="{StaticResource IconDocument}" Style="{StaticResource ListIconStyle}" />
+                                    <Label Grid.Column="1" Text="Medical Records" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
+                                    <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource MutedText}" VerticalOptions="Center" />
+                                </Grid>
+                                <BoxView Style="{StaticResource DividerStyle}" />
+                            </VerticalStackLayout>
+                            
                             <!-- Notifications -->
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="0,4">
                                 <Grid.GestureRecognizers>
@@ -163,7 +168,8 @@
                                 </Grid.GestureRecognizers>
                                 <Image Source="{StaticResource IconBell}" Style="{StaticResource ListIconStyle}" />
                                 <Label Grid.Column="1" Text="Notifications" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource MutedText}" VerticalOptions="Center" />
+                                <Switch Grid.Column="2" IsToggled="{Binding NotificationsEnabled}" OnColor="{StaticResource PrimaryBlue}" ThumbColor="White" IsVisible="{Binding IsAdmin}" />
+                                <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource MutedText}" VerticalOptions="Center" IsVisible="{Binding IsNotAdmin}" />
                             </Grid>
                             <BoxView Style="{StaticResource DividerStyle}" />
 

@@ -112,23 +112,20 @@ public class ClinicRepository
             Address = FirestoreService.GetString(fields, "address"),
             Latitude = FirestoreService.GetDouble(fields, "latitude"),
             Longitude = FirestoreService.GetDouble(fields, "longitude"),
-            Phone = FirestoreService.GetString(fields, "phone"),
-            OpeningHoursMonFri = FirestoreService.GetString(fields, "openingHoursMonFri"),
-            OpeningHoursSatSun = FirestoreService.GetString(fields, "openingHoursSatSun"),
-            Status = FirestoreService.GetString(fields, "status").IfEmpty("Open")
+            ScheduleJson = FirestoreService.GetString(fields, "scheduleJson")
         };
     }
 
-    private static Dictionary<string, object> MapToFirestore(Clinic clinic) => new()
+    private static Dictionary<string, object> MapToFirestore(Clinic clinic)
     {
-        { "name", clinic.Name },
-        { "address", clinic.Address },
-        { "latitude", clinic.Latitude },
-        { "longitude", clinic.Longitude },
-        { "phone", clinic.Phone ?? "" },
-        { "openingHoursMonFri", clinic.OpeningHoursMonFri ?? "Mon-Fri: 8:00 AM - 6:00 PM" },
-        { "openingHoursSatSun", clinic.OpeningHoursSatSun ?? "Sat: 9:00 AM - 1:00 PM" },
-        { "status", clinic.Status ?? "Open" },
-        { "updatedAt", DateTime.UtcNow }
-    };
+        var dict = new Dictionary<string, object>
+        {
+            { "name", clinic.Name },
+            { "address", clinic.Address },
+            { "latitude", clinic.Latitude },
+            { "longitude", clinic.Longitude }
+        };
+        if (!string.IsNullOrEmpty(clinic.ScheduleJson)) dict["scheduleJson"] = clinic.ScheduleJson;
+        return dict;
+    }
 }

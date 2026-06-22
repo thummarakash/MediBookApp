@@ -85,6 +85,14 @@ public partial class DocumentsPage : ContentPage
         }
     }
 
+    private void OnDocumentCardTapped(object sender, EventArgs e)
+    {
+        if (sender is Border border && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap && tap.CommandParameter is Models.MedicalDocument doc)
+        {
+            _vm.ViewDocumentCommand.Execute(doc);
+        }
+    }
+
     private async void OnBackClicked(object sender, EventArgs e)
         => await Shell.Current.GoToAsync("//profile");
 }

@@ -19,6 +19,10 @@ public class UserAccount
     public string Role { get; set; } = "Patient";
     public string FCMToken { get; set; } = string.Empty;
     public string AvatarUrl { get; set; } = string.Empty;
+    public double AvatarScale { get; set; } = 1.0;
+    public double AvatarX { get; set; } = 0.0;
+    public double AvatarY { get; set; } = 0.0;
+    public double AvatarRotation { get; set; } = 0.0;
     public bool NotificationsEnabled { get; set; } = true;
     public bool LocationPermissionGranted { get; set; } = false;
     public bool BiometricEnabled { get; set; } = false;

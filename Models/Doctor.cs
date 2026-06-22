@@ -7,6 +7,7 @@ public class Doctor
     public string ClinicFirestoreId { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public string Specialty { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
     public string Availability { get; set; } = string.Empty;
@@ -20,6 +21,23 @@ public class Doctor
     public double FeePerMinute { get; set; } = 3.00;
     public int SlotDurationMinutes { get; set; } = 30;
     public bool IsActive { get; set; } = true;
+    public string? ScheduleJson { get; set; }
+
+    private WeeklySchedule? _weeklySchedule;
+    public WeeklySchedule GetWeeklySchedule()
+    {
+        if (_weeklySchedule == null)
+        {
+            _weeklySchedule = WeeklySchedule.FromJson(ScheduleJson);
+        }
+        return _weeklySchedule;
+    }
+
+    public void UpdateSchedule(WeeklySchedule schedule)
+    {
+        _weeklySchedule = schedule;
+        ScheduleJson = schedule.ToJson();
+    }
 
     public string ClinicName { get; set; } = string.Empty;
     public string DistanceText { get; set; } = string.Empty;

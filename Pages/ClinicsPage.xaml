@@ -15,7 +15,7 @@
                         <Label Text="Find Clinics" FontSize="20" FontAttributes="Bold" TextColor="White" />
                         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                             <Image Source="icon_map.svg" HeightRequest="14" WidthRequest="14" VerticalOptions="Center" />
-                            <Label Text="Melbourne CBD, VIC" TextColor="{StaticResource Aqua}" FontSize="12.5" VerticalOptions="Center" />
+                            <Label x:Name="UserLocationLabel" Text="-" TextColor="{StaticResource Aqua}" FontSize="12.5" VerticalOptions="Center" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
 

@@ -63,6 +63,15 @@ public partial class BookAppointmentViewModel : ObservableObject
     [ObservableProperty]
     private string _summaryDateTimeText = string.Empty;
 
+    [ObservableProperty]
+    private ObservableCollection<string> _availableSlots = new();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotClosed))]
+    private bool _isClosed;
+
+    public bool IsNotClosed => !IsClosed;
+
     partial void OnDoctorIdChanged(string value)
     {
         _ = LoadInitialDoctorAsync(value);
@@ -73,12 +82,64 @@ public partial class BookAppointmentViewModel : ObservableObject
         FilterDoctors();
     }
 
-    partial void OnSelectedDateChanged(DateTime value) => UpdateSummaryDateTime();
+    partial void OnSelectedDoctorChanged(Doctor? value)
+    {
+        GenerateTimeSlots();
+    }
+
+    partial void OnSelectedDateChanged(DateTime value)
+    {
+        UpdateSummaryDateTime();
+        GenerateTimeSlots();
+    }
+
     partial void OnSelectedTimeChanged(string value) => UpdateSummaryDateTime();
 
     private void UpdateSummaryDateTime()
     {
         SummaryDateTimeText = $"{SelectedDate:dd MMM yyyy} at {SelectedTime}";
+    }
+
+    private void GenerateTimeSlots()
+    {
+        AvailableSlots.Clear();
+        if (SelectedDoctor == null)
+        {
+            IsClosed = true;
+            return;
+        }
+
+        var schedule = SelectedDoctor.GetWeeklySchedule();
+        var daySched = schedule.GetDaySchedule(SelectedDate.DayOfWeek);
+
+        if (daySched == null || !daySched.IsOpen)
+        {
+            IsClosed = true;
+            return;
+        }
+
+        try
+        {
+            if (DateTime.TryParse(daySched.OpenTime, out var openDt) &&
+                DateTime.TryParse(daySched.CloseTime, out var closeDt))
+            {
+                int slotDuration = SelectedDoctor.SlotDurationMinutes;
+                if (slotDuration <= 0) slotDuration = 30;
+
+                var current = openDt;
+                while (current + TimeSpan.FromMinutes(slotDuration) <= closeDt)
+                {
+                    AvailableSlots.Add(current.ToString("hh:mm tt"));
+                    current = current.AddMinutes(slotDuration);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BookAppointmentVM] Slot gen error: {ex.Message}");
+        }
+
+        IsClosed = AvailableSlots.Count == 0;
     }
 
     public async Task InitializeAsync()

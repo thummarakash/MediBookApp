@@ -79,14 +79,9 @@
                                 <!-- Doctor Info -->
                                 <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
                                     <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="15" TextColor="{StaticResource PrimaryNavy}" />
+                                    <Label Text="{Binding Email}" FontSize="12.5" TextColor="{StaticResource PrimaryBlue}" />
                                     <Label Text="{Binding Specialty}" TextColor="{StaticResource PrimaryBlue}" FontAttributes="Bold" FontSize="12.5" />
-                                    <HorizontalStackLayout Spacing="8">
-                                        <Label Text="{Binding ClinicName}" FontSize="11.5" Style="{StaticResource MutedLabel}" />
-                                        <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
-                                            <Image Source="{StaticResource IconStar}" HeightRequest="12" WidthRequest="12" VerticalOptions="Center" />
-                                            <Label Text="{Binding Rating}" FontSize="11" TextColor="{StaticResource PrimaryNavy}" FontAttributes="Bold" />
-                                        </HorizontalStackLayout>
-                                    </HorizontalStackLayout>
+                                    <Label Text="{Binding ClinicName}" FontSize="11.5" Style="{StaticResource MutedLabel}" />
                                 </VerticalStackLayout>
                             </Grid>
                         </Border>

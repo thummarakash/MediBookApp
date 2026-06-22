@@ -26,10 +26,34 @@ public partial class ClinicDetailPage : ContentPage
         {
             ClinicNameLabel.Text = _clinic.Name;
             ClinicAddressLabel.Text = _clinic.Address;
-            ClinicPhoneLabel.Text = _clinic.Phone;
-            ClinicRatingLabel.Text = $"{_clinic.Rating} ({_clinic.RatingCount} reviews)";
-            HoursMonFriLabel.Text = _clinic.OpeningHoursMonFri;
-            HoursSatSunLabel.Text = _clinic.OpeningHoursSatSun;
+
+            // Populate weekly hours
+            HoursListLayout.Children.Clear();
+            var sched = _clinic.GetWeeklySchedule();
+            var days = new[]
+            {
+                ("Monday", sched.Monday),
+                ("Tuesday", sched.Tuesday),
+                ("Wednesday", sched.Wednesday),
+                ("Thursday", sched.Thursday),
+                ("Friday", sched.Friday),
+                ("Saturday", sched.Saturday),
+                ("Sunday", sched.Sunday)
+            };
+            foreach (var (dayName, daySched) in days)
+            {
+                var text = daySched.IsOpen 
+                    ? $"{dayName}: {daySched.OpenTime} - {daySched.CloseTime}" 
+                    : $"{dayName}: Closed";
+                
+                HoursListLayout.Children.Add(new Label
+                {
+                    Text = text,
+                    FontSize = 13,
+                    TextColor = daySched.IsOpen ? Color.FromArgb("#1D2939") : Color.FromArgb("#667085"),
+                    Margin = new Thickness(0, 2)
+                });
+            }
 
             SpecialtiesFlex.Children.Clear();
             foreach (var spec in _clinic.Specialties)

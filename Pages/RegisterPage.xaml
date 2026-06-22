@@ -21,6 +21,10 @@
             <VerticalStackLayout Padding="20,20" Spacing="16">
                 <VerticalStackLayout Spacing="12">
                     <!-- Full Name -->
+                    <HorizontalStackLayout Spacing="3" Margin="0,4,0,0">
+                        <Label Text="Full Name" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Label Text="*" TextColor="{StaticResource Danger}" FontAttributes="Bold" FontSize="13.5" />
+                    </HorizontalStackLayout>
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
                             <Image Source="icon_user.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
@@ -29,6 +33,10 @@
                     </Border>
 
                     <!-- Email -->
+                    <HorizontalStackLayout Spacing="3" Margin="0,4,0,0">
+                        <Label Text="Email" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Label Text="*" TextColor="{StaticResource Danger}" FontAttributes="Bold" FontSize="13.5" />
+                    </HorizontalStackLayout>
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
                             <Image Source="icon_email.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
@@ -37,6 +45,7 @@
                     </Border>
 
                     <!-- Phone -->
+                    <Label Text="Phone Number" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" Margin="0,4,0,0" />
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
                             <Image Source="icon_phone.svg" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
@@ -45,6 +54,7 @@
                     </Border>
 
                     <!-- DOB -->
+                    <Label Text="Date of Birth" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" Margin="0,4,0,0" />
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*">
                             <Image Source="icon_calendar.svg" Grid.Column="0" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
@@ -53,6 +63,10 @@
                     </Border>
 
                     <!-- Password -->
+                    <HorizontalStackLayout Spacing="3" Margin="0,4,0,0">
+                        <Label Text="Password" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Label Text="*" TextColor="{StaticResource Danger}" FontAttributes="Bold" FontSize="13.5" />
+                    </HorizontalStackLayout>
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*,Auto">
                             <Image Source="icon_lock.svg" Grid.Column="0" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
@@ -62,6 +76,10 @@
                     </Border>
 
                     <!-- Confirm Password -->
+                    <HorizontalStackLayout Spacing="3" Margin="0,4,0,0">
+                        <Label Text="Confirm Password" FontAttributes="Bold" FontSize="13.5" TextColor="{StaticResource PrimaryNavy}" />
+                        <Label Text="*" TextColor="{StaticResource Danger}" FontAttributes="Bold" FontSize="13.5" />
+                    </HorizontalStackLayout>
                     <Border Style="{StaticResource InputBorderStyle}">
                         <Grid ColumnDefinitions="Auto,*,Auto">
                             <Image Source="{StaticResource IconLock}" Grid.Column="0" HeightRequest="20" WidthRequest="20" Margin="0,0,10,0" VerticalOptions="Center" />
@@ -70,7 +88,7 @@
                         </Grid>
                     </Border>
 
-                    <Button Text="Create Account" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnCreateClicked" Margin="0,6,0,0" />
+                    <Button Text="Create Account" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnCreateClicked" Margin="0,12,0,0" />
 
                     <!-- Login Link -->
                     <HorizontalStackLayout HorizontalOptions="Center" Margin="0,12,0,0" Spacing="4">

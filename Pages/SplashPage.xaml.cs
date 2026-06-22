@@ -51,7 +51,14 @@ public partial class SplashPage : ContentPage
         if (hasSession)
         {
             var user = await DatabaseService.Instance.GetCurrentUserAsync();
-            string targetRoute = (user != null && user.Role == "Admin") ? "//admindashboard" : "//home";
+            if (user == null)
+            {
+                await DatabaseService.Instance.LogoutAsync();
+                await Shell.Current.GoToAsync("//login");
+                return;
+            }
+
+            string targetRoute = user.Role == "Admin" ? "//admindashboard" : "//home";
 
             bool biometricsOn = BiometricService.Instance.IsBiometricsEnabled();
             bool pinOn = BiometricService.Instance.IsPinEnabled()

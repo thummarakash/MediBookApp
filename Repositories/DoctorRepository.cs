@@ -109,38 +109,29 @@ public class DoctorRepository
         {
             FirestoreId = id,
             Name = FirestoreService.GetString(fields, "name"),
+            Email = FirestoreService.GetString(fields, "email"),
             Specialty = FirestoreService.GetString(fields, "specialty"),
             Department = FirestoreService.GetString(fields, "department"),
-            Availability = FirestoreService.GetString(fields, "availability"),
-            Experience = FirestoreService.GetString(fields, "experience"),
-            Rating = FirestoreService.GetString(fields, "rating"),
-            Bio = FirestoreService.GetString(fields, "bio"),
-            AccentColor = FirestoreService.GetString(fields, "accentColor").IfEmpty("#155EEF"),
             FeePerAppointment = FirestoreService.GetDouble(fields, "feePerAppointment"),
-            FeePerMinute = FirestoreService.GetDouble(fields, "feePerMinute"),
-            SlotDurationMinutes = FirestoreService.GetInt(fields, "slotDurationMinutes", 20),
-            IsActive = FirestoreService.GetBool(fields, "isActive", true),
             ClinicName = FirestoreService.GetString(fields, "clinicName"),
-            ClinicFirestoreId = FirestoreService.GetString(fields, "clinicFirestoreId")
+            ClinicFirestoreId = FirestoreService.GetString(fields, "clinicFirestoreId"),
+            ScheduleJson = FirestoreService.GetString(fields, "scheduleJson")
         };
     }
 
-    private static Dictionary<string, object> MapToFirestore(Doctor doctor) => new()
+    private static Dictionary<string, object> MapToFirestore(Doctor doctor)
     {
-        { "name", doctor.Name },
-        { "specialty", doctor.Specialty },
-        { "department", doctor.Department },
-        { "availability", doctor.Availability },
-        { "experience", doctor.Experience },
-        { "rating", doctor.Rating },
-        { "bio", doctor.Bio },
-        { "accentColor", doctor.AccentColor },
-        { "feePerAppointment", doctor.FeePerAppointment },
-        { "feePerMinute", doctor.FeePerMinute },
-        { "slotDurationMinutes", doctor.SlotDurationMinutes },
-        { "isActive", doctor.IsActive },
-        { "clinicName", doctor.ClinicName ?? "" },
-        { "clinicFirestoreId", doctor.ClinicFirestoreId ?? "" },
-        { "updatedAt", DateTime.UtcNow }
-    };
+        var dict = new Dictionary<string, object>
+        {
+            { "name", doctor.Name },
+            { "email", doctor.Email },
+            { "specialty", doctor.Specialty },
+            { "department", doctor.Department },
+            { "feePerAppointment", doctor.FeePerAppointment }
+        };
+        if (!string.IsNullOrEmpty(doctor.ClinicName)) dict["clinicName"] = doctor.ClinicName;
+        if (!string.IsNullOrEmpty(doctor.ClinicFirestoreId)) dict["clinicFirestoreId"] = doctor.ClinicFirestoreId;
+        if (!string.IsNullOrEmpty(doctor.ScheduleJson)) dict["scheduleJson"] = doctor.ScheduleJson;
+        return dict;
+    }
 }

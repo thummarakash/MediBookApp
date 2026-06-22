@@ -5,6 +5,7 @@ namespace MediBook.Pages;
 public partial class DoctorsPage : ContentPage
 {
     private readonly DoctorsViewModel _vm = new();
+    private bool _isAdmin = false;
 
     public DoctorsPage()
     {
@@ -15,6 +16,8 @@ public partial class DoctorsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        var user = await Services.DatabaseService.Instance.GetCurrentUserAsync();
+        _isAdmin = user?.Role == "Admin";
         await _vm.LoadDoctorsCommand.ExecuteAsync(null);
     }
 
@@ -27,26 +30,42 @@ public partial class DoctorsPage : ContentPage
     {
         if (sender is Border border && border.GestureRecognizers.FirstOrDefault() is TapGestureRecognizer tap && tap.CommandParameter is Models.Doctor doctor)
         {
-            string details = $"Specialty: {doctor.Specialty}\n" +
-                             $"Department: {doctor.Department}\n" +
-                             $"Clinic: {doctor.ClinicName}\n" +
-                             $"Experience: {doctor.Experience}\n" +
-                             $"Rating: {doctor.Rating} ⭐\n" +
-                             $"Availability: {doctor.Availability}\n" +
-                             $"Fee: ${doctor.FeePerAppointment:F2} / {doctor.SlotDurationMinutes} mins\n\n" +
-                             $"About: {doctor.Bio}";
+            var dct = doctor;
+            string spclty = string.IsNullOrEmpty(dct.Specialty) ? "-" : dct.Specialty;
+            string dept = string.IsNullOrEmpty(dct.Department) ? "-" : dct.Department;
+            string email = string.IsNullOrEmpty(dct.Email) ? "-" : dct.Email;
+            string clnc = string.IsNullOrEmpty(dct.ClinicName) ? "-" : dct.ClinicName;
 
-            bool book = await ConfirmationPopupPage.ShowConfirmAsync(
-                Navigation, 
-                doctor.Name, 
-                details, 
-                "Book Appointment", 
-                "Close", 
-                "icon_doctor.svg"
-            );
-            if (book)
+            string dctDetals = $"Email: {email}\n" +
+                               $"Specialty: {spclty}\n" +
+                               $"Department: {dept}\n" +
+                               $"Clinic: {clnc}\n" +
+                               $"Fee: ${dct.FeePerAppointment:F2} / {dct.SlotDurationMinutes} mins";
+
+            if (_isAdmin)
             {
-                await Shell.Current.GoToAsync($"{nameof(BookAppointmentPage)}?doctorId={doctor.Id}");
+                await ConfirmationPopupPage.ShowAsync(
+                    Navigation, 
+                    dct.Name ?? "-", 
+                    dctDetals, 
+                    "icon_doctor.svg",
+                    "Close"
+                );
+            }
+            else
+            {
+                bool book = await ConfirmationPopupPage.ShowConfirmAsync(
+                    Navigation, 
+                    dct.Name ?? "-", 
+                    dctDetals, 
+                    "Book Appointment", 
+                    "Close", 
+                    "icon_doctor.svg"
+                );
+                if (book)
+                {
+                    await Shell.Current.GoToAsync($"{nameof(BookAppointmentPage)}?doctorId={dct.Id}");
+                }
             }
         }
     }

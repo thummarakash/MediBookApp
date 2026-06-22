@@ -434,6 +434,19 @@ public class DatabaseService
     public async Task MarkEmailReminderSentAsync(EmailReminder reminder)
         => await Task.CompletedTask;
 
+    public async Task<List<UserAccount>> GetAllUsersAsync()
+    {
+        try
+        {
+            return await UserRepository.Instance.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatabaseService] GetAllUsersAsync failed: {ex.Message}");
+            return new List<UserAccount>();
+        }
+    }
+
     public async Task SeedDefaultAdminAsync()
     {
         await AdminSeeder.SeedAdminAsync();

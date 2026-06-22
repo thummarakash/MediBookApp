@@ -25,7 +25,8 @@
                                 FontSize="11.5"
                                 Padding="14,0"
                                 VerticalOptions="Center"
-                                Clicked="OnBookClicked" />
+                                Clicked="OnBookClicked"
+                                IsVisible="{Binding IsNotAdmin}" />
                     </Grid>
 
                     <!-- Search Bar -->
@@ -83,12 +84,16 @@
                                 Padding="16,0"
                                 HorizontalOptions="Center"
                                 Margin="0,8,0,0"
-                                Clicked="OnBookClicked" />
+                                Clicked="OnBookClicked"
+                                IsVisible="{Binding IsNotAdmin}" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="x:Object">
                         <Border Style="{StaticResource CardStyle}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAppointmentCardTapped" CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                                 <Image Source="{StaticResource IconCalendar}" HeightRequest="50" WidthRequest="50" VerticalOptions="Center" />
                                 <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">

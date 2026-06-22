@@ -15,6 +15,12 @@ public partial class AppointmentsViewModel : ObservableObject
     [ObservableProperty] string selectedTab = "Upcoming";
     [ObservableProperty] bool isLoading;
     [ObservableProperty] bool isEmpty;
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotAdmin))]
+    bool isAdmin;
+
+    public bool IsNotAdmin => !IsAdmin;
 
     [RelayCommand]
     async Task LoadAppointmentsAsync()
@@ -22,6 +28,9 @@ public partial class AppointmentsViewModel : ObservableObject
         IsLoading = true;
         try
         {
+            var user = await DatabaseService.Instance.GetCurrentUserAsync();
+            IsAdmin = user?.Role == "Admin";
+
             var result = await DatabaseService.Instance.GetAppointmentsForCurrentUserAsync();
             _allAppointments = result ?? new List<Appointment>();
             ApplyFilters();

@@ -76,6 +76,9 @@
                         <DataTemplate x:DataType="models:MedicalDocument">
                             <Border BackgroundColor="{AppThemeBinding Light={StaticResource CardBg}, Dark={StaticResource CardBgDark}}" Padding="14" Margin="0,5" Stroke="{StaticResource BorderLight}" StrokeThickness="1">
                                 <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDocumentCardTapped" CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
                                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
                                     <Border BackgroundColor="{StaticResource SkyBlue}" HeightRequest="40" WidthRequest="40" StrokeThickness="0" VerticalOptions="Center">
                                         <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>

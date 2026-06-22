@@ -62,7 +62,75 @@ public partial class DocumentsViewModel : ObservableObject
     async Task ViewDocumentAsync(MedicalDocument doc)
     {
         if (doc == null) return;
-        await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Document Details", $"📄 {doc.FileName}\n\nType: {doc.DocumentType}\nUploaded: {doc.UploadedDateText}\nNotes: {doc.Notes}");
+
+        byte[] bytes = Array.Empty<byte>();
+        if (doc.StorageUrl != null && doc.StorageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            var parts = doc.StorageUrl.Split(',');
+            if (parts.Length > 1)
+            {
+                bytes = Convert.FromBase64String(parts[1]);
+            }
+        }
+        else if (!string.IsNullOrEmpty(doc.FilePath) && File.Exists(doc.FilePath))
+        {
+            bytes = await File.ReadAllBytesAsync(doc.FilePath);
+        }
+
+        if (bytes == null || bytes.Length == 0)
+        {
+            string fName = string.IsNullOrEmpty(doc.FileName) ? "-" : doc.FileName;
+            string docTyp = string.IsNullOrEmpty(doc.DocumentType) ? "-" : doc.DocumentType;
+            string uplDate = string.IsNullOrEmpty(doc.UploadedDateText) ? "-" : doc.UploadedDateText;
+            string ntes = string.IsNullOrEmpty(doc.Notes) ? "-" : doc.Notes;
+            string docmtDetails = $"📄 {fName}\n\nType: {docTyp}\nUploaded: {uplDate}\nNotes: {ntes}";
+
+            await Pages.ConfirmationPopupPage.ShowAsync(
+                Shell.Current.CurrentPage.Navigation, 
+                "Document Details", 
+                docmtDetails, 
+                "icon_document.svg"
+            );
+            return;
+        }
+
+        try
+        {
+            var tempDir = FileSystem.CacheDirectory;
+            var tempFilePath = Path.Combine(tempDir, doc.FileName);
+            await File.WriteAllBytesAsync(tempFilePath, bytes);
+
+            bool opened = await Launcher.Default.OpenAsync(new OpenFileRequest
+            {
+                File = new ReadOnlyFile(tempFilePath),
+                Title = doc.FileName
+            });
+
+            if (!opened)
+            {
+                string fName = string.IsNullOrEmpty(doc.FileName) ? "-" : doc.FileName;
+                string docTyp = string.IsNullOrEmpty(doc.DocumentType) ? "-" : doc.DocumentType;
+                string uplDate = string.IsNullOrEmpty(doc.UploadedDateText) ? "-" : doc.UploadedDateText;
+                string ntes = string.IsNullOrEmpty(doc.Notes) ? "-" : doc.Notes;
+                string docmtDetails = $"📄 {fName}\n\nType: {docTyp}\nUploaded: {uplDate}\nNotes: {ntes}";
+
+                await Pages.ConfirmationPopupPage.ShowAsync(
+                    Shell.Current.CurrentPage.Navigation, 
+                    "Document Details", 
+                    docmtDetails, 
+                    "icon_document.svg"
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            await Pages.ConfirmationPopupPage.ShowAsync(
+                Shell.Current.CurrentPage.Navigation, 
+                "Error", 
+                $"Could not open document: {ex.Message}", 
+                "icon_warning.svg"
+            );
+        }
     }
 
     [RelayCommand]
@@ -81,7 +149,80 @@ public partial class DocumentsViewModel : ObservableObject
     async Task DownloadDocumentAsync(MedicalDocument doc)
     {
         if (doc == null) return;
-        await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Download Complete", $"\"{doc.FileName}\" has been saved to your device.");
+
+        byte[] bytes = Array.Empty<byte>();
+        if (doc.StorageUrl != null && doc.StorageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        {
+            var parts = doc.StorageUrl.Split(',');
+            if (parts.Length > 1)
+            {
+                bytes = Convert.FromBase64String(parts[1]);
+            }
+        }
+        else if (!string.IsNullOrEmpty(doc.FilePath) && File.Exists(doc.FilePath))
+        {
+            bytes = await File.ReadAllBytesAsync(doc.FilePath);
+        }
+
+        if (bytes == null || bytes.Length == 0)
+        {
+            await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Download Failed", "Document content is empty or not available.");
+            return;
+        }
+
+        try
+        {
+#if ANDROID
+            var downloadsPath = Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath;
+            if (string.IsNullOrEmpty(downloadsPath))
+            {
+                downloadsPath = Path.Combine(Android.App.Application.Context.GetExternalFilesDir(null)?.AbsolutePath ?? "", "Downloads");
+            }
+            if (!Directory.Exists(downloadsPath))
+            {
+                Directory.CreateDirectory(downloadsPath);
+            }
+            
+            var destinationPath = Path.Combine(downloadsPath, doc.FileName);
+            
+            int count = 1;
+            string fileNameOnly = Path.GetFileNameWithoutExtension(doc.FileName);
+            string extension = Path.GetExtension(doc.FileName);
+            while (File.Exists(destinationPath))
+            {
+                destinationPath = Path.Combine(downloadsPath, $"{fileNameOnly}({count}){extension}");
+                count++;
+            }
+
+            await File.WriteAllBytesAsync(destinationPath, bytes);
+
+            try
+            {
+                var file = new Java.IO.File(destinationPath);
+                var mediaScanIntent = new Android.Content.Intent(Android.Content.Intent.ActionMediaScannerScanFile);
+                mediaScanIntent.SetData(Android.Net.Uri.FromFile(file));
+                Android.App.Application.Context.SendBroadcast(mediaScanIntent);
+            }
+            catch { }
+
+            await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Download Complete", $"Saved to Downloads:\n{Path.GetFileName(destinationPath)}");
+#else
+            using var stream = new MemoryStream(bytes);
+            var fileSaverResult = await CommunityToolkit.Maui.Storage.FileSaver.Default.SaveAsync(doc.FileName, stream, CancellationToken.None);
+            if (fileSaverResult.IsSuccessful)
+            {
+                await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Download Complete", $"Saved successfully to:\n{fileSaverResult.FilePath}");
+            }
+            else
+            {
+                await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Download Canceled", "The file was not saved.");
+            }
+#endif
+        }
+        catch (Exception ex)
+        {
+            await Pages.ConfirmationPopupPage.ShowAsync(Shell.Current.CurrentPage.Navigation, "Error", $"Failed to save document: {ex.Message}");
+        }
     }
 
     [RelayCommand]
