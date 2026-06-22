@@ -16,7 +16,7 @@
 
                     <!-- Circular Avatar Container with Pencil Overlay -->
                     <Grid HeightRequest="72" WidthRequest="72" HorizontalOptions="Center" Margin="0,4">
-                        <Border HeightRequest="64" WidthRequest="64" StrokeThickness="2" Stroke="White" BackgroundColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Center" IsClippedToBounds="True">
+                        <Border HeightRequest="64" WidthRequest="64" StrokeThickness="2" Stroke="White" BackgroundColor="{StaticResource PrimaryBlue}" HorizontalOptions="Center" VerticalOptions="Center">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnAvatarClicked" />
                             </Border.GestureRecognizers>
